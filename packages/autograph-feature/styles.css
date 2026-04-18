@@ -1,5 +1,5 @@
 .autograph-shell {
-  --autograph-page-max: 72rem;
+  --autograph-page-max: 80rem;
   --autograph-space-2: 0.75rem;
   --autograph-space-3: 1rem;
   --autograph-space-4: 1.25rem;
@@ -52,6 +52,19 @@
   --autograph-button-secondary-shadow: 0 8px 14px rgba(23, 52, 42, 0.08);
   --autograph-signed-glow: rgba(58, 132, 101, 0.3);
   --autograph-ring: rgba(186, 121, 43, 0.34);
+  --autograph-step-surface: linear-gradient(180deg, rgba(246, 250, 247, 0.98) 0%, rgba(236, 245, 240, 0.95) 100%);
+  --autograph-step-border: rgba(30, 71, 61, 0.18);
+  --autograph-step-shadow: 0 10px 22px rgba(23, 52, 42, 0.08);
+  --autograph-step-title: #14352d;
+  --autograph-step-detail: #345246;
+  --autograph-step-number-surface: linear-gradient(180deg, #1a4a3d 0%, #12392f 100%);
+  --autograph-step-number-text: #fffdf8;
+  --autograph-input-surface: #ffffff;
+  --autograph-input-text: #15352d;
+  --autograph-input-placeholder: #4d675d;
+  --autograph-input-selection-surface: #143f35;
+  --autograph-input-selection-text: #fffdf8;
+  --autograph-input-disabled-text: #60776f;
   --autograph-select-surface: #ffffff;
   --autograph-select-text: #15352d;
   --autograph-select-option-surface: #ffffff;
@@ -69,7 +82,7 @@
 
 .autograph-screen {
   display: grid;
-  gap: 1.5rem;
+  gap: 1.75rem;
   margin: 0 auto;
 }
 
@@ -224,7 +237,7 @@
 }
 
 .autograph-section-card {
-  padding: var(--autograph-space-5);
+  padding: clamp(1.25rem, 2vw, 1.7rem);
   gap: var(--autograph-space-4);
   border-radius: var(--autograph-radius-xl);
 }
@@ -249,8 +262,9 @@
   padding: 0.75rem 0.9rem;
   border: 1px solid var(--autograph-card-border);
   border-radius: 0.85rem;
-  background: var(--autograph-select-surface);
-  color: var(--autograph-select-text);
+  background: var(--autograph-input-surface);
+  color: var(--autograph-input-text);
+  caret-color: var(--autograph-input-text);
   transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
 }
 
@@ -259,8 +273,35 @@
   box-shadow:
     0 0 0 4px rgba(186, 121, 43, 0.12),
     0 12px 22px rgba(20, 58, 48, 0.08);
-  background: rgba(255, 255, 255, 1);
+  background: var(--autograph-input-surface);
+  color: var(--autograph-input-text);
   outline: none;
+}
+
+.autograph-shell .app-form-input::placeholder {
+  color: var(--autograph-input-placeholder);
+  opacity: 1;
+}
+
+.autograph-shell .app-form-input::selection,
+.autograph-shell textarea.app-form-input::selection,
+.autograph-shell input.app-form-input::selection {
+  background: var(--autograph-input-selection-surface);
+  color: var(--autograph-input-selection-text);
+}
+
+.autograph-shell .app-form-input:disabled {
+  color: var(--autograph-input-disabled-text);
+  -webkit-text-fill-color: var(--autograph-input-disabled-text);
+  opacity: 1;
+}
+
+.autograph-shell input.app-form-input:-webkit-autofill,
+.autograph-shell input.app-form-input:-webkit-autofill:hover,
+.autograph-shell input.app-form-input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--autograph-input-text);
+  -webkit-box-shadow: 0 0 0 1000px var(--autograph-input-surface) inset;
+  transition: background-color 9999s ease-out 0s;
 }
 
 .autograph-shell textarea.app-form-input {
@@ -272,6 +313,11 @@
   color-scheme: light;
   background-color: var(--autograph-select-surface);
   color: var(--autograph-select-text);
+}
+
+.autograph-shell ::selection {
+  background: var(--autograph-input-selection-surface);
+  color: var(--autograph-input-selection-text);
 }
 
 .autograph-shell select.app-form-input option,
@@ -401,9 +447,12 @@
 
 .autograph-hero {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "copy stats"
+    "steps steps";
   gap: var(--autograph-space-5);
-  padding: clamp(1.35rem, 3vw, 2rem);
+  padding: clamp(1.5rem, 3.2vw, 2.35rem);
   border-radius: var(--autograph-radius-xl);
   border: 1px solid var(--autograph-card-border);
   background:
@@ -415,8 +464,30 @@
 }
 
 .autograph-hero-copy {
+  grid-area: copy;
   display: grid;
-  gap: var(--autograph-space-2);
+  align-content: start;
+  gap: 0.85rem;
+}
+
+.autograph-hero-guidance {
+  display: grid;
+  gap: 0.35rem;
+  max-width: 46rem;
+  padding: 0.85rem 0.95rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(30, 71, 61, 0.1);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.72) 0%, rgba(247, 251, 248, 0.82) 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.autograph-hero-guidance-label {
+  margin: 0;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--autograph-kicker);
 }
 
 .autograph-hero::after {
@@ -450,17 +521,18 @@
 
 .autograph-hero-description {
   margin: 0;
-  max-width: 42rem;
   color: var(--autograph-heading-color);
-  font-size: 1rem;
-  line-height: 1.65;
+  font-size: 1.02rem;
+  line-height: 1.7;
 }
 
 .autograph-quick-steps {
+  grid-area: steps;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: stretch;
   gap: var(--autograph-space-3);
-  margin-top: var(--autograph-space-2);
+  margin-top: 0.1rem;
 }
 
 .autograph-quick-step {
@@ -468,13 +540,14 @@
   grid-template-columns: auto 1fr;
   gap: var(--autograph-space-2);
   align-items: start;
-  padding: 0.95rem 1rem;
+  min-height: 100%;
+  padding: 1.05rem 1.1rem;
   border-radius: 1rem;
-  border: 1px solid rgba(30, 71, 61, 0.1);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.76) 0%, rgba(250, 252, 250, 0.66) 100%),
-    radial-gradient(circle at top right, rgba(216, 187, 137, 0.12), transparent 10rem);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  border: 1px solid var(--autograph-step-border);
+  background: var(--autograph-step-surface);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.72),
+    var(--autograph-step-shadow);
 }
 
 .autograph-quick-step-number {
@@ -484,15 +557,16 @@
   width: 2rem;
   height: 2rem;
   border-radius: 999px;
-  background: var(--autograph-accent-soft);
-  color: var(--autograph-accent-strong);
+  background: var(--autograph-step-number-surface);
+  color: var(--autograph-step-number-text);
   font-size: 0.8rem;
   font-weight: 800;
+  box-shadow: 0 8px 16px rgba(20, 58, 48, 0.18);
 }
 
 .autograph-quick-step-copy {
   display: grid;
-  gap: 0.15rem;
+  gap: 0.2rem;
 }
 
 .autograph-quick-step-title,
@@ -501,23 +575,25 @@
 }
 
 .autograph-quick-step-title {
-  font-size: 0.92rem;
+  font-size: 0.95rem;
   font-weight: 700;
-  color: var(--autograph-heading-color);
+  color: var(--autograph-step-title);
 }
 
 .autograph-quick-step-detail {
-  font-size: 0.84rem;
-  color: var(--autograph-copy-color);
-  line-height: 1.5;
+  font-size: 0.86rem;
+  color: var(--autograph-step-detail);
+  line-height: 1.55;
 }
 
 .autograph-hero-stats {
+  grid-area: stats;
   display: grid;
-  grid-template-columns: repeat(3, minmax(7rem, 1fr));
+  grid-template-columns: repeat(3, minmax(7.5rem, 1fr));
   align-content: start;
   gap: var(--autograph-space-2);
-  min-width: 22rem;
+  min-width: 24rem;
+  align-self: start;
 }
 
 .autograph-stat {
@@ -578,12 +654,13 @@
 .autograph-lanes {
   display: grid;
   grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
-  gap: var(--autograph-space-4);
+  align-items: start;
+  gap: 1.1rem;
 }
 
 .autograph-lane {
   border-radius: var(--autograph-radius-xl);
-  padding: 1.1rem;
+  padding: 1.2rem;
   border: 1px solid var(--autograph-card-border);
   box-shadow: var(--autograph-shadow-soft);
   display: grid;
@@ -623,7 +700,7 @@
 
 .autograph-lane-header {
   display: flex;
-  align-items: baseline;
+  align-items: flex-start;
   justify-content: space-between;
   gap: var(--autograph-space-3);
 }
@@ -697,9 +774,9 @@
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.82) 100%),
     var(--autograph-card-bg);
-  padding: 1rem;
+  padding: 1.05rem;
   display: grid;
-  gap: 0.65rem;
+  gap: 0.72rem;
   transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, background 0.18s ease;
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.72) inset,
@@ -715,7 +792,7 @@
 
 .autograph-request-card-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: var(--autograph-space-2);
 }
@@ -753,7 +830,7 @@
 
 .autograph-section-header {
   display: grid;
-  gap: var(--autograph-space-2);
+  gap: 0.8rem;
 }
 
 .autograph-section-step {
@@ -769,7 +846,7 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: var(--autograph-space-3);
+  gap: 1rem;
 }
 
 .autograph-setup-badge {
@@ -805,9 +882,9 @@
   border-radius: 1rem;
   border: 1px solid var(--autograph-context-border);
   background: var(--autograph-context-bg);
-  padding: 0.9rem 1rem;
+  padding: 0.95rem 1rem;
   display: grid;
-  gap: 0.24rem;
+  gap: 0.3rem;
 }
 
 .autograph-context-panel.compact {
@@ -845,9 +922,25 @@
   gap: var(--autograph-space-3);
 }
 
+.autograph-composer-grid {
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  align-items: start;
+}
+
+.autograph-composer-grid > .autograph-suggestion-row,
+.autograph-composer-grid > .autograph-context-panel,
+.autograph-composer-grid > .autograph-inline-note,
+.autograph-composer-grid > .autograph-form-actions {
+  grid-column: 1 / -1;
+}
+
 .autograph-profile-grid {
   grid-template-columns: minmax(0, 1.2fr) minmax(11rem, 0.7fr) auto;
   align-items: end;
+}
+
+.autograph-identity-panel {
+  grid-column: 1 / -1;
 }
 
 .autograph-field {
@@ -880,6 +973,15 @@
   flex-wrap: wrap;
 }
 
+.autograph-form-meta {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--autograph-space-3);
+  flex-wrap: wrap;
+}
+
 .autograph-form-actions-end {
   align-self: end;
 }
@@ -888,6 +990,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.55rem;
+  align-items: center;
 }
 
 .autograph-suggestion-chip {
@@ -1007,6 +1110,8 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--autograph-meta-color);
+  font-weight: 700;
+  white-space: nowrap;
 }
 
 .autograph-status-pill {
@@ -1060,22 +1165,30 @@
 
 .autograph-outbox {
   border-radius: var(--autograph-radius-xl);
-  padding: 1.1rem;
+  padding: 1.2rem;
   border: 1px solid var(--autograph-tone-border, rgba(47, 93, 80, 0.22));
   background: var(--autograph-tone-surface);
   box-shadow: var(--autograph-shadow-soft);
   display: grid;
-  gap: 0.8rem;
+  gap: 1rem;
   position: relative;
+}
+
+.autograph-outbox-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 0.85rem;
 }
 
 .autograph-outbox-card {
   border-radius: 0.95rem;
   border: 1px solid color-mix(in srgb, var(--autograph-tone-border), white 40%);
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.9) 0%, color-mix(in srgb, var(--autograph-tone-surface), white 35%) 100%);
-  padding: 0.82rem;
+  min-height: 100%;
+  padding: 0.9rem;
   display: grid;
-  gap: 0.45rem;
+  align-content: start;
+  gap: 0.5rem;
 }
 
 .autograph-archive-message,
@@ -1200,6 +1313,10 @@
     flex-direction: column;
   }
 
+  .autograph-composer-grid {
+    grid-template-columns: 1fr;
+  }
+
   .autograph-profile-grid {
     grid-template-columns: 1fr;
   }
@@ -1259,6 +1376,10 @@
 
   .autograph-form-actions {
     justify-content: stretch;
+  }
+
+  .autograph-form-meta {
+    align-items: flex-start;
   }
 
   .autograph-form-actions > * {
@@ -1335,6 +1456,19 @@
     --autograph-button-secondary-border: rgba(171, 214, 194, 0.34);
     --autograph-button-secondary-shadow: 0 8px 14px rgba(0, 0, 0, 0.24);
     --autograph-ring: rgba(224, 182, 116, 0.58);
+    --autograph-step-surface: linear-gradient(180deg, rgba(34, 58, 48, 0.96) 0%, rgba(26, 46, 38, 0.94) 100%);
+    --autograph-step-border: rgba(171, 214, 194, 0.34);
+    --autograph-step-shadow: 0 12px 24px rgba(0, 0, 0, 0.24);
+    --autograph-step-title: #f4f8f6;
+    --autograph-step-detail: #dbe9e2;
+    --autograph-step-number-surface: linear-gradient(180deg, #f0d39f 0%, #cf9d56 100%);
+    --autograph-step-number-text: #1d160d;
+    --autograph-input-surface: #1a2b25;
+    --autograph-input-text: #f4f8f6;
+    --autograph-input-placeholder: #d7e6df;
+    --autograph-input-selection-surface: #f0d39f;
+    --autograph-input-selection-text: #1d160d;
+    --autograph-input-disabled-text: #bfd3ca;
     --autograph-select-surface: rgba(26, 43, 37, 0.98);
     --autograph-select-text: #f4f8f6;
     --autograph-select-option-surface: #1b332b;
@@ -1349,9 +1483,10 @@
   }
 
   .autograph-shell .app-form-input {
-    background: rgba(26, 43, 37, 0.92);
+    background: var(--autograph-input-surface);
     border-color: rgba(171, 214, 194, 0.28);
-    color: var(--autograph-heading-color);
+    color: var(--autograph-input-text);
+    caret-color: var(--autograph-input-text);
   }
 
   .autograph-shell .app-alert-error {
@@ -1364,6 +1499,12 @@
     background:
       linear-gradient(115deg, rgba(28, 48, 40, 0.95) 0%, rgba(21, 38, 32, 0.92) 70%),
       radial-gradient(circle at 82% 20%, rgba(224, 182, 116, 0.15) 0%, rgba(224, 182, 116, 0) 48%);
+  }
+
+  .autograph-hero-guidance {
+    border-color: rgba(171, 214, 194, 0.18);
+    background: linear-gradient(180deg, rgba(37, 62, 52, 0.82) 0%, rgba(28, 48, 40, 0.78) 100%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
   }
 
   .autograph-hero::after {
@@ -1467,14 +1608,12 @@
   }
 
   .autograph-hero-description,
-  .autograph-quick-step-title,
   .autograph-section-step,
   .autograph-context-label,
   .autograph-context-title {
     color: var(--autograph-heading-color);
   }
 
-  .autograph-quick-step-detail,
   .autograph-inline-note,
   .autograph-context-detail {
     color: var(--autograph-copy-color);

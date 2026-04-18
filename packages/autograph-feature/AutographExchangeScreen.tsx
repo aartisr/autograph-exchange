@@ -35,6 +35,7 @@ export function AutographExchangeScreen(props: AutographExchangeScreenProps) {
     signaturePreset,
     effectiveProfileName,
     effectiveProfileRole,
+    sessionIdentity,
     onProfileSubmit,
     onRequestSubmit,
     onSignRequest,
@@ -77,6 +78,7 @@ export function AutographExchangeScreen(props: AutographExchangeScreenProps) {
         setIsEditingProfile={setIsEditingProfile}
         effectiveProfileName={effectiveProfileName}
         effectiveProfileRole={effectiveProfileRole}
+        sessionIdentity={sessionIdentity}
         profileForm={profileForm}
         setProfileForm={setProfileForm}
         roleOptions={roleOptions}

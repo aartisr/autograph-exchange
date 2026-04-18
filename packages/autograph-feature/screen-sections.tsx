@@ -73,11 +73,9 @@ export function HeroSection({
         <h2 id={titleId} className="autograph-hero-title">
           {copy.heroTitle}
         </h2>
-        <p className="autograph-hero-description">{nextAction}</p>
-        <div className="autograph-quick-steps" aria-label="How autograph exchange works">
-          <QuickStep step="1" title={copy.stepOneTitle} detail={copy.stepOneDetail} />
-          <QuickStep step="2" title={copy.stepTwoTitle} detail={copy.stepTwoDetail} />
-          <QuickStep step="3" title={copy.stepThreeTitle} detail={copy.stepThreeDetail} />
+        <div className="autograph-hero-guidance">
+          <p className="autograph-hero-guidance-label">What to do next</p>
+          <p className="autograph-hero-description">{nextAction}</p>
         </div>
       </div>
       <div className="autograph-hero-stats">
@@ -94,6 +92,11 @@ export function HeroSection({
           <span className="autograph-stat-value">{archiveCount}</span>
         </article>
       </div>
+      <div className="autograph-quick-steps" aria-label="How autograph exchange works">
+        <QuickStep step="1" title={copy.stepOneTitle} detail={copy.stepOneDetail} />
+        <QuickStep step="2" title={copy.stepTwoTitle} detail={copy.stepTwoDetail} />
+        <QuickStep step="3" title={copy.stepThreeTitle} detail={copy.stepThreeDetail} />
+      </div>
     </section>
   );
 }
@@ -105,6 +108,7 @@ export interface ProfileSectionProps {
   setIsEditingProfile: React.Dispatch<React.SetStateAction<boolean>>;
   effectiveProfileName: string;
   effectiveProfileRole: AutographRole;
+  sessionIdentity: string;
   profileForm: ProfileFormState;
   setProfileForm: React.Dispatch<React.SetStateAction<ProfileFormState>>;
   roleOptions: RoleOption[];
@@ -119,6 +123,7 @@ export function ProfileSection({
   setIsEditingProfile,
   effectiveProfileName,
   effectiveProfileRole,
+  sessionIdentity,
   profileForm,
   setProfileForm,
   roleOptions,
@@ -147,11 +152,14 @@ export function ProfileSection({
       </header>
       {hasProfile && !isEditingProfile ? (
         <div className="autograph-context-panel">
+          <p className="autograph-context-label">{copy.signedInIdentityLabel}</p>
+          <p className="autograph-context-detail">{sessionIdentity}</p>
           <p className="autograph-context-label">{copy.savedProfile}</p>
           <p className="autograph-context-title">
             {effectiveProfileName} · {titleCaseRole(effectiveProfileRole)}
           </p>
           <p className="autograph-context-detail">{copy.savedProfileHint}</p>
+          <p className="autograph-inline-note">{copy.signedInIdentityHint}</p>
           <div className="autograph-request-actions start">
             <button type="button" className="autograph-secondary-btn" onClick={() => setIsEditingProfile(true)}>
               {copy.editProfile}
@@ -168,6 +176,11 @@ export function ProfileSection({
             }
           }}
         >
+          <div className="autograph-context-panel compact autograph-identity-panel">
+            <p className="autograph-context-label">{copy.signedInIdentityLabel}</p>
+            <p className="autograph-context-title">{sessionIdentity}</p>
+            <p className="autograph-context-detail">{copy.signedInIdentityHint}</p>
+          </div>
           <label className="autograph-field">
             <span className="app-form-label">Display name</span>
             <input
@@ -251,6 +264,7 @@ export function RequestComposerSection({
   const signerHintId = React.useId();
   const messageHintId = React.useId();
   const selectedSigner = availableSigners.find((profile) => profile.userId === requestForm.signerUserId) ?? null;
+  const requestMessageLength = requestForm.message.trim().length;
 
   return (
     <section className="app-surface-card autograph-setup-card autograph-section-card" aria-labelledby={titleId}>
@@ -268,7 +282,7 @@ export function RequestComposerSection({
           </span>
         </div>
       </header>
-      <form className="autograph-form-grid" onSubmit={onRequestSubmit}>
+      <form className="autograph-form-grid autograph-composer-grid" onSubmit={onRequestSubmit}>
         <label className="autograph-field">
           <span className="app-form-label">{copy.whoShouldSign}</span>
           <select
@@ -297,8 +311,9 @@ export function RequestComposerSection({
             value={requestForm.message}
             onChange={(event) => setRequestForm((prev) => ({ ...prev, message: event.target.value }))}
             placeholder="Say why you are asking and what you would love them to write."
+            maxLength={240}
             required
-            aria-describedby={messageHintId}
+            aria-describedby={`${messageHintId} autograph-request-count`}
           />
           <p id={messageHintId} className="autograph-field-hint">
             A few sincere lines are enough. Specific requests usually get warmer replies.
@@ -327,6 +342,14 @@ export function RequestComposerSection({
             </p>
           </div>
         ) : null}
+        <div className="autograph-form-meta">
+          <p className="autograph-inline-note">
+            Clear, specific requests feel more personal and are easier to answer well.
+          </p>
+          <span id="autograph-request-count" className="autograph-char-count">
+            {requestMessageLength}/240
+          </span>
+        </div>
         {availableSigners.length > 0 ? <p className="autograph-inline-note">{copy.signerListHint}</p> : null}
         <div className="autograph-form-actions">
           <button type="submit" className="app-button-primary" disabled={busyAction === "request" || !hasProfile}>
@@ -430,6 +453,7 @@ export function InboxLane({
                     rows={3}
                     value={signatureDrafts[item.id] ?? ""}
                     placeholder="Write the autograph you want to give them."
+                    maxLength={240}
                     onChange={(event) => setSignatureDrafts((prev) => ({ ...prev, [item.id]: event.target.value }))}
                     aria-describedby={`autograph-signature-hint-${item.id} autograph-signature-count-${item.id}`}
                   />
@@ -590,16 +614,18 @@ export function OutboxSection({
       {outbox.length === 0 ? (
         <p className="app-copy-soft autograph-helper-text">{copy.noOutbox}</p>
       ) : (
-        outbox.map((item) => (
-          <article key={item.id} className="autograph-outbox-card">
-            <div className="autograph-request-card-header">
-              <p className="autograph-card-title">{item.signerDisplayName}</p>
-              <StatusPill status={item.status} />
-            </div>
-            <p className="autograph-outbox-message app-copy-soft">{item.message}</p>
-            <p className="autograph-request-time">{formatRelativeDate(item.createdAt, copy)}</p>
-          </article>
-        ))
+        <div className="autograph-outbox-list">
+          {outbox.map((item) => (
+            <article key={item.id} className="autograph-outbox-card">
+              <div className="autograph-request-card-header">
+                <p className="autograph-card-title">{item.signerDisplayName}</p>
+                <StatusPill status={item.status} />
+              </div>
+              <p className="autograph-outbox-message app-copy-soft">{item.message}</p>
+              <p className="autograph-request-time">{formatRelativeDate(item.createdAt, copy)}</p>
+            </article>
+          ))}
+        </div>
       )}
     </section>
   );
