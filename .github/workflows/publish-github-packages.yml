@@ -1,10 +1,10 @@
-name: Publish Packages
+name: Publish GitHub Packages
 
 on:
   workflow_dispatch:
   push:
     tags:
-      - "packages-v*"
+      - "github-packages-v*"
 
 permissions:
   contents: read
@@ -30,17 +30,8 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Publish contract
-        run: npm publish --workspace=packages/autograph-contract
+      - name: Publish GitHub Packages
+        run: npm run publish:github
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Publish core
-        run: npm publish --workspace=packages/autograph-core
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Publish feature
-        run: npm publish --workspace=packages/autograph-feature
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

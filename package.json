@@ -17,7 +17,9 @@
     "test:e2e": "npm --workspace=apps/autograph-exchange run test:e2e",
     "test:boundaries": "node ./scripts/verify-package-boundaries.mjs",
     "test:repo": "node ./scripts/verify-repo-hygiene.mjs",
-    "ci": "npm run test:repo && npm run test:boundaries && npm run test && npm run build"
+    "ci": "npm run test:repo && npm run test:boundaries && npm run test && npm run build",
+    "publish:github": "npm publish --workspace=packages/autograph-contract --registry=https://npm.pkg.github.com && npm publish --workspace=packages/autograph-core --registry=https://npm.pkg.github.com && npm publish --workspace=packages/autograph-feature --registry=https://npm.pkg.github.com",
+    "publish:npm": "npm publish --workspace=packages/autograph-contract --access public --registry=https://registry.npmjs.org && npm publish --workspace=packages/autograph-core --access public --registry=https://registry.npmjs.org && npm publish --workspace=packages/autograph-feature --access public --registry=https://registry.npmjs.org"
   },
   "workspaces": [
     "apps/*",

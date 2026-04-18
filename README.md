@@ -96,6 +96,53 @@ npm ci --no-audit --no-fund
 npm run build
 ```
 
+## Publishing
+
+This repository is registry-neutral by default.
+
+That means:
+
+- package metadata does not hardwire GitHub Packages
+- the repo can publish to GitHub Packages or npmjs
+- the registry is chosen by the command or workflow you use
+
+### Publish to GitHub Packages
+
+Local example:
+
+```bash
+npm login --scope=@aartisr --auth-type=legacy --registry=https://npm.pkg.github.com
+npm run publish:github
+```
+
+GitHub Actions workflow:
+
+- `.github/workflows/publish-github-packages.yml`
+
+Optional install template for consumers:
+
+- `.npmrc.github-example`
+
+### Publish to npmjs
+
+Local example:
+
+```bash
+npm login
+npm run publish:npm
+```
+
+GitHub Actions workflow:
+
+- `.github/workflows/publish-npmjs.yml`
+
+### Recommended release order
+
+1. Run `npm install`
+2. Run `npm run ci`
+3. Publish to GitHub Packages if you want controlled consumption
+4. Publish to npmjs if you want easy public installs
+
 ## Validate
 
 Run the main validation pipeline:
