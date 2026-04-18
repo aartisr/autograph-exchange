@@ -1,5 +1,5 @@
 import type { FormEvent } from "react";
-import { useEffect, useMemo, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { buildSignaturePreset } from "./signature-generator";
 import type {
   ArchiveSort,
@@ -34,6 +34,7 @@ export function useAutographExchangeViewModel({
   const [archiveSort, setArchiveSort] = useState<ArchiveSort>("newest");
   const [lastSignedRequestId, setLastSignedRequestId] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const deferredArchiveFilter = useDeferredValue(archiveFilter);
 
   const roleOptions = useMemo<RoleOption[]>(
     () => [
@@ -44,7 +45,7 @@ export function useAutographExchangeViewModel({
   );
 
   const filteredArchive = useMemo(() => {
-    const normalized = archiveFilter.trim().toLowerCase();
+    const normalized = deferredArchiveFilter.trim().toLowerCase();
     const base = archive.filter((item) => {
       if (!normalized) return true;
       return (
@@ -60,7 +61,7 @@ export function useAutographExchangeViewModel({
       const right = new Date(b.signedAt ?? b.createdAt).getTime();
       return archiveSort === "newest" ? right - left : left - right;
     });
-  }, [archive, archiveFilter, archiveSort]);
+  }, [archive, deferredArchiveFilter, archiveSort]);
 
   useEffect(() => {
     if (!lastSignedRequestId) return;

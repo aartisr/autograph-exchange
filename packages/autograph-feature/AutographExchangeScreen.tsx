@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import { mergeAutographCopy } from "./copy";
-import { ArchiveLane, HeroSection, InboxLane, OutboxSection, ProfileSection, RequestComposerSection } from "./screen-sections";
+import { ArchiveLane, HeroSection, InboxLane, MomentumSection, OutboxSection, ProfileSection, RequestComposerSection } from "./screen-sections";
 import type { AutographExchangeScreenProps } from "./types";
 
 export function AutographExchangeScreen(props: AutographExchangeScreenProps) {
@@ -75,6 +75,14 @@ export function AutographExchangeScreen(props: AutographExchangeScreenProps) {
         outboxCount={outbox.length}
         inboxCount={inbox.length}
         archiveCount={filteredArchive.length}
+      />
+
+      <MomentumSection
+        copy={copy}
+        hasProfile={hasProfile}
+        outboxCount={outbox.length}
+        archiveCount={filteredArchive.length}
+        lastSignedRequestId={lastSignedRequestId}
       />
 
       <ProfileSection
