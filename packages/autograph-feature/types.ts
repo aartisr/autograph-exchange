@@ -44,6 +44,7 @@ export type AutographExchangeCopy = {
   profileCompleteTitle: string;
   profileCompleteHint: string;
   profileSkipHint: string;
+  jumpToStepTwo: string;
   profileMissingTitle: string;
   profileMissingHint: string;
   savedRoleLabel: string;

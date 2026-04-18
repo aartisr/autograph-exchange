@@ -26,6 +26,7 @@ const SECTION_IDS = {
   outbox: "autograph-requests-sent",
   inbox: "autograph-requests-for-you",
   archive: "autograph-signed-autographs",
+  composer: "autograph-request-composer",
 } as const;
 
 type HeroJumpTarget = {
@@ -239,20 +240,18 @@ export function ProfileSection({
             <p className="autograph-step-state-title">{copy.profileCompleteTitle}</p>
             <p className="autograph-step-state-copy">{copy.profileCompleteHint}</p>
           </div>
-          <p className="autograph-context-label">{copy.signedInIdentityLabel}</p>
-          <p className="autograph-context-detail">{sessionIdentity}</p>
-          <p className="autograph-context-label">{copy.savedProfile}</p>
-          <p className="autograph-context-title">
-            {effectiveProfileName} · {titleCaseRole(effectiveProfileRole)}
-          </p>
-          <div className="autograph-role-summary">
-            <span className="autograph-role-summary-label">{copy.savedRoleLabel}</span>
-            <span className="autograph-role-chip">{titleCaseRole(effectiveProfileRole)}</span>
+          <div className="autograph-profile-summary">
+            <p className="autograph-context-title">{effectiveProfileName}</p>
+            <div className="autograph-role-summary">
+              <span className="autograph-role-summary-label">{copy.savedRoleLabel}</span>
+              <span className="autograph-role-chip">{titleCaseRole(effectiveProfileRole)}</span>
+            </div>
           </div>
-          <p className="autograph-context-detail">{copy.savedProfileHint}</p>
-          <p className="autograph-inline-note">{copy.profileSkipHint}</p>
-          <p className="autograph-inline-note">{copy.signedInIdentityHint}</p>
+          <p className="autograph-context-detail">{copy.profileSkipHint}</p>
           <div className="autograph-request-actions start">
+            <a className="app-button-primary autograph-jump-link" href={`#${SECTION_IDS.composer}`}>
+              {copy.jumpToStepTwo}
+            </a>
             <button type="button" className="autograph-secondary-btn" onClick={() => setIsEditingProfile(true)}>
               {copy.editProfile}
             </button>
@@ -366,7 +365,8 @@ export function RequestComposerSection({
 
   return (
     <section
-      className={`app-surface-card autograph-setup-card autograph-section-card ${isFocused ? "is-focused-section" : ""}`}
+      id={SECTION_IDS.composer}
+      className={`app-surface-card autograph-setup-card autograph-section-card autograph-scroll-target ${isFocused ? "is-focused-section" : ""}`}
       aria-labelledby={titleId}
     >
       <header className="autograph-section-header">
