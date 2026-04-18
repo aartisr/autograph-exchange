@@ -64,6 +64,21 @@ function contrastRatio(foreground: string, background: string) {
 }
 
 describe("autograph feature contrast tokens", () => {
+  it("defines safe light-mode input tokens for typed and placeholder text", () => {
+    const inputSurface = extractToken(stylesheet, "--autograph-input-surface");
+    const inputText = extractToken(stylesheet, "--autograph-input-text");
+    const inputPlaceholder = extractToken(stylesheet, "--autograph-input-placeholder");
+    const selectionSurface = extractToken(stylesheet, "--autograph-input-selection-surface");
+    const selectionText = extractToken(stylesheet, "--autograph-input-selection-text");
+
+    expect(inputSurface).not.toBe(inputText);
+    expect(inputSurface).not.toBe(inputPlaceholder);
+    expect(selectionSurface).not.toBe(selectionText);
+    expect(contrastRatio(inputText, inputSurface)).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio(inputPlaceholder, inputSurface)).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio(selectionText, selectionSurface)).toBeGreaterThanOrEqual(4.5);
+  });
+
   it("defines safe light-mode select option tokens", () => {
     const optionSurface = extractToken(stylesheet, "--autograph-select-option-surface");
     const optionText = extractToken(stylesheet, "--autograph-select-option-text");
@@ -78,18 +93,34 @@ describe("autograph feature contrast tokens", () => {
 
   it("defines safe dark-mode select option tokens", () => {
     const darkBlock = extractDarkModeBlock(stylesheet);
+    const inputSurface = extractToken(darkBlock, "--autograph-input-surface");
+    const inputText = extractToken(darkBlock, "--autograph-input-text");
+    const inputPlaceholder = extractToken(darkBlock, "--autograph-input-placeholder");
+    const inputSelectionSurface = extractToken(darkBlock, "--autograph-input-selection-surface");
+    const inputSelectionText = extractToken(darkBlock, "--autograph-input-selection-text");
     const optionSurface = extractToken(darkBlock, "--autograph-select-option-surface");
     const optionText = extractToken(darkBlock, "--autograph-select-option-text");
     const selectedSurface = extractToken(darkBlock, "--autograph-select-option-selected-surface");
     const selectedText = extractToken(darkBlock, "--autograph-select-option-selected-text");
 
+    expect(inputSurface).not.toBe(inputText);
+    expect(inputSurface).not.toBe(inputPlaceholder);
+    expect(inputSelectionSurface).not.toBe(inputSelectionText);
+    expect(contrastRatio(inputText, inputSurface)).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio(inputPlaceholder, inputSurface)).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio(inputSelectionText, inputSelectionSurface)).toBeGreaterThanOrEqual(4.5);
     expect(optionSurface).not.toBe(optionText);
     expect(selectedSurface).not.toBe(selectedText);
     expect(contrastRatio(optionText, optionSurface)).toBeGreaterThanOrEqual(4.5);
     expect(contrastRatio(selectedText, selectedSurface)).toBeGreaterThanOrEqual(4.5);
   });
 
-  it("styles native select options explicitly so they do not inherit unsafe colors", () => {
+  it("styles interactive text surfaces explicitly so they do not inherit unsafe colors", () => {
+    expect(stylesheet).toContain(".app-form-input::placeholder");
+    expect(stylesheet).toContain(".app-form-input::selection");
+    expect(stylesheet).toContain(".app-form-input:disabled");
+    expect(stylesheet).toContain(":-webkit-autofill");
+    expect(stylesheet).toContain(".autograph-shell ::selection");
     expect(stylesheet).toContain("select.app-form-input option");
     expect(stylesheet).toContain("select.autograph-input option");
     expect(stylesheet).toContain("option:checked");

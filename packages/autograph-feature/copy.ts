@@ -21,6 +21,8 @@ export const DEFAULT_AUTOGRAPH_COPY: AutographExchangeCopy = {
   stepCompleteFirst: "Complete Step 1 first",
   savedProfile: "Saved profile",
   savedProfileHint: "You do not need to save this every time. Edit it only if your display name or role should change.",
+  signedInIdentityLabel: "Signed in as",
+  signedInIdentityHint: "Your profile is saved under this identity. If you sign in with a different email later, that will be treated as a different profile.",
   editProfile: "Edit profile",
   saveChanges: "Save changes",
   cancel: "Cancel",

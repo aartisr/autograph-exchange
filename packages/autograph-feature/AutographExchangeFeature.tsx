@@ -197,6 +197,7 @@ export function AutographExchangeFeature({
         signaturePreset={viewModel.signaturePreset}
         effectiveProfileName={viewModel.effectiveProfileName}
         effectiveProfileRole={viewModel.effectiveProfileRole}
+        sessionIdentity={viewModel.sessionIdentity}
         onProfileSubmit={viewModel.handleProfileSubmit}
         onRequestSubmit={viewModel.handleRequestSubmit}
         onSignRequest={viewModel.handleSign}

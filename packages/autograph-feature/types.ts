@@ -43,6 +43,8 @@ export type AutographExchangeCopy = {
   stepCompleteFirst: string;
   savedProfile: string;
   savedProfileHint: string;
+  signedInIdentityLabel: string;
+  signedInIdentityHint: string;
   editProfile: string;
   saveChanges: string;
   cancel: string;
@@ -115,6 +117,7 @@ export interface AutographExchangeScreenProps {
   signaturePreset: SignaturePreset;
   effectiveProfileName: string;
   effectiveProfileRole: AutographRole;
+  sessionIdentity: string;
   onProfileSubmit: (event: React.FormEvent<HTMLFormElement>) => Promise<boolean>;
   onRequestSubmit: (event: React.FormEvent<HTMLFormElement>) => Promise<void>;
   onSignRequest: (requestId: string) => Promise<void>;

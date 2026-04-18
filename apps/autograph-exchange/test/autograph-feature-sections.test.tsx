@@ -77,6 +77,7 @@ describe("autograph feature sections", () => {
         setIsEditingProfile={vi.fn()}
         effectiveProfileName="Asha Raman"
         effectiveProfileRole="student"
+        sessionIdentity="asha@example.com"
         profileForm={{ displayName: "", role: "student" }}
         setProfileForm={setProfileForm}
         roleOptions={[
@@ -105,6 +106,7 @@ describe("autograph feature sections", () => {
     expect(profileHtml).toContain("autograph-section-card");
     expect(profileHtml).toContain("autograph-profile-grid");
     expect(profileHtml).toContain("autograph-field-hint");
+    expect(profileHtml).toContain("asha@example.com");
     expect(requestHtml).toContain("autograph-section-card");
     expect(requestHtml).toContain("Choose one person");
     expect(requestHtml).toContain("autograph-form-actions");

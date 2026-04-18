@@ -70,6 +70,7 @@ export function useAutographExchangeViewModel({
 
   const effectiveProfileName = profileDisplayName ?? sessionName ?? sessionEmail ?? "";
   const effectiveProfileRole = profileRole ?? "student";
+  const sessionIdentity = sessionEmail ?? userId ?? "Current signed-in account";
 
   const signaturePreset = useMemo(
     () => buildSignaturePreset(userId ?? "anonymous", effectiveProfileName),
@@ -84,7 +85,7 @@ export function useAutographExchangeViewModel({
     try {
       await saveProfile({ displayName, role });
       setProfileForm({ displayName: "", role });
-      setStatusMessage(`Profile saved for ${displayName}.`);
+      setStatusMessage(`Profile saved for ${displayName}. It is linked to ${sessionIdentity}.`);
       return true;
     } catch {
       return false;
@@ -142,6 +143,7 @@ export function useAutographExchangeViewModel({
     signaturePreset,
     effectiveProfileName,
     effectiveProfileRole,
+    sessionIdentity,
     handleProfileSubmit,
     handleRequestSubmit,
     handleSign,
