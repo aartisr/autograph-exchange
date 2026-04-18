@@ -1,4 +1,4 @@
-import type { AutographExchangeCopy, AutographRequest, AutographRole } from "./types";
+import type { AutographExchangeCopy, AutographProfile, AutographRequest, AutographRole } from "./types";
 
 export const INPUT_CLASS =
   "app-form-input autograph-input";
@@ -48,4 +48,81 @@ export function titleCaseRole(role: AutographRole): string {
 
 export function rolePairLabel(request: AutographRequest): string {
   return `${request.requesterRole} to ${request.signerRole}`;
+}
+
+export function signerSearchLabel(profile: AutographProfile): string {
+  return `${profile.displayName} ${titleCaseRole(profile.role)}`;
+}
+
+export function signerMatchesQuery(profile: AutographProfile, query: string): boolean {
+  const normalizedQuery = query.trim().toLowerCase();
+
+  if (!normalizedQuery) {
+    return true;
+  }
+
+  const haystack = [
+    profile.displayName,
+    profile.role,
+    titleCaseRole(profile.role),
+    signerSearchLabel(profile),
+  ]
+    .join(" ")
+    .toLowerCase();
+
+  return haystack.includes(normalizedQuery);
+}
+
+function signerMatchScore(profile: AutographProfile, query: string): number {
+  const normalizedQuery = query.trim().toLowerCase();
+
+  if (!normalizedQuery) {
+    return 0;
+  }
+
+  const displayName = profile.displayName.toLowerCase();
+  const role = titleCaseRole(profile.role).toLowerCase();
+  const combined = signerSearchLabel(profile).toLowerCase();
+
+  if (displayName === normalizedQuery) {
+    return 100;
+  }
+
+  if (displayName.startsWith(normalizedQuery)) {
+    return 80;
+  }
+
+  if (displayName.includes(normalizedQuery)) {
+    return 60;
+  }
+
+  if (role.startsWith(normalizedQuery)) {
+    return 40;
+  }
+
+  if (combined.includes(normalizedQuery)) {
+    return 20;
+  }
+
+  return -1;
+}
+
+export function rankSignerMatches(profiles: AutographProfile[], query: string): AutographProfile[] {
+  const normalizedQuery = query.trim().toLowerCase();
+
+  if (!normalizedQuery) {
+    return [...profiles].sort((a, b) => a.displayName.localeCompare(b.displayName));
+  }
+
+  return profiles
+    .map((profile) => ({ profile, score: signerMatchScore(profile, normalizedQuery) }))
+    .filter((entry) => entry.score >= 0)
+    .sort((a, b) => {
+      if (b.score !== a.score) {
+        return b.score - a.score;
+      }
+
+      return a.profile.displayName.localeCompare(b.profile.displayName);
+    })
+    .map((entry) => entry.profile);
 }

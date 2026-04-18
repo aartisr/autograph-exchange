@@ -5,6 +5,7 @@ export * from "./AutographExchangeScreen";
 export * from "./SignaturePreview";
 export * from "./signature-generator";
 export * from "./screen-sections";
+export * from "./signer-combobox";
 export * from "./screen-utils";
 export * from "./useAutographExchange";
 export * from "./useAutographExchangeViewModel";

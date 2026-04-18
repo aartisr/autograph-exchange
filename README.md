@@ -63,6 +63,17 @@ The repository includes:
 - production builds for both standalone and host-consumed modes
 - repository hygiene checks for ownership, license metadata, and required maintainer files
 
+## UX Highlights
+
+The reusable experience is intentionally optimized for clarity and low cognitive load:
+
+- guided next-action prioritization so one section is clearly the best place to start
+- step states that make it obvious when Step 1 is done versus required
+- one-tap mobile section jumps from the hero summary cards
+- searchable signer suggestions instead of a long picker
+- calmer writing flows for requesting and signing autographs
+- accessible contrast, focus states, and responsive layouts across screen sizes
+
 ## Run
 
 ```bash
@@ -78,7 +89,7 @@ Recommended Vercel project settings:
 
 - Framework preset: `Next.js`
 - Root directory: repository root
-- Install command: from `vercel.json` (`npm ci --no-audit --no-fund`)
+- Install command: from `vercel.json` (`NPM_CONFIG_USERCONFIG=/dev/null npm install --no-audit --no-fund --registry=https://registry.npmjs.org`)
 - Build command: from `vercel.json` (`npm run build`)
 
 Required production environment variables:
@@ -89,10 +100,10 @@ Recommended production environment variables:
 
 - `NEXTAUTH_URL` or `AUTH_URL` set to your deployed site URL
 
-The standalone repo has been validated from its own root with:
+The standalone repo is configured to install from the public npm registry for deployment and can be validated from its own root with:
 
 ```bash
-npm ci --no-audit --no-fund
+npm install --no-audit --no-fund
 npm run build
 ```
 

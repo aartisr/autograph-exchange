@@ -1,0 +1,181 @@
+"use client";
+
+import React from "react";
+import type { AutographExchangeCopy, AutographProfile, RequestFormState } from "./types";
+import { INPUT_CLASS, rankSignerMatches, signerSearchLabel, titleCaseRole } from "./screen-utils";
+
+export interface SignerComboboxProps {
+  copy: AutographExchangeCopy;
+  availableSigners: AutographProfile[];
+  requestForm: RequestFormState;
+  setRequestForm: React.Dispatch<React.SetStateAction<RequestFormState>>;
+  hintId: string;
+}
+
+function selectSigner(
+  profile: AutographProfile,
+  setRequestForm: React.Dispatch<React.SetStateAction<RequestFormState>>,
+  setQuery: React.Dispatch<React.SetStateAction<string>>,
+  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>,
+) {
+  setRequestForm((prev) => ({ ...prev, signerUserId: profile.userId }));
+  setQuery(signerSearchLabel(profile));
+  setIsOpen(false);
+}
+
+export function SignerCombobox({
+  copy,
+  availableSigners,
+  requestForm,
+  setRequestForm,
+  hintId,
+}: SignerComboboxProps) {
+  const selectedSigner = availableSigners.find((profile) => profile.userId === requestForm.signerUserId) ?? null;
+  const [query, setQuery] = React.useState(selectedSigner ? signerSearchLabel(selectedSigner) : "");
+  const [isOpen, setIsOpen] = React.useState(false);
+  const [activeIndex, setActiveIndex] = React.useState(0);
+  const deferredQuery = React.useDeferredValue(query);
+  const listId = React.useId();
+  const inputId = React.useId();
+
+  React.useEffect(() => {
+    if (!selectedSigner) {
+      return;
+    }
+
+    setQuery(signerSearchLabel(selectedSigner));
+  }, [selectedSigner]);
+
+  const filteredSigners = React.useMemo(() => rankSignerMatches(availableSigners, deferredQuery).slice(0, 8), [
+    availableSigners,
+    deferredQuery,
+  ]);
+
+  const activeSigner = filteredSigners[activeIndex] ?? null;
+  const activeOptionId = activeSigner ? `${listId}-${activeSigner.userId}` : undefined;
+
+  React.useEffect(() => {
+    setActiveIndex(0);
+  }, [deferredQuery, isOpen]);
+
+  return (
+    <label className="autograph-field">
+      <span className="app-form-label">{copy.whoShouldSign}</span>
+      <div className="autograph-combobox">
+        <input
+          id={inputId}
+          className={`${INPUT_CLASS} autograph-combobox-input`}
+          value={query}
+          placeholder={copy.signerSearchPlaceholder}
+          autoComplete="off"
+          role="combobox"
+          aria-autocomplete="list"
+          aria-expanded={isOpen}
+          aria-controls={listId}
+          aria-describedby={hintId}
+          aria-activedescendant={isOpen ? activeOptionId : undefined}
+          onFocus={() => setIsOpen(true)}
+          onChange={(event) => {
+            const nextQuery = event.target.value;
+            setQuery(nextQuery);
+            setIsOpen(true);
+            setRequestForm((prev) => ({ ...prev, signerUserId: "" }));
+          }}
+          onKeyDown={(event) => {
+            if (!isOpen && (event.key === "ArrowDown" || event.key === "ArrowUp")) {
+              event.preventDefault();
+              setIsOpen(true);
+              return;
+            }
+
+            if (event.key === "Escape") {
+              setIsOpen(false);
+              return;
+            }
+
+            if (!filteredSigners.length) {
+              return;
+            }
+
+            if (event.key === "ArrowDown") {
+              event.preventDefault();
+              setActiveIndex((prev) => (prev + 1) % filteredSigners.length);
+            }
+
+            if (event.key === "ArrowUp") {
+              event.preventDefault();
+              setActiveIndex((prev) => (prev - 1 + filteredSigners.length) % filteredSigners.length);
+            }
+
+            if (event.key === "Home") {
+              event.preventDefault();
+              setActiveIndex(0);
+            }
+
+            if (event.key === "End") {
+              event.preventDefault();
+              setActiveIndex(filteredSigners.length - 1);
+            }
+
+            if (event.key === "Enter" && isOpen) {
+              event.preventDefault();
+              if (!activeSigner) {
+                return;
+              }
+
+              selectSigner(activeSigner, setRequestForm, setQuery, setIsOpen);
+            }
+          }}
+          onBlur={() => {
+            window.setTimeout(() => {
+              setIsOpen(false);
+              if (!requestForm.signerUserId && selectedSigner) {
+                setQuery(signerSearchLabel(selectedSigner));
+              }
+            }, 120);
+          }}
+        />
+
+        {isOpen ? (
+          <div id={listId} className="autograph-combobox-list" role="listbox" aria-labelledby={inputId}>
+            {filteredSigners.length ? (
+              filteredSigners.map((profile, index) => {
+                const isSelected = requestForm.signerUserId === profile.userId;
+                const isActive = activeIndex === index;
+
+                return (
+                  <button
+                    key={profile.userId}
+                    id={`${listId}-${profile.userId}`}
+                    type="button"
+                    role="option"
+                    aria-selected={isSelected}
+                    className={`autograph-combobox-option ${isSelected ? "is-selected" : ""} ${isActive ? "is-active" : ""}`}
+                    onMouseDown={(event) => {
+                      event.preventDefault();
+                      selectSigner(profile, setRequestForm, setQuery, setIsOpen);
+                    }}
+                  >
+                    <span className="autograph-combobox-option-name">{profile.displayName}</span>
+                    <span className="autograph-combobox-option-role">{titleCaseRole(profile.role)}</span>
+                  </button>
+                );
+              })
+            ) : (
+              <p className="autograph-combobox-empty">{copy.signerSearchEmpty}</p>
+            )}
+          </div>
+        ) : null}
+      </div>
+      <p id={hintId} className="autograph-field-hint">
+        {copy.signerSearchHint}
+      </p>
+      {selectedSigner ? (
+        <p className="autograph-combobox-selected">
+          <span className="autograph-combobox-selected-label">{copy.signerSelectedLabel}</span>{" "}
+          <strong>{signerSearchLabel(selectedSigner)}</strong>
+        </p>
+      ) : null}
+    </label>
+  );
+}

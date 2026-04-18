@@ -2,6 +2,18 @@
 
 Reusable Autograph Exchange UI for any website.
 
+## UX model
+
+This package is designed to reduce decision fatigue for users. The shared experience includes:
+
+- guided next-step emphasis
+- explicit setup-complete versus setup-required states
+- mobile-friendly jump navigation between key sections
+- searchable signer suggestions for large people lists
+- package-owned responsive and contrast-safe presentation
+
+These behaviors live in the reusable package so every host benefits from the same UX baseline.
+
 ## Auth ownership
 
 This package does not own authentication.
