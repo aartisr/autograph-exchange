@@ -13,9 +13,6 @@
     ".": "./index.ts"
   },
   "private": false,
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/aartisr/autograph-exchange.git",
