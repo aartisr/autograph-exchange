@@ -1,0 +1,29 @@
+{
+  "name": "autograph-exchange",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Standalone, reusable Autograph Exchange project.",
+  "author": "aartisr (Aarti Sri Ravikumar)",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "npm --workspace=apps/autograph-exchange run dev",
+    "build": "npm --workspace=apps/autograph-exchange run build",
+    "start": "npm --workspace=apps/autograph-exchange run start",
+    "lint": "npm --workspace=apps/autograph-exchange run lint",
+    "test": "npm --workspace=apps/autograph-exchange run test",
+    "test:e2e": "npm --workspace=apps/autograph-exchange run test:e2e",
+    "test:boundaries": "node ./scripts/verify-package-boundaries.mjs",
+    "test:repo": "node ./scripts/verify-repo-hygiene.mjs",
+    "ci": "npm run test:repo && npm run test:boundaries && npm run test && npm run build"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "overrides": {
+    "eslint": "8.57.1"
+  }
+}
