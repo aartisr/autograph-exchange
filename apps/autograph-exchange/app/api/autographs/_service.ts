@@ -1,4 +1,4 @@
 import { createAutographService } from "@aartisr/autograph-core";
-import { createFileAutographStorage } from "@/lib/file-storage";
+import { createAutographStorageFromEnvironment } from "@/lib/autograph-storage";
 
-export const autographService = createAutographService(createFileAutographStorage());
+export const autographService = createAutographService(createAutographStorageFromEnvironment());

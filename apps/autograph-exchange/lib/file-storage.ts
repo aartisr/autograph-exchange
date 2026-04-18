@@ -9,19 +9,28 @@ type FileStore = {
   autograph_requests?: RequestEntry[];
 };
 
-const DATA_FILE = path.join(process.cwd(), ".data", "autograph-exchange.json");
+function resolveDataFile() {
+  if (process.env.AUTOGRAPH_DATA_FILE) {
+    return process.env.AUTOGRAPH_DATA_FILE;
+  }
+
+  const baseDir = process.env.AUTOGRAPH_DATA_DIR
+    ?? (process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_VERSION
+      ? path.join("/tmp", "autograph-exchange")
+      : path.join(process.cwd(), ".data"));
+
+  return path.join(baseDir, "autograph-exchange.json");
+}
 
 let writeQueue: Promise<void> = Promise.resolve();
 
 async function ensureStoreFile() {
-  await mkdir(path.dirname(DATA_FILE), { recursive: true });
+  await mkdir(path.dirname(resolveDataFile()), { recursive: true });
 }
 
 async function readStore(): Promise<FileStore> {
-  await ensureStoreFile();
-
   try {
-    const raw = await readFile(DATA_FILE, "utf8");
+    const raw = await readFile(resolveDataFile(), "utf8");
     const parsed = JSON.parse(raw) as FileStore;
     if (typeof parsed !== "object" || !parsed) {
       return {};
@@ -46,7 +55,7 @@ async function readStore(): Promise<FileStore> {
 
 async function commitStore(store: FileStore) {
   await ensureStoreFile();
-  await writeFile(DATA_FILE, JSON.stringify(store, null, 2));
+  await writeFile(resolveDataFile(), JSON.stringify(store, null, 2));
 }
 
 function nextEntityId(prefix: "profile" | "request", entries: Array<{ id: string }>) {
