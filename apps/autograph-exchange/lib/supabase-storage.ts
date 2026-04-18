@@ -51,51 +51,101 @@ type WritableRequest = {
 
 type WritableRequestPatch = Partial<WritableRequest>;
 
+function requireString(value: unknown, fieldName: string): string {
+  if (typeof value !== "string") {
+    throw new Error(`Invalid ${fieldName}.`);
+  }
+
+  return value;
+}
+
+function optionalString(value: unknown): string | undefined {
+  return typeof value === "string" ? value : undefined;
+}
+
 function normalizeWritableProfile(
   profile: Omit<ProfileEntry, "id"> & Partial<Pick<ProfileEntry, "id">>,
 ): WritableProfile {
+  const source = profile as {
+    id?: unknown;
+    userId?: unknown;
+    displayName?: unknown;
+    role?: unknown;
+    updatedAt?: unknown;
+  };
+
   return {
-    ...(profile.id ? { id: profile.id } : {}),
-    userId: profile.userId,
-    displayName: profile.displayName,
-    role: profile.role,
-    updatedAt: profile.updatedAt,
+    ...(typeof source.id === "string" ? { id: source.id } : {}),
+    userId: requireString(source.userId, "profile.userId"),
+    displayName: requireString(source.displayName, "profile.displayName"),
+    role: requireString(source.role, "profile.role") as ProfileEntry["role"],
+    updatedAt: requireString(source.updatedAt, "profile.updatedAt"),
   };
 }
 
 function normalizeWritableRequest(request: Omit<RequestEntry, "id">): WritableRequest {
+  const source = request as {
+    requesterUserId?: unknown;
+    requesterDisplayName?: unknown;
+    requesterRole?: unknown;
+    signerUserId?: unknown;
+    signerDisplayName?: unknown;
+    signerRole?: unknown;
+    message?: unknown;
+    status?: unknown;
+    signatureText?: unknown;
+    visibility?: unknown;
+    createdAt?: unknown;
+    signedAt?: unknown;
+  };
+
   return {
-    requesterUserId: request.requesterUserId,
-    requesterDisplayName: request.requesterDisplayName,
-    requesterRole: request.requesterRole,
-    signerUserId: request.signerUserId,
-    signerDisplayName: request.signerDisplayName,
-    signerRole: request.signerRole,
-    message: request.message,
-    status: request.status,
-    signatureText: request.signatureText,
-    visibility: request.visibility,
-    createdAt: request.createdAt,
-    signedAt: request.signedAt,
+    requesterUserId: requireString(source.requesterUserId, "request.requesterUserId"),
+    requesterDisplayName: requireString(source.requesterDisplayName, "request.requesterDisplayName"),
+    requesterRole: requireString(source.requesterRole, "request.requesterRole") as RequestEntry["requesterRole"],
+    signerUserId: requireString(source.signerUserId, "request.signerUserId"),
+    signerDisplayName: requireString(source.signerDisplayName, "request.signerDisplayName"),
+    signerRole: requireString(source.signerRole, "request.signerRole") as RequestEntry["signerRole"],
+    message: requireString(source.message, "request.message"),
+    status: requireString(source.status, "request.status") as RequestEntry["status"],
+    signatureText: optionalString(source.signatureText),
+    visibility: optionalString(source.visibility) as RequestEntry["visibility"] | undefined,
+    createdAt: requireString(source.createdAt, "request.createdAt"),
+    signedAt: optionalString(source.signedAt),
   };
 }
 
 function normalizeWritableRequestPatch(
   patch: Partial<Omit<RequestEntry, "id">>,
 ): WritableRequestPatch {
+  const source = patch as {
+    requesterUserId?: unknown;
+    requesterDisplayName?: unknown;
+    requesterRole?: unknown;
+    signerUserId?: unknown;
+    signerDisplayName?: unknown;
+    signerRole?: unknown;
+    message?: unknown;
+    status?: unknown;
+    signatureText?: unknown;
+    visibility?: unknown;
+    createdAt?: unknown;
+    signedAt?: unknown;
+  };
+
   return {
-    requesterUserId: patch.requesterUserId,
-    requesterDisplayName: patch.requesterDisplayName,
-    requesterRole: patch.requesterRole,
-    signerUserId: patch.signerUserId,
-    signerDisplayName: patch.signerDisplayName,
-    signerRole: patch.signerRole,
-    message: patch.message,
-    status: patch.status,
-    signatureText: patch.signatureText,
-    visibility: patch.visibility,
-    createdAt: patch.createdAt,
-    signedAt: patch.signedAt,
+    requesterUserId: optionalString(source.requesterUserId),
+    requesterDisplayName: optionalString(source.requesterDisplayName),
+    requesterRole: optionalString(source.requesterRole) as RequestEntry["requesterRole"] | undefined,
+    signerUserId: optionalString(source.signerUserId),
+    signerDisplayName: optionalString(source.signerDisplayName),
+    signerRole: optionalString(source.signerRole) as RequestEntry["signerRole"] | undefined,
+    message: optionalString(source.message),
+    status: optionalString(source.status) as RequestEntry["status"] | undefined,
+    signatureText: optionalString(source.signatureText),
+    visibility: optionalString(source.visibility) as RequestEntry["visibility"] | undefined,
+    createdAt: optionalString(source.createdAt),
+    signedAt: optionalString(source.signedAt),
   };
 }
 
