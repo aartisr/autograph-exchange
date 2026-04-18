@@ -22,6 +22,7 @@ export const DEFAULT_AUTOGRAPH_COPY: AutographExchangeCopy = {
   profileCompleteTitle: "Profile complete",
   profileCompleteHint: "Your display name and role are already saved. You can skip Step 1 and go straight to asking or replying.",
   profileSkipHint: "Only come back here if you want to change your display name or role.",
+  jumpToStepTwo: "Go to Step 2",
   profileMissingTitle: "Profile needed",
   profileMissingHint: "Save your display name and role once before sending or receiving autograph requests.",
   savedRoleLabel: "Saved role",
