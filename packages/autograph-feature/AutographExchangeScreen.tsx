@@ -45,6 +45,14 @@ export function AutographExchangeScreen(props: AutographExchangeScreenProps) {
 
   const copy = useMemo(() => mergeAutographCopy(copyOverrides), [copyOverrides]);
   const [isEditingProfile, setIsEditingProfile] = useState(!hasProfile);
+  const focusSection = useMemo(() => {
+    if (!hasProfile) return "profile";
+    if (inbox.length > 0) return "inbox";
+    if (availableSigners.length > 0) return "composer";
+    if (outbox.length > 0) return "outbox";
+    if (filteredArchive.length > 0) return "archive";
+    return "composer";
+  }, [availableSigners.length, filteredArchive.length, hasProfile, inbox.length, outbox.length]);
 
   useEffect(() => {
     if (!hasProfile) {
@@ -84,6 +92,7 @@ export function AutographExchangeScreen(props: AutographExchangeScreenProps) {
         roleOptions={roleOptions}
         busyAction={busyAction}
         onProfileSubmit={onProfileSubmit}
+        isFocused={focusSection === "profile"}
       />
 
       <RequestComposerSection
@@ -96,6 +105,7 @@ export function AutographExchangeScreen(props: AutographExchangeScreenProps) {
         setRequestForm={setRequestForm}
         busyAction={busyAction}
         onRequestSubmit={onRequestSubmit}
+        isFocused={focusSection === "composer"}
       />
 
       <div className="autograph-lanes" data-testid="autograph-lanes">
@@ -111,6 +121,7 @@ export function AutographExchangeScreen(props: AutographExchangeScreenProps) {
           busyAction={busyAction}
           renderSignaturePreview={renderSignaturePreview}
           onSignRequest={onSignRequest}
+          isFocused={focusSection === "inbox"}
         />
 
         <ArchiveLane
@@ -121,10 +132,11 @@ export function AutographExchangeScreen(props: AutographExchangeScreenProps) {
           archiveSort={archiveSort}
           setArchiveSort={setArchiveSort}
           lastSignedRequestId={lastSignedRequestId}
+          isFocused={focusSection === "archive"}
         />
       </div>
 
-      <OutboxSection copy={copy} outbox={outbox} />
+      <OutboxSection copy={copy} outbox={outbox} isFocused={focusSection === "outbox"} />
     </div>
   );
 }

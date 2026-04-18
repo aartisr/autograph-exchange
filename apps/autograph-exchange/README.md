@@ -8,6 +8,22 @@ This workspace app is the standalone website for the Autograph Exchange project.
 - keep the feature generic and reusable
 - let other websites consume the same shared packages without duplicating logic
 
+## Experience principles
+
+The standalone site is designed to feel:
+
+- guided instead of overwhelming
+- clear on mobile as well as desktop
+- obvious about the next action to take
+- forgiving when there are many people and many requests
+
+Recent UX improvements include:
+
+- direct jump navigation to `Requests you sent`, `Requests for you`, and `Signed autographs`
+- clearer Step 1 completion and skip states
+- a searchable signer combobox with ranked suggestions
+- focused section highlighting so the app points users to the most relevant next step
+
 ## Shared layers
 
 This app consumes:

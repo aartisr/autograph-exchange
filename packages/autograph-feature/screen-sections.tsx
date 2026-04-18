@@ -12,7 +12,59 @@ import type {
   RoleOption,
   SignaturePreset,
 } from "./types";
-import { formatRelativeDate, INPUT_CLASS, REQUEST_PROMPTS, rolePairLabel, SIGNATURE_IDEAS, titleCaseRole } from "./screen-utils";
+import {
+  formatRelativeDate,
+  INPUT_CLASS,
+  REQUEST_PROMPTS,
+  rolePairLabel,
+  SIGNATURE_IDEAS,
+  titleCaseRole,
+} from "./screen-utils";
+import { SignerCombobox } from "./signer-combobox";
+
+const SECTION_IDS = {
+  outbox: "autograph-requests-sent",
+  inbox: "autograph-requests-for-you",
+  archive: "autograph-signed-autographs",
+} as const;
+
+type HeroJumpTarget = {
+  count: number;
+  href: string;
+  label: string;
+  toneClassName: string;
+};
+
+function scrollToSection(sectionId: string) {
+  if (typeof document === "undefined") {
+    return;
+  }
+
+  const target = document.getElementById(sectionId);
+  if (!target) {
+    return;
+  }
+
+  target.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+interface HeroJumpStatProps extends HeroJumpTarget {}
+
+function HeroJumpStat({ count, href, label, toneClassName }: HeroJumpStatProps) {
+  return (
+    <a
+      className={`autograph-stat autograph-stat-link ${toneClassName}`}
+      href={href}
+      onClick={(event) => {
+        event.preventDefault();
+        scrollToSection(href.slice(1));
+      }}
+    >
+      <span className="autograph-stat-label">{label}</span>
+      <span className="autograph-stat-value">{count}</span>
+    </a>
+  );
+}
 
 interface StatusPillProps {
   status: AutographRequest["status"];
@@ -49,6 +101,14 @@ function QuickStep({ step, title, detail }: QuickStepProps) {
   );
 }
 
+interface SectionFocusPillProps {
+  label: string;
+}
+
+function SectionFocusPill({ label }: SectionFocusPillProps) {
+  return <span className="autograph-focus-pill">{label}</span>;
+}
+
 export interface HeroSectionProps {
   copy: AutographExchangeCopy;
   nextAction: string;
@@ -65,6 +125,26 @@ export function HeroSection({
   archiveCount,
 }: HeroSectionProps) {
   const titleId = React.useId();
+  const jumpTargets: HeroJumpTarget[] = [
+    {
+      count: outboxCount,
+      href: `#${SECTION_IDS.outbox}`,
+      label: copy.requestsSent,
+      toneClassName: "autograph-stat-sent autograph-tone-sent",
+    },
+    {
+      count: inboxCount,
+      href: `#${SECTION_IDS.inbox}`,
+      label: copy.requestsForYou,
+      toneClassName: "autograph-stat-inbox autograph-tone-inbox",
+    },
+    {
+      count: archiveCount,
+      href: `#${SECTION_IDS.archive}`,
+      label: copy.signedAutographs,
+      toneClassName: "autograph-stat-archive autograph-tone-archive",
+    },
+  ];
 
   return (
     <section className="autograph-hero" aria-labelledby={titleId}>
@@ -79,18 +159,9 @@ export function HeroSection({
         </div>
       </div>
       <div className="autograph-hero-stats">
-        <article className="autograph-stat autograph-stat-sent autograph-tone-sent">
-          <span className="autograph-stat-label">{copy.requestsSent}</span>
-          <span className="autograph-stat-value">{outboxCount}</span>
-        </article>
-        <article className="autograph-stat autograph-stat-inbox autograph-tone-inbox">
-          <span className="autograph-stat-label">{copy.requestsForYou}</span>
-          <span className="autograph-stat-value">{inboxCount}</span>
-        </article>
-        <article className="autograph-stat autograph-stat-archive autograph-tone-archive">
-          <span className="autograph-stat-label">{copy.signedAutographs}</span>
-          <span className="autograph-stat-value">{archiveCount}</span>
-        </article>
+        {jumpTargets.map((target) => (
+          <HeroJumpStat key={target.href} {...target} />
+        ))}
       </div>
       <div className="autograph-quick-steps" aria-label="How autograph exchange works">
         <QuickStep step="1" title={copy.stepOneTitle} detail={copy.stepOneDetail} />
@@ -104,6 +175,7 @@ export function HeroSection({
 export interface ProfileSectionProps {
   copy: AutographExchangeCopy;
   hasProfile: boolean;
+  isFocused: boolean;
   isEditingProfile: boolean;
   setIsEditingProfile: React.Dispatch<React.SetStateAction<boolean>>;
   effectiveProfileName: string;
@@ -119,6 +191,7 @@ export interface ProfileSectionProps {
 export function ProfileSection({
   copy,
   hasProfile,
+  isFocused,
   isEditingProfile,
   setIsEditingProfile,
   effectiveProfileName,
@@ -135,7 +208,10 @@ export function ProfileSection({
   const roleHintId = React.useId();
 
   return (
-    <section className="app-surface-card autograph-setup-card autograph-section-card" aria-labelledby={titleId}>
+    <section
+      className={`app-surface-card autograph-setup-card autograph-section-card ${isFocused ? "is-focused-section" : ""}`}
+      aria-labelledby={titleId}
+    >
       <header className="autograph-section-header">
         <p className="autograph-section-step">{copy.stepOne}</p>
         <div className="autograph-section-heading">
@@ -143,22 +219,38 @@ export function ProfileSection({
             <h3 id={titleId} className="autograph-section-title">
               Your autograph profile
             </h3>
-            <p className="app-copy-soft autograph-section-copy">Set your display name and role once so people can ask you for an autograph.</p>
+            <p className="app-copy-soft autograph-section-copy">
+              {hasProfile
+                ? "Your profile is already saved, so you can skip this step unless you want to edit it."
+                : "Save your display name and role once so people can ask you for an autograph."}
+            </p>
           </div>
-          <span className={`autograph-setup-badge ${hasProfile ? "is-ready" : ""}`}>
-            {hasProfile ? copy.stepReady : copy.stepNeededOnce}
-          </span>
+          <div className="autograph-section-badges">
+            {isFocused ? <SectionFocusPill label={hasProfile ? "Optional now" : "Start here"} /> : null}
+            <span className={`autograph-setup-badge ${hasProfile ? "is-ready" : "is-action"}`}>
+              {hasProfile ? copy.stepReady : copy.stepNeededOnce}
+            </span>
+          </div>
         </div>
       </header>
       {hasProfile && !isEditingProfile ? (
         <div className="autograph-context-panel">
+          <div className="autograph-step-state autograph-step-state-success" role="status" aria-live="polite">
+            <p className="autograph-step-state-title">{copy.profileCompleteTitle}</p>
+            <p className="autograph-step-state-copy">{copy.profileCompleteHint}</p>
+          </div>
           <p className="autograph-context-label">{copy.signedInIdentityLabel}</p>
           <p className="autograph-context-detail">{sessionIdentity}</p>
           <p className="autograph-context-label">{copy.savedProfile}</p>
           <p className="autograph-context-title">
             {effectiveProfileName} · {titleCaseRole(effectiveProfileRole)}
           </p>
+          <div className="autograph-role-summary">
+            <span className="autograph-role-summary-label">{copy.savedRoleLabel}</span>
+            <span className="autograph-role-chip">{titleCaseRole(effectiveProfileRole)}</span>
+          </div>
           <p className="autograph-context-detail">{copy.savedProfileHint}</p>
+          <p className="autograph-inline-note">{copy.profileSkipHint}</p>
           <p className="autograph-inline-note">{copy.signedInIdentityHint}</p>
           <div className="autograph-request-actions start">
             <button type="button" className="autograph-secondary-btn" onClick={() => setIsEditingProfile(true)}>
@@ -176,6 +268,10 @@ export function ProfileSection({
             }
           }}
         >
+          <div className="autograph-step-state autograph-step-state-warning" role="status" aria-live="polite">
+            <p className="autograph-step-state-title">{copy.profileMissingTitle}</p>
+            <p className="autograph-step-state-copy">{copy.profileMissingHint}</p>
+          </div>
           <div className="autograph-context-panel compact autograph-identity-panel">
             <p className="autograph-context-label">{copy.signedInIdentityLabel}</p>
             <p className="autograph-context-title">{sessionIdentity}</p>
@@ -240,6 +336,7 @@ export function ProfileSection({
 export interface RequestComposerSectionProps {
   copy: AutographExchangeCopy;
   hasProfile: boolean;
+  isFocused: boolean;
   loading: boolean;
   myProfile: AutographProfile | null;
   availableSigners: AutographProfile[];
@@ -252,6 +349,7 @@ export interface RequestComposerSectionProps {
 export function RequestComposerSection({
   copy,
   hasProfile,
+  isFocused,
   loading,
   myProfile,
   availableSigners,
@@ -267,7 +365,10 @@ export function RequestComposerSection({
   const requestMessageLength = requestForm.message.trim().length;
 
   return (
-    <section className="app-surface-card autograph-setup-card autograph-section-card" aria-labelledby={titleId}>
+    <section
+      className={`app-surface-card autograph-setup-card autograph-section-card ${isFocused ? "is-focused-section" : ""}`}
+      aria-labelledby={titleId}
+    >
       <header className="autograph-section-header">
         <p className="autograph-section-step">{copy.stepTwo}</p>
         <div className="autograph-section-heading">
@@ -277,32 +378,22 @@ export function RequestComposerSection({
             </h3>
             <p className="app-copy-soft autograph-section-copy">{copy.requestExplainer}</p>
           </div>
-          <span className={`autograph-setup-badge ${hasProfile ? "is-ready" : ""}`}>
-            {hasProfile ? copy.stepCanAsk : copy.stepCompleteFirst}
-          </span>
+          <div className="autograph-section-badges">
+            {isFocused ? <SectionFocusPill label={hasProfile ? "Start here" : "Locked"} /> : null}
+            <span className={`autograph-setup-badge ${hasProfile ? "is-ready" : ""}`}>
+              {hasProfile ? copy.stepCanAsk : copy.stepCompleteFirst}
+            </span>
+          </div>
         </div>
       </header>
       <form className="autograph-form-grid autograph-composer-grid" onSubmit={onRequestSubmit}>
-        <label className="autograph-field">
-          <span className="app-form-label">{copy.whoShouldSign}</span>
-          <select
-            className={INPUT_CLASS}
-            value={requestForm.signerUserId}
-            onChange={(event) => setRequestForm((prev) => ({ ...prev, signerUserId: event.target.value }))}
-            required
-            aria-describedby={signerHintId}
-          >
-            <option value="">Choose one person</option>
-            {availableSigners.map((profile) => (
-              <option key={profile.userId} value={profile.userId}>
-                {profile.displayName} ({titleCaseRole(profile.role)})
-              </option>
-            ))}
-          </select>
-          <p id={signerHintId} className="autograph-field-hint">
-            Start with one person so your request feels direct and thoughtful.
-          </p>
-        </label>
+        <SignerCombobox
+          copy={copy}
+          availableSigners={availableSigners}
+          requestForm={requestForm}
+          setRequestForm={setRequestForm}
+          hintId={signerHintId}
+        />
         <label className="autograph-field">
           <span className="app-form-label">{copy.whyAreYouAsking}</span>
           <textarea
@@ -366,6 +457,7 @@ export function RequestComposerSection({
 export interface InboxLaneProps {
   copy: AutographExchangeCopy;
   inbox: AutographRequest[];
+  isFocused: boolean;
   lastSignedRequestId: string | null;
   expandedRequestId: string | null;
   setExpandedRequestId: React.Dispatch<React.SetStateAction<string | null>>;
@@ -380,6 +472,7 @@ export interface InboxLaneProps {
 export function InboxLane({
   copy,
   inbox,
+  isFocused,
   lastSignedRequestId,
   expandedRequestId,
   setExpandedRequestId,
@@ -393,7 +486,11 @@ export function InboxLane({
   const titleId = React.useId();
 
   return (
-    <section className="autograph-lane autograph-lane-pending autograph-tone-inbox" aria-labelledby={titleId}>
+    <section
+      id={SECTION_IDS.inbox}
+      className={`autograph-lane autograph-lane-pending autograph-tone-inbox autograph-scroll-target ${isFocused ? "is-focused-section" : ""}`}
+      aria-labelledby={titleId}
+    >
       <header className="autograph-lane-header">
         <div>
           <h3 id={titleId} className="autograph-lane-title">
@@ -401,9 +498,12 @@ export function InboxLane({
           </h3>
           <p className="autograph-lane-subtitle">{copy.inboxSubtitle}</p>
         </div>
-        <p className="autograph-lane-meta">
-          {inbox.length} {copy.waitingCountSuffix}
-        </p>
+        <div className="autograph-lane-header-actions">
+          {isFocused ? <SectionFocusPill label="Waiting on you" /> : null}
+          <p className="autograph-lane-meta">
+            {inbox.length} {copy.waitingCountSuffix}
+          </p>
+        </div>
       </header>
       {inbox.length === 0 ? (
         <p className="app-copy-soft autograph-empty">{copy.noInbox}</p>
@@ -504,6 +604,7 @@ export function InboxLane({
 export interface ArchiveLaneProps {
   copy: AutographExchangeCopy;
   filteredArchive: AutographRequest[];
+  isFocused: boolean;
   archiveFilter: string;
   setArchiveFilter: React.Dispatch<React.SetStateAction<string>>;
   archiveSort: ArchiveSort;
@@ -514,6 +615,7 @@ export interface ArchiveLaneProps {
 export function ArchiveLane({
   copy,
   filteredArchive,
+  isFocused,
   archiveFilter,
   setArchiveFilter,
   archiveSort,
@@ -522,7 +624,11 @@ export function ArchiveLane({
 }: ArchiveLaneProps) {
   const titleId = React.useId();
   return (
-    <section className="autograph-lane autograph-lane-archive autograph-tone-archive" aria-labelledby={titleId}>
+    <section
+      id={SECTION_IDS.archive}
+      className={`autograph-lane autograph-lane-archive autograph-tone-archive autograph-scroll-target ${isFocused ? "is-focused-section" : ""}`}
+      aria-labelledby={titleId}
+    >
       <header className="autograph-lane-header">
         <div>
           <h3 id={titleId} className="autograph-lane-title">
@@ -530,9 +636,12 @@ export function ArchiveLane({
           </h3>
           <p className="autograph-lane-subtitle">{copy.archiveSubtitle}</p>
         </div>
-        <p className="autograph-lane-meta">
-          {filteredArchive.length} {copy.totalCountSuffix}
-        </p>
+        <div className="autograph-lane-header-actions">
+          {isFocused ? <SectionFocusPill label="Browse here" /> : null}
+          <p className="autograph-lane-meta">
+            {filteredArchive.length} {copy.totalCountSuffix}
+          </p>
+        </div>
       </header>
       <div className="autograph-archive-controls">
         <label className="autograph-field">
@@ -591,15 +700,21 @@ export function ArchiveLane({
 export interface OutboxSectionProps {
   copy: AutographExchangeCopy;
   outbox: AutographRequest[];
+  isFocused: boolean;
 }
 
 export function OutboxSection({
   copy,
   outbox,
+  isFocused,
 }: OutboxSectionProps) {
   const titleId = React.useId();
   return (
-    <section className="autograph-outbox autograph-tone-sent" aria-labelledby={titleId}>
+    <section
+      id={SECTION_IDS.outbox}
+      className={`autograph-outbox autograph-tone-sent autograph-scroll-target ${isFocused ? "is-focused-section" : ""}`}
+      aria-labelledby={titleId}
+    >
       <div className="autograph-lane-header">
         <div>
           <h3 id={titleId} className="autograph-lane-title">
@@ -607,9 +722,12 @@ export function OutboxSection({
           </h3>
           <p className="autograph-lane-subtitle">{copy.outboxSubtitle}</p>
         </div>
-        <p className="autograph-lane-meta">
-          {outbox.length} {copy.pendingCountSuffix}
-        </p>
+        <div className="autograph-lane-header-actions">
+          {isFocused ? <SectionFocusPill label="Track here" /> : null}
+          <p className="autograph-lane-meta">
+            {outbox.length} {copy.pendingCountSuffix}
+          </p>
+        </div>
       </div>
       {outbox.length === 0 ? (
         <p className="app-copy-soft autograph-helper-text">{copy.noOutbox}</p>

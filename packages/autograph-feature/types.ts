@@ -41,6 +41,12 @@ export type AutographExchangeCopy = {
   stepReady: string;
   stepCanAsk: string;
   stepCompleteFirst: string;
+  profileCompleteTitle: string;
+  profileCompleteHint: string;
+  profileSkipHint: string;
+  profileMissingTitle: string;
+  profileMissingHint: string;
+  savedRoleLabel: string;
   savedProfile: string;
   savedProfileHint: string;
   signedInIdentityLabel: string;
@@ -51,6 +57,10 @@ export type AutographExchangeCopy = {
   profileAudiencePrefix: string;
   requestExplainer: string;
   whoShouldSign: string;
+  signerSearchPlaceholder: string;
+  signerSearchHint: string;
+  signerSearchEmpty: string;
+  signerSelectedLabel: string;
   whyAreYouAsking: string;
   askForAutograph: string;
   saveProfileFirstHint: string;
