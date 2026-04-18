@@ -12,7 +12,7 @@ Autograph Exchange is designed to be production-ready in both standalone and emb
 
 ## Observability
 
-`@autograph-exchange/feature` exposes `onEvent`, so the host can forward feature telemetry into any observability stack.
+`@aartisr/autograph-feature` exposes `onEvent`, so the host can forward feature telemetry into any observability stack.
 
 Example:
 

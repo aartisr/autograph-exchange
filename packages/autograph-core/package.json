@@ -1,5 +1,5 @@
 {
-  "name": "@autograph-exchange/core",
+  "name": "@aartisr/autograph-core",
   "version": "0.1.0",
   "main": "index.ts",
   "types": "index.d.ts",
@@ -13,6 +13,14 @@
   "exports": {
     ".": "./index.ts"
   },
-  "private": true,
+  "private": false,
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aartisr/autograph-exchange.git",
+    "directory": "packages/autograph-core"
+  },
   "description": "Reusable backend/core logic for the autograph exchange feature."
 }

@@ -1,4 +1,4 @@
-# `@autograph-exchange/contract`
+# `@aartisr/autograph-contract`
 
 Shared API contract for Autograph Exchange.
 

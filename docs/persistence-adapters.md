@@ -11,7 +11,7 @@ The reusable packages do not require:
 - file storage
 - any specific ORM
 
-Instead, `@autograph-exchange/core` defines the `AutographStorage` port and the host implements it.
+Instead, `@aartisr/autograph-core` defines the `AutographStorage` port and the host implements it.
 
 ## Best option when the host already has a generic module store
 

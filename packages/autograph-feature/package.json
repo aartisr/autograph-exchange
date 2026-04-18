@@ -1,5 +1,5 @@
 {
-  "name": "@autograph-exchange/feature",
+  "name": "@aartisr/autograph-feature",
   "version": "0.1.0",
   "main": "index.ts",
   "types": "index.d.ts",
@@ -19,7 +19,15 @@
     ".": "./index.ts",
     "./styles.css": "./styles.css"
   },
-  "private": true,
+  "private": false,
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aartisr/autograph-exchange.git",
+    "directory": "packages/autograph-feature"
+  },
   "description": "Reusable autograph exchange UI for any website.",
   "peerDependencies": {
     "react": ">=18",

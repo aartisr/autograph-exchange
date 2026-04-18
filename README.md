@@ -48,9 +48,9 @@ The project is intentionally built so that the UI, contract, business rules, aut
 - Host-controlled auth through `authStatus` and `viewer`
 - Host-controlled persistence through `AutographStorage`
 - Host-controlled telemetry through `onEvent`
-- Reusable API contract through `@autograph-exchange/contract`
-- Reusable UI through `@autograph-exchange/feature`
-- Reusable domain logic through `@autograph-exchange/core`
+- Reusable API contract through `@aartisr/autograph-contract`
+- Reusable UI through `@aartisr/autograph-feature`
+- Reusable domain logic through `@aartisr/autograph-core`
 
 ## Quality Bar
 
@@ -68,6 +68,32 @@ The repository includes:
 ```bash
 npm install
 npm run dev
+```
+
+## Vercel Deployment
+
+This repository is Vercel-friendly as a standalone deployment target.
+
+Recommended Vercel project settings:
+
+- Framework preset: `Next.js`
+- Root directory: repository root
+- Install command: from `vercel.json` (`npm ci --no-audit --no-fund`)
+- Build command: from `vercel.json` (`npm run build`)
+
+Required production environment variables:
+
+- `AUTH_SECRET` or `NEXTAUTH_SECRET`
+
+Recommended production environment variables:
+
+- `NEXTAUTH_URL` or `AUTH_URL` set to your deployed site URL
+
+The standalone repo has been validated from its own root with:
+
+```bash
+npm ci --no-audit --no-fund
+npm run build
 ```
 
 ## Validate

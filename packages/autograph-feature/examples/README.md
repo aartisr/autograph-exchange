@@ -1,6 +1,6 @@
 # Embedded Host Examples
 
-These examples show different ways to consume `@autograph-exchange/feature` without giving up host control.
+These examples show different ways to consume `@aartisr/autograph-feature` without giving up host control.
 
 ## Included examples
 

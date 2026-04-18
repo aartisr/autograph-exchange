@@ -15,7 +15,7 @@ Autograph Exchange is designed to embed cleanly into different host applications
 ```tsx
 "use client";
 
-import { AutographExchangeFeature } from "@autograph-exchange/feature";
+import { AutographExchangeFeature } from "@aartisr/autograph-feature";
 
 export default function AutographPage() {
   return (

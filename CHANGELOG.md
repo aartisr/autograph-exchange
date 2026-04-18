@@ -25,4 +25,4 @@ This project follows a human-maintained changelog format and a semantic-versioni
 ### Added
 
 - Initial standalone Autograph Exchange repository extraction
-- Reusable `@autograph-exchange/feature`, `@autograph-exchange/core`, and `@autograph-exchange/contract` packages
+- Reusable `@aartisr/autograph-feature`, `@aartisr/autograph-core`, and `@aartisr/autograph-contract` packages
