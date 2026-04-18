@@ -26,6 +26,31 @@ type SupabaseRequestRow = {
   signed_at: string | null;
 };
 
+type WritableProfile = {
+  id?: string;
+  userId: string;
+  displayName: string;
+  role: ProfileEntry["role"];
+  updatedAt: string;
+};
+
+type WritableRequest = {
+  requesterUserId: string;
+  requesterDisplayName: string;
+  requesterRole: RequestEntry["requesterRole"];
+  signerUserId: string;
+  signerDisplayName: string;
+  signerRole: RequestEntry["signerRole"];
+  message: string;
+  status: RequestEntry["status"];
+  signatureText?: string;
+  visibility?: RequestEntry["visibility"];
+  createdAt: string;
+  signedAt?: string;
+};
+
+type WritableRequestPatch = Partial<WritableRequest>;
+
 function mapProfileRow(row: SupabaseProfileRow): ProfileEntry {
   return {
     id: row.id,
@@ -54,7 +79,7 @@ function mapRequestRow(row: SupabaseRequestRow): RequestEntry {
   };
 }
 
-function toProfileRow(profile: Omit<ProfileEntry, "id"> & Partial<Pick<ProfileEntry, "id">>): Partial<SupabaseProfileRow> {
+function toProfileRow(profile: WritableProfile): Partial<SupabaseProfileRow> {
   return {
     ...(profile.id ? { id: profile.id } : {}),
     user_id: profile.userId,
@@ -64,7 +89,7 @@ function toProfileRow(profile: Omit<ProfileEntry, "id"> & Partial<Pick<ProfileEn
   };
 }
 
-function toRequestRow(request: Omit<RequestEntry, "id">): Omit<SupabaseRequestRow, "id"> {
+function toRequestRow(request: WritableRequest): Omit<SupabaseRequestRow, "id"> {
   return {
     requester_user_id: request.requesterUserId,
     requester_display_name: request.requesterDisplayName,
@@ -81,7 +106,7 @@ function toRequestRow(request: Omit<RequestEntry, "id">): Omit<SupabaseRequestRo
   };
 }
 
-function toRequestPatchRow(patch: Partial<Omit<RequestEntry, "id">>): Partial<Omit<SupabaseRequestRow, "id">> {
+function toRequestPatchRow(patch: WritableRequestPatch): Partial<Omit<SupabaseRequestRow, "id">> {
   return {
     ...(patch.requesterUserId ? { requester_user_id: patch.requesterUserId } : {}),
     ...(patch.requesterDisplayName ? { requester_display_name: patch.requesterDisplayName } : {}),
