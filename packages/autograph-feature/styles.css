@@ -199,6 +199,132 @@
   line-height: 1.55;
 }
 
+.autograph-momentum-card {
+  display: grid;
+  gap: 1rem;
+  padding: clamp(1.2rem, 2vw, 1.5rem);
+  border-radius: var(--autograph-radius-xl);
+}
+
+.autograph-momentum-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.autograph-momentum-kicker,
+.autograph-momentum-progress-label,
+.autograph-momentum-step-label,
+.autograph-momentum-step-status {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.autograph-momentum-kicker,
+.autograph-momentum-progress-label,
+.autograph-momentum-step-label {
+  color: var(--autograph-kicker);
+}
+
+.autograph-momentum-copy {
+  max-width: 48rem;
+}
+
+.autograph-momentum-progress {
+  display: grid;
+  gap: 0.15rem;
+  justify-items: end;
+  flex-shrink: 0;
+}
+
+.autograph-momentum-progress-value {
+  color: var(--autograph-heading-color);
+  font-size: clamp(1.4rem, 2.4vw, 2rem);
+  font-weight: 800;
+  line-height: 1;
+}
+
+.autograph-momentum-bar {
+  position: relative;
+  height: 0.7rem;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(236, 242, 239, 0.95) 0%, rgba(228, 236, 232, 0.92) 100%);
+  overflow: hidden;
+}
+
+.autograph-momentum-bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #1a4a3d 0%, #2c775f 58%, #7bb79b 100%);
+  box-shadow: 0 10px 24px rgba(24, 79, 58, 0.18);
+  transition: width 220ms ease;
+}
+
+.autograph-momentum-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.autograph-momentum-step {
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.95rem 1rem;
+  border-radius: 1rem;
+  border: 1px solid var(--autograph-card-border);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(249, 252, 250, 0.88) 100%);
+}
+
+.autograph-momentum-step.is-complete {
+  border-color: rgba(52, 111, 87, 0.28);
+  background: linear-gradient(180deg, rgba(235, 247, 240, 0.98) 0%, rgba(224, 242, 233, 0.94) 100%);
+}
+
+.autograph-momentum-step-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.autograph-momentum-step-status {
+  color: var(--autograph-meta-color);
+}
+
+.autograph-momentum-step.is-complete .autograph-momentum-step-status {
+  color: var(--autograph-success-strong);
+}
+
+.autograph-momentum-step-value {
+  margin: 0;
+  color: var(--autograph-heading-color);
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.autograph-momentum-callout {
+  gap: 0.35rem;
+}
+
+.autograph-celebration-banner {
+  position: relative;
+  overflow: hidden;
+}
+
+.autograph-celebration-banner::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at top right, rgba(255, 255, 255, 0.42), transparent 40%);
+  pointer-events: none;
+}
+
 .autograph-feature-cta {
   display: inline-flex;
   align-items: center;
@@ -1392,6 +1518,252 @@
   line-height: 1.65;
 }
 
+.autograph-reveal-card {
+  display: grid;
+  gap: 0.95rem;
+  padding: 1rem 1.05rem;
+  border-radius: 1.1rem;
+  border: 1px solid rgba(52, 111, 87, 0.22);
+  background:
+    linear-gradient(180deg, rgba(244, 252, 248, 0.98) 0%, rgba(233, 247, 240, 0.94) 100%),
+    radial-gradient(circle at top right, rgba(255, 255, 255, 0.55), transparent 38%);
+  box-shadow:
+    0 0 0 1px rgba(52, 111, 87, 0.08),
+    0 18px 38px rgba(23, 52, 42, 0.1);
+}
+
+.autograph-reveal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.85rem;
+}
+
+.autograph-reveal-title,
+.autograph-reveal-subtitle,
+.autograph-reveal-from {
+  margin: 0;
+}
+
+.autograph-reveal-title {
+  color: var(--autograph-heading-color);
+  font-size: 1.08rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.autograph-reveal-subtitle {
+  color: var(--autograph-copy-color);
+  font-size: 0.9rem;
+  line-height: 1.55;
+  margin-top: 0.2rem;
+}
+
+.autograph-reveal-body {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.autograph-reveal-from {
+  color: var(--autograph-tone-copy);
+  font-size: 0.84rem;
+  line-height: 1.5;
+}
+
+.autograph-signature-quote-reveal {
+  font-size: 1rem;
+  padding: 0.9rem 1rem;
+  border-left-width: 4px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(247, 251, 249, 0.88) 100%),
+    radial-gradient(circle at top right, rgba(255, 255, 255, 0.55), transparent 48%);
+}
+
+.autograph-collection-spotlight {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.05rem;
+  border-radius: 1rem;
+  border: 1px solid color-mix(in srgb, var(--autograph-tone-border), white 28%);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.9) 0%, rgba(244, 250, 255, 0.84) 100%),
+    radial-gradient(circle at top right, rgba(193, 215, 236, 0.28), transparent 42%);
+}
+
+.autograph-collection-spotlight-copy {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.autograph-collection-spotlight-meta {
+  display: grid;
+  gap: 0.15rem;
+  justify-items: end;
+  flex-shrink: 0;
+}
+
+.autograph-collection-count {
+  color: var(--autograph-tone-heading);
+  font-size: clamp(1.5rem, 2.8vw, 2rem);
+  font-weight: 800;
+  line-height: 1;
+}
+
+.autograph-collection-count-label,
+.autograph-keepsake-piece,
+.autograph-keepsake-footer {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.autograph-collection-count-label,
+.autograph-keepsake-piece {
+  color: var(--autograph-meta-color);
+}
+
+.autograph-archive-card-heading {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.autograph-archive-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.autograph-keepsake-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.55rem;
+  padding: 0.14rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.67rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: 1px solid transparent;
+}
+
+.autograph-keepsake-badge.is-new {
+  color: #154736;
+  background: linear-gradient(180deg, rgba(219, 241, 231, 0.98) 0%, rgba(198, 233, 214, 0.92) 100%);
+  border-color: rgba(52, 111, 87, 0.26);
+}
+
+.autograph-keepsake-badge.is-featured {
+  color: #1c3f5e;
+  background: linear-gradient(180deg, rgba(225, 239, 252, 0.98) 0%, rgba(205, 226, 245, 0.92) 100%);
+  border-color: rgba(52, 101, 144, 0.22);
+}
+
+.autograph-keepsake-badge.is-treasured {
+  color: #5f4319;
+  background: linear-gradient(180deg, rgba(252, 239, 213, 0.98) 0%, rgba(244, 223, 182, 0.92) 100%);
+  border-color: rgba(173, 118, 42, 0.24);
+}
+
+.autograph-archive-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.autograph-keepsake-stack {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.autograph-social-card {
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.95rem 1rem;
+  border-radius: 1rem;
+  border: 1px solid color-mix(in srgb, var(--autograph-tone-border), white 34%);
+  background:
+    linear-gradient(135deg, rgba(244, 250, 255, 0.98) 0%, rgba(236, 246, 252, 0.92) 100%),
+    radial-gradient(circle at top right, rgba(214, 229, 245, 0.32), transparent 44%);
+  box-shadow: 0 12px 28px rgba(29, 69, 102, 0.08);
+}
+
+.autograph-social-card-label,
+.autograph-social-card-title,
+.autograph-social-card-quote {
+  margin: 0;
+}
+
+.autograph-social-card-label {
+  color: #55708b;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.autograph-social-card-title {
+  color: #16354e;
+  font-size: 0.96rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.autograph-social-card-quote {
+  color: #1f4564;
+  font-size: 1rem;
+  line-height: 1.6;
+  font-weight: 600;
+}
+
+.autograph-keepsake-panel {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.82rem 0.88rem;
+  border-radius: 0.9rem;
+  border: 1px solid color-mix(in srgb, var(--autograph-tone-border), white 36%);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 251, 249, 0.86) 100%),
+    radial-gradient(circle at top right, rgba(255, 255, 255, 0.45), transparent 42%);
+}
+
+.autograph-keepsake-panel-signature {
+  background:
+    linear-gradient(180deg, rgba(251, 254, 255, 0.94) 0%, rgba(244, 249, 253, 0.9) 100%),
+    radial-gradient(circle at top right, rgba(214, 229, 245, 0.28), transparent 44%);
+}
+
+.autograph-keepsake-panel-label {
+  margin: 0;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--autograph-meta-color);
+}
+
+.autograph-keepsake-memory {
+  display: grid;
+  gap: 0.18rem;
+}
+
+.autograph-keepsake-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.autograph-keepsake-footer {
+  color: var(--autograph-tone-copy);
+}
+
 .autograph-archive-controls {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -1565,6 +1937,10 @@
   .autograph-feature-state {
     max-width: min(100%, 42rem);
   }
+
+  .autograph-momentum-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 640px) {
@@ -1598,6 +1974,24 @@
     min-width: 0;
   }
 
+  .autograph-momentum-header {
+    flex-direction: column;
+  }
+
+  .autograph-momentum-progress {
+    justify-items: start;
+  }
+
+  .autograph-reveal-header,
+  .autograph-collection-spotlight {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .autograph-collection-spotlight-meta {
+    justify-items: start;
+  }
+
   .autograph-archive-controls {
     grid-template-columns: 1fr;
   }
@@ -1617,6 +2011,15 @@
 
   .autograph-form-actions {
     justify-content: stretch;
+  }
+
+  .autograph-keepsake-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .autograph-keepsake-actions > * {
+    width: 100%;
   }
 
   .autograph-form-meta {

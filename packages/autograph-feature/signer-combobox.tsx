@@ -2,7 +2,7 @@
 
 import React from "react";
 import type { AutographExchangeCopy, AutographProfile, RequestFormState } from "./types";
-import { INPUT_CLASS, rankSignerMatches, signerSearchLabel, titleCaseRole } from "./screen-utils";
+import { buildSignerSearchEntries, INPUT_CLASS, rankSignerSearchEntries, signerSearchLabel, titleCaseRole } from "./screen-utils";
 
 export interface SignerComboboxProps {
   copy: AutographExchangeCopy;
@@ -30,13 +30,19 @@ export function SignerCombobox({
   setRequestForm,
   hintId,
 }: SignerComboboxProps) {
-  const selectedSigner = availableSigners.find((profile) => profile.userId === requestForm.signerUserId) ?? null;
+  const signerById = React.useMemo(
+    () => new Map(availableSigners.map((profile) => [profile.userId, profile])),
+    [availableSigners],
+  );
+  const searchEntries = React.useMemo(() => buildSignerSearchEntries(availableSigners), [availableSigners]);
+  const selectedSigner = requestForm.signerUserId ? signerById.get(requestForm.signerUserId) ?? null : null;
   const [query, setQuery] = React.useState(selectedSigner ? signerSearchLabel(selectedSigner) : "");
   const [isOpen, setIsOpen] = React.useState(false);
   const [activeIndex, setActiveIndex] = React.useState(0);
   const deferredQuery = React.useDeferredValue(query);
   const listId = React.useId();
   const inputId = React.useId();
+  const blurTimeoutRef = React.useRef<number | null>(null);
 
   React.useEffect(() => {
     if (!selectedSigner) {
@@ -46,8 +52,17 @@ export function SignerCombobox({
     setQuery(signerSearchLabel(selectedSigner));
   }, [selectedSigner]);
 
-  const filteredSigners = React.useMemo(() => rankSignerMatches(availableSigners, deferredQuery).slice(0, 8), [
-    availableSigners,
+  React.useEffect(
+    () => () => {
+      if (blurTimeoutRef.current !== null) {
+        window.clearTimeout(blurTimeoutRef.current);
+      }
+    },
+    [],
+  );
+
+  const filteredSigners = React.useMemo(() => rankSignerSearchEntries(searchEntries, deferredQuery).slice(0, 8), [
+    searchEntries,
     deferredQuery,
   ]);
 
@@ -127,7 +142,7 @@ export function SignerCombobox({
             }
           }}
           onBlur={() => {
-            window.setTimeout(() => {
+            blurTimeoutRef.current = window.setTimeout(() => {
               setIsOpen(false);
               if (!requestForm.signerUserId && selectedSigner) {
                 setQuery(signerSearchLabel(selectedSigner));
@@ -179,3 +194,5 @@ export function SignerCombobox({
     </label>
   );
 }
+
+export const MemoizedSignerCombobox = React.memo(SignerCombobox);

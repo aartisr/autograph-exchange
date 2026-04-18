@@ -13,6 +13,12 @@ import type {
   SignaturePreset,
 } from "./types";
 import {
+  buildCollectionSummary,
+  buildKeepsakeBadge,
+  buildKeepsakeShareText,
+  buildKeepsakeText,
+  buildKeepsakeSvg,
+  buildMomentumState,
   formatRelativeDate,
   INPUT_CLASS,
   REQUEST_PROMPTS,
@@ -20,7 +26,7 @@ import {
   SIGNATURE_IDEAS,
   titleCaseRole,
 } from "./screen-utils";
-import { SignerCombobox } from "./signer-combobox";
+import { MemoizedSignerCombobox } from "./signer-combobox";
 
 const SECTION_IDS = {
   outbox: "autograph-requests-sent",
@@ -110,6 +116,117 @@ function SectionFocusPill({ label }: SectionFocusPillProps) {
   return <span className="autograph-focus-pill">{label}</span>;
 }
 
+async function copyKeepsakeText(text: string) {
+  if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(text);
+    return;
+  }
+
+  throw new Error("Clipboard unavailable");
+}
+
+async function shareKeepsakeText(text: string, title: string) {
+  if (typeof navigator !== "undefined" && "share" in navigator) {
+    await navigator.share({ title, text });
+    return true;
+  }
+
+  return false;
+}
+
+function downloadKeepsakeText(filename: string, text: string) {
+  if (typeof document === "undefined") {
+    return;
+  }
+
+  const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
+export interface MomentumSectionProps {
+  copy: AutographExchangeCopy;
+  hasProfile: boolean;
+  outboxCount: number;
+  archiveCount: number;
+  lastSignedRequestId: string | null;
+}
+
+function MomentumSectionComponent({
+  copy,
+  hasProfile,
+  outboxCount,
+  archiveCount,
+  lastSignedRequestId,
+}: MomentumSectionProps) {
+  const titleId = React.useId();
+  const momentum = buildMomentumState({
+    copy,
+    hasProfile,
+    outboxCount,
+    archiveCount,
+    lastSignedRequestId,
+  });
+
+  return (
+    <section className="app-surface-card autograph-momentum-card" aria-labelledby={titleId}>
+      <div className="autograph-momentum-header">
+        <div>
+          <p className="autograph-momentum-kicker">{copy.nextMilestoneLabel}</p>
+          <h3 id={titleId} className="autograph-section-title">
+            {copy.journeyTitle}
+          </h3>
+          <p className="autograph-section-copy autograph-momentum-copy">{copy.journeySubtitle}</p>
+        </div>
+        <div className="autograph-momentum-progress">
+          <span className="autograph-momentum-progress-value">{momentum.completionPercent}%</span>
+          <span className="autograph-momentum-progress-label">complete</span>
+        </div>
+      </div>
+
+      <div className="autograph-momentum-bar" aria-hidden="true">
+        <span className="autograph-momentum-bar-fill" style={{ width: `${momentum.completionPercent}%` }} />
+      </div>
+
+      <div className="autograph-momentum-grid">
+        {momentum.steps.map((step) => (
+          <article
+            key={step.id}
+            className={`autograph-momentum-step ${step.completed ? "is-complete" : "is-pending"}`}
+          >
+            <div className="autograph-momentum-step-header">
+              <p className="autograph-momentum-step-label">{step.label}</p>
+              <span className="autograph-momentum-step-status">{step.completed ? "Done" : "Next"}</span>
+            </div>
+            <p className="autograph-momentum-step-value">{step.value}</p>
+          </article>
+        ))}
+      </div>
+
+      <div className="autograph-context-panel autograph-momentum-callout">
+        <p className="autograph-context-label">{copy.nextMilestoneLabel}</p>
+        <p className="autograph-context-title">{momentum.nextTitle}</p>
+        <p className="autograph-context-detail">{momentum.nextDetail}</p>
+      </div>
+
+      {momentum.celebrationTitle ? (
+        <div className="autograph-step-state autograph-step-state-success autograph-celebration-banner" role="status" aria-live="polite">
+          <p className="autograph-step-state-title">{momentum.celebrationTitle}</p>
+          <p className="autograph-step-state-copy">{momentum.celebrationDetail}</p>
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
+export const MomentumSection = React.memo(MomentumSectionComponent);
+
 export interface HeroSectionProps {
   copy: AutographExchangeCopy;
   nextAction: string;
@@ -118,7 +235,7 @@ export interface HeroSectionProps {
   archiveCount: number;
 }
 
-export function HeroSection({
+function HeroSectionComponent({
   copy,
   nextAction,
   outboxCount,
@@ -172,6 +289,8 @@ export function HeroSection({
     </section>
   );
 }
+
+export const HeroSection = React.memo(HeroSectionComponent);
 
 export interface ProfileSectionProps {
   copy: AutographExchangeCopy;
@@ -387,7 +506,7 @@ export function RequestComposerSection({
         </div>
       </header>
       <form className="autograph-form-grid autograph-composer-grid" onSubmit={onRequestSubmit}>
-        <SignerCombobox
+        <MemoizedSignerCombobox
           copy={copy}
           availableSigners={availableSigners}
           requestForm={requestForm}
@@ -623,12 +742,59 @@ export function ArchiveLane({
   lastSignedRequestId,
 }: ArchiveLaneProps) {
   const titleId = React.useId();
+  const spotlightItem = filteredArchive[0] ?? null;
+  const revealItem = lastSignedRequestId
+    ? filteredArchive.find((item) => item.id === lastSignedRequestId) ?? null
+    : null;
+  const [keepsakeStatus, setKeepsakeStatus] = React.useState<string | null>(null);
+
+  async function handleShare(item: AutographRequest) {
+    const title = `${item.requesterDisplayName} ↔ ${item.signerDisplayName}`;
+    const text = buildKeepsakeShareText(copy, item);
+    try {
+      const shared = await shareKeepsakeText(text, title);
+
+      if (shared) {
+        setKeepsakeStatus(copy.keepsakeSharedStatus);
+        return;
+      }
+
+      await copyKeepsakeText(text);
+      setKeepsakeStatus(copy.keepsakeCopiedStatus);
+    } catch {
+      setKeepsakeStatus(copy.keepsakeUnavailableStatus);
+    }
+  }
+
+  async function handleCopy(item: AutographRequest) {
+    try {
+      await copyKeepsakeText(buildKeepsakeShareText(copy, item));
+      setKeepsakeStatus(copy.keepsakeCopiedStatus);
+    } catch {
+      setKeepsakeStatus(copy.keepsakeUnavailableStatus);
+    }
+  }
+
+  function handleDownload(item: AutographRequest) {
+    const safeName = `${item.requesterDisplayName}-${item.signerDisplayName}`
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 48);
+
+    downloadKeepsakeText(`${safeName || "autograph-keepsake"}.svg`, buildKeepsakeSvg(copy, item));
+    setKeepsakeStatus(copy.keepsakeDownloadedStatus);
+  }
+
   return (
     <section
       id={SECTION_IDS.archive}
       className={`autograph-lane autograph-lane-archive autograph-tone-archive autograph-scroll-target ${isFocused ? "is-focused-section" : ""}`}
       aria-labelledby={titleId}
     >
+      <div className="autograph-live-region" aria-live="polite" aria-atomic="true">
+        {keepsakeStatus ? <p className="autograph-status-banner">{keepsakeStatus}</p> : null}
+      </div>
       <header className="autograph-lane-header">
         <div>
           <h3 id={titleId} className="autograph-lane-title">
@@ -643,6 +809,64 @@ export function ArchiveLane({
           </p>
         </div>
       </header>
+      {revealItem ? (
+        <article className="autograph-reveal-card" aria-live="polite">
+          <div className="autograph-reveal-header">
+            <div>
+              <p className="autograph-context-label">{copy.revealLabel}</p>
+              <h4 className="autograph-reveal-title">{copy.revealTitle}</h4>
+              <p className="autograph-reveal-subtitle">{copy.revealSubtitle}</p>
+            </div>
+            <span className="autograph-keepsake-badge is-new">{copy.newKeepsakeLabel}</span>
+          </div>
+          <div className="autograph-reveal-body">
+            <p className="autograph-reveal-from">
+              {copy.revealFromLabel} <strong>{revealItem.signerDisplayName}</strong>
+            </p>
+            <div className="autograph-social-card">
+              <p className="autograph-social-card-label">{copy.socialKeepsakeLabel}</p>
+              <p className="autograph-social-card-title">{revealItem.requesterDisplayName} ↔ {revealItem.signerDisplayName}</p>
+              <blockquote className="autograph-social-card-quote">“{revealItem.signatureText}”</blockquote>
+            </div>
+            <blockquote className="autograph-signature-quote autograph-signature-quote-reveal">“{revealItem.signatureText}”</blockquote>
+            <p className="autograph-request-time">
+              {copy.signedPrefix} {formatRelativeDate(revealItem.signedAt ?? revealItem.createdAt, copy)}
+            </p>
+            <div className="autograph-keepsake-actions">
+              <button type="button" className="autograph-secondary-btn" onClick={() => void handleShare(revealItem)}>
+                {copy.shareKeepsakeLabel}
+              </button>
+              <button type="button" className="autograph-secondary-btn" onClick={() => void handleCopy(revealItem)}>
+                {copy.copyKeepsakeLabel}
+              </button>
+              <button type="button" className="autograph-secondary-btn" onClick={() => handleDownload(revealItem)}>
+                {copy.downloadKeepsakeLabel}
+              </button>
+            </div>
+          </div>
+        </article>
+      ) : null}
+      {spotlightItem ? (
+        <div className="autograph-collection-spotlight">
+          <div className="autograph-collection-spotlight-copy">
+            <p className="autograph-context-label">{copy.collectionTitle}</p>
+            <p className="autograph-context-title">
+              {
+                buildKeepsakeBadge({
+                  copy,
+                  index: 0,
+                  isNew: lastSignedRequestId === spotlightItem.id,
+                }).label
+              }
+            </p>
+            <p className="autograph-context-detail">{buildCollectionSummary(copy, filteredArchive.length)}</p>
+          </div>
+          <div className="autograph-collection-spotlight-meta">
+            <span className="autograph-collection-count">{filteredArchive.length}</span>
+            <span className="autograph-collection-count-label">{copy.signedAutographs}</span>
+          </div>
+        </div>
+      ) : null}
       <div className="autograph-archive-controls">
         <label className="autograph-field">
           <span className="autograph-visually-hidden">{copy.searchLabel}</span>
@@ -672,26 +896,72 @@ export function ArchiveLane({
       {filteredArchive.length === 0 ? (
         <p className="app-copy-soft autograph-empty">{copy.noArchive}</p>
       ) : (
-        filteredArchive.map((item) => (
-          <article
-            key={item.id}
-            className={`autograph-archive-card ${lastSignedRequestId === item.id ? "is-highlight" : ""}`}
-            data-testid="signed-request-card"
-          >
-            <div className="autograph-request-card-header">
-              <p className="autograph-card-title">
-                {item.requesterDisplayName} ↔ {item.signerDisplayName}
-              </p>
-              <StatusPill status={item.status} />
-            </div>
-            <p className="autograph-request-pair">{rolePairLabel(item)}</p>
-            <p className="autograph-archive-message app-copy-soft">{item.message}</p>
-            <blockquote className="autograph-signature-quote">“{item.signatureText}”</blockquote>
-            <p className="autograph-request-time">
-              {copy.signedPrefix} {formatRelativeDate(item.signedAt ?? item.createdAt, copy)}
-            </p>
-          </article>
-        ))
+        filteredArchive.map((item, index) => {
+          const keepsakeBadge = buildKeepsakeBadge({
+            copy,
+            index,
+            isNew: lastSignedRequestId === item.id,
+          });
+
+          return (
+            <article
+              key={item.id}
+              className={`autograph-archive-card ${lastSignedRequestId === item.id ? "is-highlight" : ""}`}
+              data-testid="signed-request-card"
+            >
+              <div className="autograph-request-card-header">
+                <div className="autograph-archive-card-heading">
+                  <div className="autograph-archive-card-meta">
+                    <span className={`autograph-keepsake-badge is-${keepsakeBadge.tone}`}>{keepsakeBadge.label}</span>
+                    <span className="autograph-keepsake-piece">
+                      {copy.collectionPieceLabel} #{filteredArchive.length - index}
+                    </span>
+                  </div>
+                  <p className="autograph-card-title">
+                    {item.requesterDisplayName} ↔ {item.signerDisplayName}
+                  </p>
+                </div>
+                <StatusPill status={item.status} />
+              </div>
+              <p className="autograph-request-pair">{rolePairLabel(item)}</p>
+              <div className="autograph-keepsake-stack">
+                <div className="autograph-social-card">
+                  <p className="autograph-social-card-label">{copy.socialKeepsakeLabel}</p>
+                  <p className="autograph-social-card-title">{item.requesterDisplayName} ↔ {item.signerDisplayName}</p>
+                  <blockquote className="autograph-social-card-quote">“{item.signatureText}”</blockquote>
+                </div>
+                <div className="autograph-keepsake-panel">
+                  <p className="autograph-keepsake-panel-label">{copy.keepsakeMessageLabel}</p>
+                  <p className="autograph-archive-message app-copy-soft">{item.message}</p>
+                </div>
+                <div className="autograph-keepsake-panel autograph-keepsake-panel-signature">
+                  <p className="autograph-keepsake-panel-label">{copy.keepsakeAutographLabel}</p>
+                  <blockquote className="autograph-signature-quote">“{item.signatureText}”</blockquote>
+                </div>
+              </div>
+              <div className="autograph-archive-card-footer">
+                <div className="autograph-keepsake-memory">
+                  <p className="autograph-keepsake-panel-label">{copy.keepsakeMemoryLabel}</p>
+                  <p className="autograph-request-time">
+                    {copy.signedPrefix} {formatRelativeDate(item.signedAt ?? item.createdAt, copy)}
+                  </p>
+                </div>
+                <p className="autograph-keepsake-footer">{copy.savedInCollectionLabel}</p>
+              </div>
+              <div className="autograph-keepsake-actions">
+                <button type="button" className="autograph-secondary-btn" onClick={() => void handleShare(item)}>
+                  {copy.shareKeepsakeLabel}
+                </button>
+                <button type="button" className="autograph-secondary-btn" onClick={() => void handleCopy(item)}>
+                  {copy.copyKeepsakeLabel}
+                </button>
+                <button type="button" className="autograph-secondary-btn" onClick={() => handleDownload(item)}>
+                  {copy.downloadKeepsakeLabel}
+                </button>
+              </div>
+            </article>
+          );
+        })
       )}
     </section>
   );
@@ -703,7 +973,7 @@ export interface OutboxSectionProps {
   isFocused: boolean;
 }
 
-export function OutboxSection({
+function OutboxSectionComponent({
   copy,
   outbox,
   isFocused,
@@ -748,3 +1018,5 @@ export function OutboxSection({
     </section>
   );
 }
+
+export const OutboxSection = React.memo(OutboxSectionComponent);
