@@ -51,6 +51,54 @@ type WritableRequest = {
 
 type WritableRequestPatch = Partial<WritableRequest>;
 
+function normalizeWritableProfile(
+  profile: Omit<ProfileEntry, "id"> & Partial<Pick<ProfileEntry, "id">>,
+): WritableProfile {
+  return {
+    ...(profile.id ? { id: profile.id } : {}),
+    userId: profile.userId,
+    displayName: profile.displayName,
+    role: profile.role,
+    updatedAt: profile.updatedAt,
+  };
+}
+
+function normalizeWritableRequest(request: Omit<RequestEntry, "id">): WritableRequest {
+  return {
+    requesterUserId: request.requesterUserId,
+    requesterDisplayName: request.requesterDisplayName,
+    requesterRole: request.requesterRole,
+    signerUserId: request.signerUserId,
+    signerDisplayName: request.signerDisplayName,
+    signerRole: request.signerRole,
+    message: request.message,
+    status: request.status,
+    signatureText: request.signatureText,
+    visibility: request.visibility,
+    createdAt: request.createdAt,
+    signedAt: request.signedAt,
+  };
+}
+
+function normalizeWritableRequestPatch(
+  patch: Partial<Omit<RequestEntry, "id">>,
+): WritableRequestPatch {
+  return {
+    requesterUserId: patch.requesterUserId,
+    requesterDisplayName: patch.requesterDisplayName,
+    requesterRole: patch.requesterRole,
+    signerUserId: patch.signerUserId,
+    signerDisplayName: patch.signerDisplayName,
+    signerRole: patch.signerRole,
+    message: patch.message,
+    status: patch.status,
+    signatureText: patch.signatureText,
+    visibility: patch.visibility,
+    createdAt: patch.createdAt,
+    signedAt: patch.signedAt,
+  };
+}
+
 function mapProfileRow(row: SupabaseProfileRow): ProfileEntry {
   return {
     id: row.id,
@@ -127,6 +175,30 @@ function selectColumns(columns: string[]) {
   return columns.join(", ");
 }
 
+function mapProfileRows(rows: unknown): ProfileEntry[] {
+  if (!Array.isArray(rows)) {
+    return [];
+  }
+
+  return rows.map((row) => mapProfileRow(row as unknown as SupabaseProfileRow));
+}
+
+function mapRequestRows(rows: unknown): RequestEntry[] {
+  if (!Array.isArray(rows)) {
+    return [];
+  }
+
+  return rows.map((row) => mapRequestRow(row as unknown as SupabaseRequestRow));
+}
+
+function mapSingleProfileRow(row: unknown): ProfileEntry {
+  return mapProfileRow(row as unknown as SupabaseProfileRow);
+}
+
+function mapSingleRequestRow(row: unknown): RequestEntry {
+  return mapRequestRow(row as unknown as SupabaseRequestRow);
+}
+
 export function createSupabaseAutographStorage(config: AutographSupabasePersistenceConfig): AutographStorage {
   const client = createClient(config.url, config.key, {
     auth: {
@@ -166,14 +238,14 @@ export function createSupabaseAutographStorage(config: AutographSupabasePersiste
         throw new Error(`Unable to load autograph profiles: ${error.message}`);
       }
 
-      return (data ?? []).map((row) => mapProfileRow(row as SupabaseProfileRow));
+      return mapProfileRows(data);
     },
 
     async saveProfile(profile, _context?: AutographStorageContext): Promise<ProfileEntry> {
       if (profile.id) {
         const { data, error } = await db
           .from(config.profilesTable)
-          .update(toProfileRow(profile))
+          .update(toProfileRow(normalizeWritableProfile(profile)))
           .eq("id", profile.id)
           .select(profileColumns)
           .single();
@@ -182,12 +254,12 @@ export function createSupabaseAutographStorage(config: AutographSupabasePersiste
           throw new Error(`Unable to update autograph profile: ${error.message}`);
         }
 
-        return mapProfileRow(data as SupabaseProfileRow);
+        return mapSingleProfileRow(data);
       }
 
       const { data, error } = await db
         .from(config.profilesTable)
-        .insert(toProfileRow(profile))
+        .insert(toProfileRow(normalizeWritableProfile(profile)))
         .select(profileColumns)
         .single();
 
@@ -195,7 +267,7 @@ export function createSupabaseAutographStorage(config: AutographSupabasePersiste
         throw new Error(`Unable to create autograph profile: ${error.message}`);
       }
 
-      return mapProfileRow(data as SupabaseProfileRow);
+      return mapSingleProfileRow(data);
     },
 
     async listRequests(_context?: AutographStorageContext): Promise<RequestEntry[]> {
@@ -207,13 +279,13 @@ export function createSupabaseAutographStorage(config: AutographSupabasePersiste
         throw new Error(`Unable to load autograph requests: ${error.message}`);
       }
 
-      return (data ?? []).map((row) => mapRequestRow(row as SupabaseRequestRow));
+      return mapRequestRows(data);
     },
 
     async createRequest(request, _context?: AutographStorageContext): Promise<RequestEntry> {
       const { data, error } = await db
         .from(config.requestsTable)
-        .insert(toRequestRow(request))
+        .insert(toRequestRow(normalizeWritableRequest(request)))
         .select(requestColumns)
         .single();
 
@@ -221,7 +293,7 @@ export function createSupabaseAutographStorage(config: AutographSupabasePersiste
         throw new Error(`Unable to create autograph request: ${error.message}`);
       }
 
-      return mapRequestRow(data as SupabaseRequestRow);
+      return mapSingleRequestRow(data);
     },
 
     async updateRequest(
@@ -231,7 +303,7 @@ export function createSupabaseAutographStorage(config: AutographSupabasePersiste
     ): Promise<RequestEntry> {
       const { data, error } = await db
         .from(config.requestsTable)
-        .update(toRequestPatchRow(patch))
+        .update(toRequestPatchRow(normalizeWritableRequestPatch(patch)))
         .eq("id", requestId)
         .select(requestColumns)
         .single();
@@ -240,7 +312,7 @@ export function createSupabaseAutographStorage(config: AutographSupabasePersiste
         throw new Error(`Unable to update autograph request: ${error.message}`);
       }
 
-      return mapRequestRow(data as SupabaseRequestRow);
+      return mapSingleRequestRow(data);
     },
   };
 }
