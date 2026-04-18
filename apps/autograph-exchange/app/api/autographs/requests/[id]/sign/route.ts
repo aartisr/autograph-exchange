@@ -1,4 +1,4 @@
-import { createAutographSignPostHandler } from "@autograph-exchange/core";
+import { createAutographSignPostHandler } from "@aartisr/autograph-core";
 import { requireSessionUserId } from "@/app/api/autographs/_session";
 import { autographService } from "@/app/api/autographs/_service";
 

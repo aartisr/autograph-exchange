@@ -1,4 +1,4 @@
-# @autograph-exchange/feature
+# @aartisr/autograph-feature
 
 Reusable Autograph Exchange UI for any website.
 

@@ -12,9 +12,9 @@ This workspace app is the standalone website for the Autograph Exchange project.
 
 This app consumes:
 
-- `@autograph-exchange/feature`
-- `@autograph-exchange/contract`
-- `@autograph-exchange/core`
+- `@aartisr/autograph-feature`
+- `@aartisr/autograph-contract`
+- `@aartisr/autograph-core`
 
 ## Local auth
 

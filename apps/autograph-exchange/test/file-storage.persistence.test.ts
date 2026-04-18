@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { createAutographService } from "@autograph-exchange/core";
+import { createAutographService } from "@aartisr/autograph-core";
 
 const originalCwd = process.cwd();
 

@@ -1,7 +1,7 @@
 import {
   createAutographRequestsGetHandler,
   createAutographRequestsPostHandler,
-} from "@autograph-exchange/core";
+} from "@aartisr/autograph-core";
 import { requireSessionUserId } from "../_session";
 import { autographService } from "../_service";
 

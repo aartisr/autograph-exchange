@@ -1,10 +1,10 @@
-# `@autograph-exchange/core`
+# `@aartisr/autograph-core`
 
 Reusable domain logic for Autograph Exchange.
 
 ## Design
 
-`@autograph-exchange/core` is intentionally persistence-neutral.
+`@aartisr/autograph-core` is intentionally persistence-neutral.
 
 - The package owns autograph rules and state transitions.
 - The host owns persistence.
@@ -15,7 +15,7 @@ Reusable domain logic for Autograph Exchange.
 Implement the explicit `AutographStorage` interface:
 
 ```ts
-import { createAutographService, type AutographStorage } from "@autograph-exchange/core";
+import { createAutographService, type AutographStorage } from "@aartisr/autograph-core";
 
 const storage: AutographStorage = {
   listProfiles: async () => [],
@@ -45,7 +45,7 @@ export const autographService = createAutographService(storage);
 If the host already has a generic module store with `list/create/update`, use `createModuleAutographStorage(...)`:
 
 ```ts
-import { createAutographService, createModuleAutographStorage } from "@autograph-exchange/core";
+import { createAutographService, createModuleAutographStorage } from "@aartisr/autograph-core";
 
 const service = createAutographService(createModuleAutographStorage(hostModuleStore));
 ```

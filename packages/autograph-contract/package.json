@@ -1,5 +1,5 @@
 {
-  "name": "@autograph-exchange/contract",
+  "name": "@aartisr/autograph-contract",
   "version": "0.1.0",
   "main": "index.ts",
   "types": "index.d.ts",
@@ -12,6 +12,14 @@
   "exports": {
     ".": "./index.ts"
   },
-  "private": true,
+  "private": false,
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aartisr/autograph-exchange.git",
+    "directory": "packages/autograph-contract"
+  },
   "description": "Shared API contract for the autograph exchange feature."
 }

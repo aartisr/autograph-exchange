@@ -14,9 +14,9 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
-    "@autograph-exchange/contract": "*",
-    "@autograph-exchange/core": "*",
-    "@autograph-exchange/feature": "*",
+    "@aartisr/autograph-contract": "^0.1.0",
+    "@aartisr/autograph-core": "^0.1.0",
+    "@aartisr/autograph-feature": "^0.1.0",
     "autoprefixer": "^10.4.27",
     "next": "14.2.35",
     "next-auth": "^5.0.0-beta.30",

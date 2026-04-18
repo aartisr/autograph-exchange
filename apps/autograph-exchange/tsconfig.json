@@ -26,16 +26,16 @@
       "@/*": [
         "./*"
       ],
-      "@autograph-exchange/contract": [
+      "@aartisr/autograph-contract": [
         "../../packages/autograph-contract/index.ts"
       ],
-      "@autograph-exchange/core": [
+      "@aartisr/autograph-core": [
         "../../packages/autograph-core/index.ts"
       ],
-      "@autograph-exchange/feature": [
+      "@aartisr/autograph-feature": [
         "../../packages/autograph-feature/index.ts"
       ],
-      "@autograph-exchange/feature/*": [
+      "@aartisr/autograph-feature/*": [
         "../../packages/autograph-feature/*"
       ]
     }

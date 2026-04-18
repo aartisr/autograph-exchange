@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createAutographService, createModuleAutographStorage } from "@autograph-exchange/core";
+import { createAutographService, createModuleAutographStorage } from "@aartisr/autograph-core";
 
 function createModuleStore() {
   const state = {

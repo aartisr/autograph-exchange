@@ -55,11 +55,11 @@ for (const filePath of walk(packageRoot)) {
 }
 
 if (violations.length > 0) {
-  console.error("Auth boundary violation detected in @autograph-exchange/feature:");
+  console.error("Auth boundary violation detected in @aartisr/autograph-feature:");
   for (const violation of violations) {
     console.error(`- ${violation}`);
   }
   process.exit(1);
 }
 
-console.log("@autograph-exchange/feature auth boundary is clean.");
+console.log("@aartisr/autograph-feature auth boundary is clean.");

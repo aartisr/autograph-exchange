@@ -2,7 +2,7 @@
 
 import React from "react";
 import { useSession, signOut } from "next-auth/react";
-import { AutographExchangeFeature } from "@autograph-exchange/feature";
+import { AutographExchangeFeature } from "@aartisr/autograph-feature";
 
 export default function HomePage() {
   const { data: session, status } = useSession();

@@ -1,6 +1,6 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
-import type { AutographStorage, AutographStorageContext, ProfileEntry, RequestEntry } from "@autograph-exchange/core";
+import type { AutographStorage, AutographStorageContext, ProfileEntry, RequestEntry } from "@aartisr/autograph-core";
 
 type FileStore = {
   profiles?: ProfileEntry[];

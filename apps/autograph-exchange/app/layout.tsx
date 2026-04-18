@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import React from "react";
 import "./globals.css";
-import "@autograph-exchange/feature/styles.css";
+import "@aartisr/autograph-feature/styles.css";
 import { Providers } from "./providers";
 
 export const metadata: Metadata = {
