@@ -55,9 +55,7 @@ export function AutographExchangeScreen(props: AutographExchangeScreenProps) {
   }, [availableSigners.length, filteredArchive.length, hasProfile, inbox.length, outbox.length]);
 
   useEffect(() => {
-    if (!hasProfile) {
-      setIsEditingProfile(true);
-    }
+    setIsEditingProfile(!hasProfile);
   }, [hasProfile]);
 
   return (
