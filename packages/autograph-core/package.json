@@ -1,0 +1,18 @@
+{
+  "name": "@autograph-exchange/core",
+  "version": "0.1.0",
+  "main": "index.ts",
+  "types": "index.d.ts",
+  "author": "aartisr (Aarti Sri Ravikumar)",
+  "license": "UNLICENSED",
+  "files": [
+    "*.ts",
+    "examples",
+    "README.md"
+  ],
+  "exports": {
+    ".": "./index.ts"
+  },
+  "private": true,
+  "description": "Reusable backend/core logic for the autograph exchange feature."
+}

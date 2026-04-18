@@ -1,0 +1,170 @@
+import React from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import { describe, expect, it, vi } from "vitest";
+import { DEFAULT_AUTOGRAPH_COPY } from "../../../packages/autograph-feature/copy";
+import {
+  ArchiveLane,
+  HeroSection,
+  InboxLane,
+  OutboxSection,
+  ProfileSection,
+  RequestComposerSection,
+} from "../../../packages/autograph-feature/screen-sections";
+import type { AutographProfile, AutographRequest } from "../../../packages/autograph-feature/types";
+
+const sampleProfile: AutographProfile = {
+  id: "profile-1",
+  userId: "user-1",
+  displayName: "Asha Raman",
+  role: "student",
+  createdAt: "2026-04-18T10:00:00.000Z",
+  updatedAt: "2026-04-18T10:00:00.000Z",
+};
+
+const signerProfile: AutographProfile = {
+  id: "profile-2",
+  userId: "user-2",
+  displayName: "Ravi Kumar",
+  role: "teacher",
+  createdAt: "2026-04-18T10:00:00.000Z",
+  updatedAt: "2026-04-18T10:00:00.000Z",
+};
+
+const sampleRequest: AutographRequest = {
+  id: "request-1",
+  requesterUserId: "user-1",
+  requesterDisplayName: "Asha Raman",
+  requesterRole: "student",
+  signerUserId: "user-2",
+  signerDisplayName: "Ravi Kumar",
+  signerRole: "teacher",
+  message: "Thank you for your guidance.",
+  status: "pending",
+  signatureText: null,
+  createdAt: "2026-04-18T10:00:00.000Z",
+  signedAt: null,
+};
+
+describe("autograph feature sections", () => {
+  it("renders the hero section with package-owned structure", () => {
+    const html = renderToStaticMarkup(
+      <HeroSection
+        copy={DEFAULT_AUTOGRAPH_COPY}
+        nextAction="Start here"
+        outboxCount={2}
+        inboxCount={3}
+        archiveCount={4}
+      />,
+    );
+
+    expect(html).toContain("autograph-hero");
+    expect(html).toContain("autograph-hero-stats");
+    expect(html).toContain(DEFAULT_AUTOGRAPH_COPY.requestsSent);
+    expect(html).toContain(">2<");
+    expect(html).toContain(">3<");
+    expect(html).toContain(">4<");
+  });
+
+  it("renders the profile and request sections with modular package classes", () => {
+    const setProfileForm = vi.fn();
+    const setRequestForm = vi.fn();
+
+    const profileHtml = renderToStaticMarkup(
+      <ProfileSection
+        copy={DEFAULT_AUTOGRAPH_COPY}
+        hasProfile={false}
+        isEditingProfile
+        setIsEditingProfile={vi.fn()}
+        effectiveProfileName="Asha Raman"
+        effectiveProfileRole="student"
+        profileForm={{ displayName: "", role: "student" }}
+        setProfileForm={setProfileForm}
+        roleOptions={[
+          { value: "student", label: "Student" },
+          { value: "teacher", label: "Teacher" },
+        ]}
+        busyAction={null}
+        onProfileSubmit={async () => true}
+      />,
+    );
+
+    const requestHtml = renderToStaticMarkup(
+      <RequestComposerSection
+        copy={DEFAULT_AUTOGRAPH_COPY}
+        hasProfile
+        loading={false}
+        myProfile={sampleProfile}
+        availableSigners={[signerProfile]}
+        requestForm={{ signerUserId: "user-2", message: "" }}
+        setRequestForm={setRequestForm}
+        busyAction={null}
+        onRequestSubmit={async () => {}}
+      />,
+    );
+
+    expect(profileHtml).toContain("autograph-section-card");
+    expect(profileHtml).toContain("autograph-profile-grid");
+    expect(profileHtml).toContain("autograph-field-hint");
+    expect(requestHtml).toContain("autograph-section-card");
+    expect(requestHtml).toContain("Choose one person");
+    expect(requestHtml).toContain("autograph-form-actions");
+    expect(requestHtml).toContain("autograph-suggestion-chip");
+  });
+
+  it("renders inbox, archive, and outbox sections with package-owned card classes", () => {
+    const signedRequest: AutographRequest = {
+      ...sampleRequest,
+      id: "request-2",
+      status: "signed",
+      signatureText: "With blessings and gratitude.",
+      signedAt: "2026-04-18T12:00:00.000Z",
+    };
+
+    const inboxHtml = renderToStaticMarkup(
+      <InboxLane
+        copy={DEFAULT_AUTOGRAPH_COPY}
+        inbox={[sampleRequest]}
+        lastSignedRequestId={null}
+        expandedRequestId="request-1"
+        setExpandedRequestId={vi.fn()}
+        signaturePreset={{
+          label: "Asha",
+          hueStart: 20,
+          hueEnd: 40,
+          strokeA: "#111111",
+          strokeB: "#222222",
+        }}
+        signatureDrafts={{ "request-1": "With gratitude." }}
+        setSignatureDrafts={vi.fn()}
+        busyAction={null}
+        renderSignaturePreview={() => <div>preview</div>}
+        onSignRequest={async () => {}}
+      />,
+    );
+
+    const archiveHtml = renderToStaticMarkup(
+      <ArchiveLane
+        copy={DEFAULT_AUTOGRAPH_COPY}
+        filteredArchive={[signedRequest]}
+        archiveFilter=""
+        setArchiveFilter={vi.fn()}
+        archiveSort="newest"
+        setArchiveSort={vi.fn()}
+        lastSignedRequestId={null}
+      />,
+    );
+
+    const outboxHtml = renderToStaticMarkup(
+      <OutboxSection copy={DEFAULT_AUTOGRAPH_COPY} outbox={[sampleRequest]} />,
+    );
+
+    expect(inboxHtml).toContain("autograph-lane autograph-lane-pending");
+    expect(inboxHtml).toContain("autograph-sign-panel");
+    expect(inboxHtml).toContain("autograph-card-title");
+    expect(archiveHtml).toContain("autograph-lane autograph-lane-archive");
+    expect(archiveHtml).toContain("autograph-archive-message");
+    expect(archiveHtml).toContain("autograph-signature-quote");
+    expect(outboxHtml).toContain("autograph-outbox-card");
+    expect(outboxHtml).toContain("autograph-outbox-message");
+  });
+});

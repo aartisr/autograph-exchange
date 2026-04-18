@@ -1,0 +1,7 @@
+node_modules
+.npm
+.DS_Store
+apps/autograph-exchange/.next
+apps/autograph-exchange/.data
+apps/autograph-exchange/playwright-report
+apps/autograph-exchange/test-results

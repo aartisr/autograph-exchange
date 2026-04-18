@@ -1,0 +1,17 @@
+{
+  "name": "@autograph-exchange/contract",
+  "version": "0.1.0",
+  "main": "index.ts",
+  "types": "index.d.ts",
+  "author": "aartisr (Aarti Sri Ravikumar)",
+  "license": "UNLICENSED",
+  "files": [
+    "*.ts",
+    "README.md"
+  ],
+  "exports": {
+    ".": "./index.ts"
+  },
+  "private": true,
+  "description": "Shared API contract for the autograph exchange feature."
+}
