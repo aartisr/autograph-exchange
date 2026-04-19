@@ -338,6 +338,61 @@ function createSvgInitials(label: string): string {
   return initials || label.slice(0, 1).toUpperCase();
 }
 
+function approximateSvgLineCapacity(fontSize: number, maxWidth: number): number {
+  return Math.max(8, Math.floor(maxWidth / (fontSize * 0.56)));
+}
+
+function truncateSvgLine(value: string, maxChars: number): string {
+  if (value.length <= maxChars) {
+    return value;
+  }
+
+  if (maxChars <= 1) {
+    return "…";
+  }
+
+  return `${value.slice(0, Math.max(1, maxChars - 1)).trimEnd()}…`;
+}
+
+function buildKeepsakeTitleLayout(requester: string, signer: string): {
+  titleFontSize: number;
+  titleStartY: number;
+  subtitleY: number;
+  titleTspans: string;
+} {
+  const safeRequester = requester.trim() || "Someone";
+  const safeSigner = signer.trim() || "Autograph";
+  const combined = `${safeRequester} ↔ ${safeSigner}`;
+  const maxTitleWidth = 980;
+
+  for (const size of [58, 54, 50, 46]) {
+    const capacity = approximateSvgLineCapacity(size, maxTitleWidth);
+    if (combined.length <= capacity) {
+      return {
+        titleFontSize: size,
+        titleStartY: 200,
+        subtitleY: 244,
+        titleTspans: `<tspan x="100" dy="0">${escapeSvgText(combined)}</tspan>`,
+      };
+    }
+  }
+
+  const twoLineSize = 50;
+  const capacity = approximateSvgLineCapacity(twoLineSize, maxTitleWidth);
+  const left = truncateSvgLine(safeRequester, capacity);
+  const right = truncateSvgLine(safeSigner, Math.max(8, capacity - 2));
+
+  return {
+    titleFontSize: twoLineSize,
+    titleStartY: 176,
+    subtitleY: 276,
+    titleTspans: [
+      `<tspan x="100" dy="0">${escapeSvgText(left)}</tspan>`,
+      `<tspan x="100" dy="56">${escapeSvgText(`↔ ${right}`)}</tspan>`,
+    ].join(""),
+  };
+}
+
 export function buildKeepsakeShareText(copy: AutographExchangeCopy, item: AutographRequest): string {
   const signedOn = formatRelativeDate(item.signedAt ?? item.createdAt, copy);
 
@@ -356,6 +411,7 @@ export function buildKeepsakeShareText(copy: AutographExchangeCopy, item: Autogr
 export function buildKeepsakeSvg(copy: AutographExchangeCopy, item: AutographRequest): string {
   const signerName = item.signerDisplayName.trim() || "Autograph";
   const title = escapeSvgText(`${item.requesterDisplayName} ↔ ${item.signerDisplayName}`);
+  const titleLayout = buildKeepsakeTitleLayout(item.requesterDisplayName, item.signerDisplayName);
   const subtitle = escapeSvgText(copy.socialKeepsakeLabel);
   const footer = escapeSvgText(`${copy.signedPrefix} ${formatRelativeDate(item.signedAt ?? item.createdAt, copy)}`);
   const signedDate = new Date(item.signedAt ?? item.createdAt);
@@ -425,6 +481,14 @@ export function buildKeepsakeSvg(copy: AutographExchangeCopy, item: AutographReq
       <stop offset="0%" stop-color="hsla(${hueStart} 74% 42% / 0.2)"/>
       <stop offset="100%" stop-color="hsla(${hueEnd} 66% 26% / 0)"/>
     </radialGradient>
+    <linearGradient id="title-ink" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#1f3f34"/>
+      <stop offset="56%" stop-color="#2f5f52"/>
+      <stop offset="100%" stop-color="#1f3f34"/>
+    </linearGradient>
+    <filter id="title-shadow" x="-20%" y="-30%" width="140%" height="180%">
+      <feDropShadow dx="0" dy="2" stdDeviation="2.2" flood-color="rgba(81, 57, 19, 0.22)"/>
+    </filter>
   </defs>
   <rect width="1200" height="1500" rx="62" fill="url(#bg)"/>
   <rect width="1200" height="1500" rx="62" fill="url(#glow)"/>
@@ -437,8 +501,10 @@ export function buildKeepsakeSvg(copy: AutographExchangeCopy, item: AutographReq
   <path d="M 1114 1382 C 1084 1418, 1030 1418, 1000 1382" fill="none" stroke="url(#royal-gold)" stroke-width="2.2"/>
 
   <text x="100" y="132" fill="#74521f" font-family="Avenir Next, Nunito Sans, sans-serif" font-size="23" font-weight="800" letter-spacing="5">AUTOGRAPH EXCHANGE</text>
-  <text x="100" y="200" fill="#213b30" font-family="Avenir Next, Nunito Sans, sans-serif" font-size="58" font-weight="800">${title}</text>
-  <text x="100" y="244" fill="#6e5a35" font-family="Avenir Next, Nunito Sans, sans-serif" font-size="24" font-weight="700">${subtitle}</text>
+  <path d="M 100 146 L 516 146" stroke="url(#royal-gold)" stroke-width="2" opacity="0.7"/>
+  <text x="100" y="${titleLayout.titleStartY}" fill="url(#title-ink)" font-family="Avenir Next, Nunito Sans, sans-serif" font-size="${titleLayout.titleFontSize}" font-weight="800" filter="url(#title-shadow)">${titleLayout.titleTspans}</text>
+  <text x="100" y="${titleLayout.subtitleY}" fill="#6e5a35" font-family="Avenir Next, Nunito Sans, sans-serif" font-size="24" font-weight="700">${subtitle}</text>
+  <path d="M 100 ${titleLayout.subtitleY + 14} L 424 ${titleLayout.subtitleY + 14}" stroke="url(#royal-gold)" stroke-width="1.7" opacity="0.65"/>
   <path d="M 1014 106 L 1030 82 L 1046 106 L 1062 82 L 1078 106" fill="none" stroke="url(#royal-gold)" stroke-width="3" stroke-linecap="round"/>
   <circle cx="1046" cy="74" r="7" fill="url(#royal-gold)"/>
 

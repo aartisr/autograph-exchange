@@ -94,12 +94,15 @@ export function AutographExchangeFeature({
     inbox,
     outbox,
     archive,
+    hasMoreArchive,
+    archiveLoadingMore,
     loading,
     error,
     busyAction,
     saveProfile,
     requestAutograph,
     signAutograph,
+    loadMoreArchive,
   } = useAutographExchange(userId, api, onEvent);
 
   const viewModel = useAutographExchangeViewModel({
@@ -110,6 +113,9 @@ export function AutographExchangeFeature({
     profileDisplayName: myProfile?.displayName,
     profileRole: myProfile?.role,
     archive,
+    hasMoreArchive,
+    archiveLoadingMore,
+    onLoadMoreArchive: loadMoreArchive,
     saveProfile,
     requestAutograph,
     signAutograph,
@@ -178,6 +184,9 @@ export function AutographExchangeFeature({
         inbox={inbox}
         outbox={outbox}
         filteredArchive={viewModel.filteredArchive}
+        hasMoreArchive={viewModel.hasMoreArchive}
+        archiveLoadingMore={viewModel.archiveLoadingMore}
+        onLoadMoreArchive={viewModel.onLoadMoreArchive}
         loading={loading}
         busyAction={busyAction}
         roleOptions={viewModel.roleOptions}

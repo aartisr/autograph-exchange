@@ -150,6 +150,9 @@ export function useAutographFeatureAdapter({
       inbox,
       outbox,
       filteredArchive,
+      hasMoreArchive: false,
+      archiveLoadingMore: false,
+      onLoadMoreArchive: async () => {},
       loading,
       busyAction,
       roleOptions: [

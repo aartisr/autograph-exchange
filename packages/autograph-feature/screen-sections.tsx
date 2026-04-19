@@ -29,13 +29,14 @@ import {
 import { MemoizedSignerCombobox } from "./signer-combobox";
 
 const SECTION_IDS = {
+  profile: "autograph-profile-setup",
   outbox: "autograph-requests-sent",
   inbox: "autograph-requests-for-you",
   archive: "autograph-signed-autographs",
   composer: "autograph-request-composer",
 } as const;
 
-type KeepsakeDownloadFormat = "svg" | "png" | "jpg" | "gif";
+type KeepsakeDownloadFormat = "svg" | "png" | "jpg" | "gif" | "pdf";
 
 type HeroJumpTarget = {
   count: number;
@@ -399,6 +400,94 @@ async function rasterizeSvg(svgText: string, mimeType: "image/png" | "image/jpeg
   }
 }
 
+function encodePdfText(value: string): Uint8Array {
+  return new TextEncoder().encode(value);
+}
+
+function concatPdfChunks(chunks: Uint8Array[]): Uint8Array {
+  const total = chunks.reduce((sum, chunk) => sum + chunk.length, 0);
+  const buffer = new Uint8Array(total);
+  let offset = 0;
+
+  for (const chunk of chunks) {
+    buffer.set(chunk, offset);
+    offset += chunk.length;
+  }
+
+  return buffer;
+}
+
+function buildPdfFromJpegBytes(jpegBytes: Uint8Array, sourceWidth: number, sourceHeight: number): Blob {
+  const pageWidth = 612;
+  const pageHeight = 792;
+  const margin = 36;
+  const fitScale = Math.min((pageWidth - margin * 2) / sourceWidth, (pageHeight - margin * 2) / sourceHeight);
+  const drawWidth = sourceWidth * fitScale;
+  const drawHeight = sourceHeight * fitScale;
+  const offsetX = (pageWidth - drawWidth) / 2;
+  const offsetY = (pageHeight - drawHeight) / 2;
+  const contents = `q\n${drawWidth.toFixed(2)} 0 0 ${drawHeight.toFixed(2)} ${offsetX.toFixed(2)} ${offsetY.toFixed(2)} cm\n/Im0 Do\nQ\n`;
+
+  const objectOffsets: number[] = [0];
+  const chunks: Uint8Array[] = [];
+  const pushChunk = (chunk: Uint8Array) => {
+    chunks.push(chunk);
+  };
+
+  pushChunk(encodePdfText("%PDF-1.4\n%\xE2\xE3\xCF\xD3\n"));
+  let offset = chunks[0].length;
+
+  const pushObject = (objectId: number, objectData: Uint8Array) => {
+    objectOffsets[objectId] = offset;
+    pushChunk(objectData);
+    offset += objectData.length;
+  };
+
+  pushObject(1, encodePdfText("1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n"));
+  pushObject(2, encodePdfText("2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n"));
+  pushObject(
+    3,
+    encodePdfText(
+      `3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pageWidth} ${pageHeight}] /Resources << /XObject << /Im0 4 0 R >> >> /Contents 5 0 R >>\nendobj\n`,
+    ),
+  );
+
+  const imageHead = encodePdfText(
+    `4 0 obj\n<< /Type /XObject /Subtype /Image /Width ${sourceWidth} /Height ${sourceHeight} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${jpegBytes.length} >>\nstream\n`,
+  );
+  const imageTail = encodePdfText("\nendstream\nendobj\n");
+  pushObject(4, concatPdfChunks([imageHead, jpegBytes, imageTail]));
+
+  const contentBytes = encodePdfText(contents);
+  pushObject(
+    5,
+    encodePdfText(`5 0 obj\n<< /Length ${contentBytes.length} >>\nstream\n${contents}endstream\nendobj\n`),
+  );
+
+  const xrefOffset = offset;
+  const xrefLines: string[] = ["xref", "0 6", "0000000000 65535 f "];
+  for (let objectId = 1; objectId <= 5; objectId += 1) {
+    xrefLines.push(`${objectOffsets[objectId].toString().padStart(10, "0")} 00000 n `);
+  }
+  xrefLines.push("trailer");
+  xrefLines.push("<< /Size 6 /Root 1 0 R >>");
+  xrefLines.push("startxref");
+  xrefLines.push(String(xrefOffset));
+  xrefLines.push("%%EOF");
+
+  pushChunk(encodePdfText(`${xrefLines.join("\n")}\n`));
+  const payload = concatPdfChunks(chunks);
+  const arrayBuffer = new ArrayBuffer(payload.byteLength);
+  new Uint8Array(arrayBuffer).set(payload);
+  return new Blob([arrayBuffer], { type: "application/pdf" });
+}
+
+async function renderPdfFromSvg(svgText: string): Promise<Blob> {
+  const jpegBlob = await rasterizeSvg(svgText, "image/jpeg");
+  const jpegBytes = new Uint8Array(await jpegBlob.arrayBuffer());
+  return buildPdfFromJpegBytes(jpegBytes, 1200, 1500);
+}
+
 export interface MomentumSectionProps {
   copy: AutographExchangeCopy;
   hasProfile: boolean;
@@ -479,6 +568,8 @@ export const MomentumSection = React.memo(MomentumSectionComponent);
 export interface HeroSectionProps {
   copy: AutographExchangeCopy;
   nextAction: string;
+  nextStepHref?: string;
+  nextStepLabel?: string;
   outboxCount: number;
   inboxCount: number;
   archiveCount: number;
@@ -487,6 +578,8 @@ export interface HeroSectionProps {
 function HeroSectionComponent({
   copy,
   nextAction,
+  nextStepHref,
+  nextStepLabel,
   outboxCount,
   inboxCount,
   archiveCount,
@@ -521,8 +614,20 @@ function HeroSectionComponent({
           {copy.heroTitle}
         </h2>
         <div className="autograph-hero-guidance">
-          <p className="autograph-hero-guidance-label">What to do next</p>
+          <p className="autograph-hero-guidance-label">{copy.heroGuidanceLabel}</p>
           <p className="autograph-hero-description">{nextAction}</p>
+          {nextStepHref && nextStepLabel ? (
+            <a
+              className="autograph-hero-next-link"
+              href={nextStepHref}
+              onClick={(event) => {
+                event.preventDefault();
+                scrollToSection(nextStepHref.slice(1));
+              }}
+            >
+              {nextStepLabel}
+            </a>
+          ) : null}
         </div>
       </div>
       <div className="autograph-hero-stats">
@@ -578,6 +683,7 @@ export function ProfileSection({
 
   return (
     <section
+      id={SECTION_IDS.profile}
       className={`app-surface-card autograph-setup-card autograph-section-card ${isFocused ? "is-focused-section" : ""}`}
       aria-labelledby={titleId}
     >
@@ -972,6 +1078,9 @@ export function InboxLane({
 export interface ArchiveLaneProps {
   copy: AutographExchangeCopy;
   filteredArchive: AutographRequest[];
+  hasMoreArchive: boolean;
+  archiveLoadingMore: boolean;
+  onLoadMoreArchive: () => Promise<void>;
   isFocused: boolean;
   archiveFilter: string;
   setArchiveFilter: React.Dispatch<React.SetStateAction<string>>;
@@ -983,6 +1092,9 @@ export interface ArchiveLaneProps {
 export function ArchiveLane({
   copy,
   filteredArchive,
+  hasMoreArchive,
+  archiveLoadingMore,
+  onLoadMoreArchive,
   isFocused,
   archiveFilter,
   setArchiveFilter,
@@ -991,12 +1103,44 @@ export function ArchiveLane({
   lastSignedRequestId,
 }: ArchiveLaneProps) {
   const titleId = React.useId();
+  const loadMoreRef = React.useRef<HTMLDivElement | null>(null);
   const spotlightItem = filteredArchive[0] ?? null;
   const revealItem = lastSignedRequestId
     ? filteredArchive.find((item) => item.id === lastSignedRequestId) ?? null
     : null;
   const [keepsakeStatus, setKeepsakeStatus] = React.useState<string | null>(null);
   const [downloadFormat, setDownloadFormat] = React.useState<KeepsakeDownloadFormat>("svg");
+
+  React.useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    if (!hasMoreArchive || archiveLoadingMore) {
+      return;
+    }
+
+    const node = loadMoreRef.current;
+    if (!node) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          void onLoadMoreArchive();
+        }
+      },
+      {
+        root: null,
+        rootMargin: "320px 0px",
+        threshold: 0,
+      },
+    );
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [archiveLoadingMore, hasMoreArchive, onLoadMoreArchive, filteredArchive.length]);
 
   async function handleShare(item: AutographRequest) {
     const title = `${item.requesterDisplayName} ↔ ${item.signerDisplayName}`;
@@ -1038,6 +1182,13 @@ export function ArchiveLane({
     try {
       if (downloadFormat === "svg") {
         downloadKeepsakeText(`${baseName}.svg`, svg);
+        setKeepsakeStatus(copy.keepsakeDownloadedStatus);
+        return;
+      }
+
+      if (downloadFormat === "pdf") {
+        const blob = await renderPdfFromSvg(svg);
+        downloadKeepsakeBlob(`${baseName}.pdf`, blob);
         setKeepsakeStatus(copy.keepsakeDownloadedStatus);
         return;
       }
@@ -1122,6 +1273,7 @@ export function ArchiveLane({
                 <option value="png">{copy.downloadPngLabel}</option>
                 <option value="jpg">{copy.downloadJpgLabel}</option>
                 <option value="gif">{copy.downloadGifLabel}</option>
+                <option value="pdf">{copy.downloadPdfLabel}</option>
               </select>
               <button type="button" className="autograph-secondary-btn" onClick={() => void handleDownload(revealItem)}>
                 {copy.downloadKeepsakeLabel}
@@ -1251,6 +1403,7 @@ export function ArchiveLane({
                   <option value="png">{copy.downloadPngLabel}</option>
                   <option value="jpg">{copy.downloadJpgLabel}</option>
                   <option value="gif">{copy.downloadGifLabel}</option>
+                  <option value="pdf">{copy.downloadPdfLabel}</option>
                 </select>
                 <button type="button" className="autograph-secondary-btn" onClick={() => void handleDownload(item)}>
                   {copy.downloadKeepsakeLabel}
@@ -1260,6 +1413,18 @@ export function ArchiveLane({
           );
         })
       )}
+      {hasMoreArchive ? (
+        <div className="autograph-load-more-wrap" ref={loadMoreRef}>
+          <button
+            type="button"
+            className="autograph-secondary-btn"
+            onClick={() => void onLoadMoreArchive()}
+            disabled={archiveLoadingMore}
+          >
+            {archiveLoadingMore ? "Loading more..." : "Load more keepsakes"}
+          </button>
+        </div>
+      ) : null}
     </section>
   );
 }

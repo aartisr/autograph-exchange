@@ -714,6 +714,42 @@
   line-height: 1.7;
 }
 
+.autograph-hero-next-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  min-height: 2.35rem;
+  margin-top: 0.2rem;
+  padding: 0.52rem 0.9rem;
+  border-radius: 0.8rem;
+  border: 1px solid var(--autograph-button-primary-border);
+  background: var(--autograph-button-primary-bg);
+  color: var(--autograph-button-primary-text);
+  box-shadow: var(--autograph-button-primary-shadow);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  text-decoration: none;
+  line-height: 1;
+  transition: transform 140ms ease, box-shadow 140ms ease, filter 140ms ease;
+}
+
+.autograph-hero-next-link:hover,
+.autograph-hero-next-link:focus-visible {
+  color: var(--autograph-button-primary-text);
+  text-decoration: none;
+  transform: translateY(-1px);
+  filter: saturate(1.03);
+  box-shadow: 0 14px 28px rgba(20, 58, 48, 0.22);
+}
+
+.autograph-hero-next-link:active {
+  transform: translateY(0);
+  box-shadow: 0 9px 18px rgba(20, 58, 48, 0.2);
+}
+
 .autograph-quick-steps {
   grid-area: steps;
   display: grid;
@@ -1819,6 +1855,12 @@
   align-items: center;
   gap: 0.6rem;
   flex-wrap: wrap;
+}
+
+.autograph-load-more-wrap {
+  display: flex;
+  justify-content: center;
+  margin-top: 0.9rem;
 }
 
 .autograph-download-format {
