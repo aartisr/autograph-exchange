@@ -368,7 +368,7 @@ export function ProfileSection({
           </div>
           <p className="autograph-context-detail">{copy.profileSkipHint}</p>
           <div className="autograph-request-actions start">
-            <a className="app-button-primary autograph-jump-link" href={`#${SECTION_IDS.composer}`}>
+            <a className="autograph-jump-link autograph-jump-link--premium" href={`#${SECTION_IDS.composer}`}>
               {copy.jumpToStepTwo}
             </a>
             <button type="button" className="autograph-secondary-btn" onClick={() => setIsEditingProfile(true)}>
