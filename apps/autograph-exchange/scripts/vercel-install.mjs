@@ -1,9 +1,29 @@
 import { spawn } from "node:child_process";
+import { mkdir, writeFile } from "node:fs/promises";
+import path from "node:path";
 
 const NPM_COMMAND = process.platform === "win32" ? "npm.cmd" : "npm";
 const PUBLIC_NPM_REGISTRY = "https://registry.npmjs.org/";
+const TEMP_CONFIG_DIR = "/tmp/vercel-npm-config";
 
-function createSanitizedEnv() {
+async function prepareTempNpmConfig() {
+  await mkdir(TEMP_CONFIG_DIR, { recursive: true });
+
+  const userConfigPath = path.join(TEMP_CONFIG_DIR, "user.npmrc");
+  const globalConfigPath = path.join(TEMP_CONFIG_DIR, "global.npmrc");
+
+  await Promise.all([
+    writeFile(userConfigPath, "", "utf8"),
+    writeFile(globalConfigPath, "", "utf8"),
+  ]);
+
+  return { userConfigPath, globalConfigPath };
+}
+
+function createSanitizedEnv({
+  userConfigPath,
+  globalConfigPath,
+}) {
   const env = { ...process.env };
 
   for (const key of [
@@ -23,10 +43,10 @@ function createSanitizedEnv() {
   }
 
   env.HOME = "/tmp";
-  env.NPM_CONFIG_USERCONFIG = "/dev/null";
-  env.npm_config_userconfig = "/dev/null";
-  env.NPM_CONFIG_GLOBALCONFIG = "/dev/null";
-  env.npm_config_globalconfig = "/dev/null";
+  env.NPM_CONFIG_USERCONFIG = userConfigPath;
+  env.npm_config_userconfig = userConfigPath;
+  env.NPM_CONFIG_GLOBALCONFIG = globalConfigPath;
+  env.npm_config_globalconfig = globalConfigPath;
   env.NPM_CONFIG_CACHE = "/tmp/.npm";
   env.npm_config_cache = "/tmp/.npm";
   env.NPM_CONFIG_REGISTRY = PUBLIC_NPM_REGISTRY;
@@ -56,7 +76,8 @@ function run(command, args, env) {
   });
 }
 
-const env = createSanitizedEnv();
+const tempConfig = await prepareTempNpmConfig();
+const env = createSanitizedEnv(tempConfig);
 
 await run(
   NPM_COMMAND,
