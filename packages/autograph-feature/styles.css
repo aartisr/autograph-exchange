@@ -1821,6 +1821,15 @@
   flex-wrap: wrap;
 }
 
+.autograph-download-format {
+  min-height: 2.2rem;
+  min-width: 5.8rem;
+  width: auto;
+  padding-right: 1.9rem;
+  font-size: 0.83rem;
+  font-weight: 700;
+}
+
 .autograph-keepsake-footer {
   color: var(--autograph-tone-copy);
 }
@@ -2079,6 +2088,7 @@
     align-items: stretch;
   }
 
+  .autograph-download-format,
   .autograph-keepsake-actions > * {
     width: 100%;
   }

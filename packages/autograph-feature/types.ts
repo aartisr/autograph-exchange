@@ -66,6 +66,11 @@ export type AutographExchangeCopy = {
   shareKeepsakeLabel: string;
   copyKeepsakeLabel: string;
   downloadKeepsakeLabel: string;
+  downloadFormatLabel: string;
+  downloadSvgLabel: string;
+  downloadPngLabel: string;
+  downloadJpgLabel: string;
+  downloadGifLabel: string;
   keepsakeSharedStatus: string;
   keepsakeCopiedStatus: string;
   keepsakeDownloadedStatus: string;

@@ -166,6 +166,11 @@ describe("autograph feature sections", () => {
     expect(archiveHtml).toContain("autograph-lane autograph-lane-archive");
     expect(archiveHtml).toContain("autograph-archive-message");
     expect(archiveHtml).toContain("autograph-signature-quote");
+    expect(archiveHtml).toContain("autograph-download-format");
+    expect(archiveHtml).toContain('option value="svg"');
+    expect(archiveHtml).toContain('option value="png"');
+    expect(archiveHtml).toContain('option value="jpg"');
+    expect(archiveHtml).toContain('option value="gif"');
     expect(outboxHtml).toContain("autograph-outbox-card");
     expect(outboxHtml).toContain("autograph-outbox-message");
   });
