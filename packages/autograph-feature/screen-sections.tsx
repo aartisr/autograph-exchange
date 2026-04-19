@@ -45,6 +45,102 @@ type HeroJumpTarget = {
   toneClassName: string;
 };
 
+type IconName =
+  | "sparkles"
+  | "userCircle"
+  | "send"
+  | "inbox"
+  | "archive"
+  | "trophy"
+  | "download"
+  | "copy"
+  | "share"
+  | "arrowRight";
+
+interface DecorativeIconProps {
+  name: IconName;
+  className?: string;
+}
+
+function DecorativeIcon({ name, className }: DecorativeIconProps) {
+  const pathByName: Record<IconName, React.ReactNode> = {
+    sparkles: (
+      <>
+        <path d="M12 4l1.55 3.95L17.5 9.5l-3.95 1.55L12 15l-1.55-3.95L6.5 9.5l3.95-1.55L12 4z" />
+        <path d="M19 3l.9 2.1L22 6l-2.1.9L19 9l-.9-2.1L16 6l2.1-.9L19 3z" />
+      </>
+    ),
+    userCircle: (
+      <>
+        <circle cx="12" cy="9" r="3" />
+        <path d="M6.5 18a5.5 5.5 0 0 1 11 0" />
+      </>
+    ),
+    send: <path d="M3 11.8L21 3l-6.7 18-2.8-6.4L3 11.8z" />,
+    inbox: (
+      <>
+        <path d="M4 6h16v11H4z" />
+        <path d="M4 12h4l2 3h4l2-3h4" />
+      </>
+    ),
+    archive: (
+      <>
+        <rect x="3.5" y="4" width="17" height="5" rx="1" />
+        <path d="M5 9.5h14V20H5z" />
+        <path d="M9 14h6" />
+      </>
+    ),
+    trophy: (
+      <>
+        <path d="M8 4h8v3a4 4 0 0 1-8 0V4z" />
+        <path d="M8 6H5a2 2 0 0 0 2 3" />
+        <path d="M16 6h3a2 2 0 0 1-2 3" />
+        <path d="M12 11v4" />
+        <path d="M9 20h6" />
+      </>
+    ),
+    download: (
+      <>
+        <path d="M12 4v10" />
+        <path d="M8.5 11.5L12 15l3.5-3.5" />
+        <path d="M5 20h14" />
+      </>
+    ),
+    copy: (
+      <>
+        <rect x="8" y="8" width="10" height="11" rx="2" />
+        <path d="M6 15H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1" />
+      </>
+    ),
+    share: (
+      <>
+        <circle cx="18" cy="5" r="2" />
+        <circle cx="6" cy="12" r="2" />
+        <circle cx="18" cy="19" r="2" />
+        <path d="M8 12l8-6" />
+        <path d="M8 12l8 7" />
+      </>
+    ),
+    arrowRight: <path d="M5 12h13M13 7l5 5-5 5" />,
+  };
+
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.9"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+      focusable="false"
+    >
+      {pathByName[name]}
+    </svg>
+  );
+}
+
 function scrollToSection(sectionId: string) {
   if (typeof document === "undefined") {
     return;
@@ -517,8 +613,9 @@ function MomentumSectionComponent({
       <div className="autograph-momentum-header">
         <div>
           <p className="autograph-momentum-kicker">{copy.nextMilestoneLabel}</p>
-          <h3 id={titleId} className="autograph-section-title">
-            {copy.journeyTitle}
+          <h3 id={titleId} className="autograph-section-title autograph-title-with-icon">
+            <DecorativeIcon name="trophy" className="autograph-title-icon" />
+            <span>{copy.journeyTitle}</span>
           </h3>
           <p className="autograph-section-copy autograph-momentum-copy">{copy.journeySubtitle}</p>
         </div>
@@ -609,7 +706,10 @@ function HeroSectionComponent({
   return (
     <section className="autograph-hero" aria-labelledby={titleId}>
       <div className="autograph-hero-copy">
-        <p className="autograph-hero-kicker">{copy.heroKicker}</p>
+        <p className="autograph-hero-kicker">
+          <DecorativeIcon name="sparkles" className="autograph-inline-icon" />
+          <span>{copy.heroKicker}</span>
+        </p>
         <h2 id={titleId} className="autograph-hero-title">
           {copy.heroTitle}
         </h2>
@@ -625,7 +725,8 @@ function HeroSectionComponent({
                 scrollToSection(nextStepHref.slice(1));
               }}
             >
-              {nextStepLabel}
+              <span>{nextStepLabel}</span>
+              <DecorativeIcon name="arrowRight" className="autograph-button-icon" />
             </a>
           ) : null}
         </div>
@@ -691,8 +792,9 @@ export function ProfileSection({
         <p className="autograph-section-step">{copy.stepOne}</p>
         <div className="autograph-section-heading">
           <div>
-            <h3 id={titleId} className="autograph-section-title">
-              Your autograph profile
+            <h3 id={titleId} className="autograph-section-title autograph-title-with-icon">
+              <DecorativeIcon name="userCircle" className="autograph-title-icon" />
+              <span>Your autograph profile</span>
             </h3>
             <p className="app-copy-soft autograph-section-copy">
               {hasProfile
@@ -847,8 +949,9 @@ export function RequestComposerSection({
         <p className="autograph-section-step">{copy.stepTwo}</p>
         <div className="autograph-section-heading">
           <div>
-            <h3 id={titleId} className="autograph-section-title">
-              Ask someone for an autograph
+            <h3 id={titleId} className="autograph-section-title autograph-title-with-icon">
+              <DecorativeIcon name="send" className="autograph-title-icon" />
+              <span>Ask someone for an autograph</span>
             </h3>
             <p className="app-copy-soft autograph-section-copy">{copy.requestExplainer}</p>
           </div>
@@ -917,7 +1020,12 @@ export function RequestComposerSection({
         </div>
         {availableSigners.length > 0 ? <p className="autograph-inline-note">{copy.signerListHint}</p> : null}
         <div className="autograph-form-actions">
-          <button type="submit" className="app-button-primary" disabled={busyAction === "request" || !hasProfile}>
+          <button
+            type="submit"
+            className="app-button-primary autograph-button-with-icon"
+            disabled={busyAction === "request" || !hasProfile}
+          >
+            <DecorativeIcon name="send" className="autograph-button-icon" />
             <span>{busyAction === "request" ? "Sending request..." : copy.askForAutograph}</span>
           </button>
         </div>
@@ -967,8 +1075,9 @@ export function InboxLane({
     >
       <header className="autograph-lane-header">
         <div>
-          <h3 id={titleId} className="autograph-lane-title">
-            {copy.requestsForYou}
+          <h3 id={titleId} className="autograph-lane-title autograph-title-with-icon">
+            <DecorativeIcon name="inbox" className="autograph-title-icon" />
+            <span>{copy.requestsForYou}</span>
           </h3>
           <p className="autograph-lane-subtitle">{copy.inboxSubtitle}</p>
         </div>
@@ -1219,8 +1328,9 @@ export function ArchiveLane({
       </div>
       <header className="autograph-lane-header">
         <div>
-          <h3 id={titleId} className="autograph-lane-title">
-            {copy.signedAutographs}
+          <h3 id={titleId} className="autograph-lane-title autograph-title-with-icon">
+            <DecorativeIcon name="archive" className="autograph-title-icon" />
+            <span>{copy.signedAutographs}</span>
           </h3>
           <p className="autograph-lane-subtitle">{copy.archiveSubtitle}</p>
         </div>
@@ -1255,11 +1365,13 @@ export function ArchiveLane({
               {copy.signedPrefix} {formatRelativeDate(revealItem.signedAt ?? revealItem.createdAt, copy)}
             </p>
             <div className="autograph-keepsake-actions">
-              <button type="button" className="autograph-secondary-btn" onClick={() => void handleShare(revealItem)}>
-                {copy.shareKeepsakeLabel}
+              <button type="button" className="autograph-secondary-btn autograph-button-with-icon" onClick={() => void handleShare(revealItem)}>
+                <DecorativeIcon name="share" className="autograph-button-icon" />
+                <span>{copy.shareKeepsakeLabel}</span>
               </button>
-              <button type="button" className="autograph-secondary-btn" onClick={() => void handleCopy(revealItem)}>
-                {copy.copyKeepsakeLabel}
+              <button type="button" className="autograph-secondary-btn autograph-button-with-icon" onClick={() => void handleCopy(revealItem)}>
+                <DecorativeIcon name="copy" className="autograph-button-icon" />
+                <span>{copy.copyKeepsakeLabel}</span>
               </button>
               <label className="autograph-visually-hidden" htmlFor="autograph-download-format-reveal">{copy.downloadFormatLabel}</label>
               <select
@@ -1275,8 +1387,9 @@ export function ArchiveLane({
                 <option value="gif">{copy.downloadGifLabel}</option>
                 <option value="pdf">{copy.downloadPdfLabel}</option>
               </select>
-              <button type="button" className="autograph-secondary-btn" onClick={() => void handleDownload(revealItem)}>
-                {copy.downloadKeepsakeLabel}
+              <button type="button" className="autograph-secondary-btn autograph-button-with-icon" onClick={() => void handleDownload(revealItem)}>
+                <DecorativeIcon name="download" className="autograph-button-icon" />
+                <span>{copy.downloadKeepsakeLabel}</span>
               </button>
             </div>
           </div>
@@ -1385,11 +1498,13 @@ export function ArchiveLane({
                 <p className="autograph-keepsake-footer">{copy.savedInCollectionLabel}</p>
               </div>
               <div className="autograph-keepsake-actions">
-                <button type="button" className="autograph-secondary-btn" onClick={() => void handleShare(item)}>
-                  {copy.shareKeepsakeLabel}
+                <button type="button" className="autograph-secondary-btn autograph-button-with-icon" onClick={() => void handleShare(item)}>
+                  <DecorativeIcon name="share" className="autograph-button-icon" />
+                  <span>{copy.shareKeepsakeLabel}</span>
                 </button>
-                <button type="button" className="autograph-secondary-btn" onClick={() => void handleCopy(item)}>
-                  {copy.copyKeepsakeLabel}
+                <button type="button" className="autograph-secondary-btn autograph-button-with-icon" onClick={() => void handleCopy(item)}>
+                  <DecorativeIcon name="copy" className="autograph-button-icon" />
+                  <span>{copy.copyKeepsakeLabel}</span>
                 </button>
                 <label className="autograph-visually-hidden" htmlFor={`autograph-download-format-${item.id}`}>{copy.downloadFormatLabel}</label>
                 <select
@@ -1405,8 +1520,9 @@ export function ArchiveLane({
                   <option value="gif">{copy.downloadGifLabel}</option>
                   <option value="pdf">{copy.downloadPdfLabel}</option>
                 </select>
-                <button type="button" className="autograph-secondary-btn" onClick={() => void handleDownload(item)}>
-                  {copy.downloadKeepsakeLabel}
+                <button type="button" className="autograph-secondary-btn autograph-button-with-icon" onClick={() => void handleDownload(item)}>
+                  <DecorativeIcon name="download" className="autograph-button-icon" />
+                  <span>{copy.downloadKeepsakeLabel}</span>
                 </button>
               </div>
             </article>
@@ -1449,8 +1565,9 @@ function OutboxSectionComponent({
     >
       <div className="autograph-lane-header">
         <div>
-          <h3 id={titleId} className="autograph-lane-title">
-            {copy.requestsSent}
+          <h3 id={titleId} className="autograph-lane-title autograph-title-with-icon">
+            <DecorativeIcon name="send" className="autograph-title-icon" />
+            <span>{copy.requestsSent}</span>
           </h3>
           <p className="autograph-lane-subtitle">{copy.outboxSubtitle}</p>
         </div>

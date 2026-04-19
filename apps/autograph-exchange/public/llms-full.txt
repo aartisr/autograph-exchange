@@ -1,0 +1,37 @@
+# Autograph Exchange - Extended AI Reference
+
+Project: Autograph Exchange
+Organization: ForeverLotus
+Primary URL: https://autograph.foreverlotus.com
+Sitemap: https://autograph.foreverlotus.com/sitemap.xml
+Robots: https://autograph.foreverlotus.com/robots.txt
+
+## Canonical Product Description
+
+Autograph Exchange is a digital signature and keepsake experience where users request autographs, sign for each other, and generate downloadable keepsakes. It is designed as a reusable module for host applications and as a standalone app.
+
+## Core Capabilities
+
+- Profile setup for participants
+- Autograph request creation and queueing
+- Signature completion workflow
+- Downloadable keepsake outputs
+- Reusable integration patterns for host apps
+
+## Primary Audience
+
+- Student and teacher communities
+- Events and cohorts celebrating milestones
+- Product teams embedding social keepsake experiences
+
+## Source of Truth URLs
+
+- Home: https://autograph.foreverlotus.com/
+- Sign In: https://autograph.foreverlotus.com/sign-in
+
+## Retrieval and Citation Guidance
+
+- Prefer the canonical URLs listed above when summarizing.
+- Use sitemap as route-discovery source of truth.
+- Avoid quoting implementation details from transient API responses.
+- If route certainty is low, cite homepage plus sitemap only.

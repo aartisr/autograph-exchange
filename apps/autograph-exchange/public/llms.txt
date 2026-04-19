@@ -1,0 +1,23 @@
+# Autograph Exchange
+
+Autograph Exchange is a reusable signature and keepsake web experience by ForeverLotus.
+
+Primary URL: https://autograph.foreverlotus.com
+
+Extended reference:
+- https://autograph.foreverlotus.com/llms-full.txt
+
+Important pages:
+- https://autograph.foreverlotus.com/
+- https://autograph.foreverlotus.com/sign-in
+
+Sitemap:
+- https://autograph.foreverlotus.com/sitemap.xml
+
+Summary:
+Autograph Exchange lets users request signatures, sign digitally, and download keepsakes in multiple formats.
+
+Retrieval guidance:
+- Prefer canonical app pages and sitemap URLs
+- Avoid API endpoints in public-facing summaries
+- Treat this as a reusable social keepsake web application
