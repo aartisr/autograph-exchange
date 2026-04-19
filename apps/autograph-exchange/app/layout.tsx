@@ -3,18 +3,53 @@ import React from "react";
 import "./globals.css";
 import "@aartisr/autograph-feature/styles.css";
 import { Providers } from "./providers";
-import { getSiteUrl } from "./lib/site-url";
+import {
+  authorName,
+  authorUrl,
+  buildPageMetadata,
+  organizationName,
+  siteDescription,
+  siteJsonLd,
+  siteKeywords,
+  siteName,
+  siteTitle,
+  siteUrl,
+} from "./lib/seo";
 
-const siteUrl = getSiteUrl();
-const title = "Autograph Exchange | ForeverLotus";
-const description = "A joyful, reusable digital autograph experience for communities, schools, and events.";
+const title = siteTitle;
+const description = siteDescription;
 
 export const metadata: Metadata = {
-  title,
-  description,
+  ...buildPageMetadata({
+    title,
+    description,
+  }),
+  title: {
+    default: title,
+    template: `%s | ${siteName}`,
+  },
   metadataBase: new URL(siteUrl),
-  alternates: {
-    canonical: siteUrl,
+  manifest: "/manifest.json",
+  applicationName: siteName,
+  keywords: siteKeywords,
+  authors: [{ name: authorName, url: authorUrl }],
+  creator: authorName,
+  publisher: organizationName,
+  category: "social",
+  classification: "Digital autograph and keepsake sharing",
+  formatDetection: {
+    address: false,
+    email: false,
+    telephone: false,
+  },
+  icons: {
+    icon: [{ url: "/autograph-icon.svg", type: "image/svg+xml" }],
+    apple: [{ url: "/autograph-icon.svg" }],
+    shortcut: ["/autograph-icon.svg"],
+  },
+  appleWebApp: {
+    capable: true,
+    title: siteName,
   },
   robots: {
     index: true,
@@ -25,7 +60,7 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     url: siteUrl,
-    siteName: "Autograph Exchange",
+    siteName,
     title,
     description,
     images: [
@@ -45,50 +80,13 @@ export const metadata: Metadata = {
   },
 };
 
-const websiteJsonLd = {
-  "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "Organization",
-      "@id": "https://foreverlotus.com/#organization",
-      name: "ForeverLotus",
-      url: "https://foreverlotus.com",
-    },
-    {
-      "@type": "WebSite",
-      "@id": `${siteUrl}/#website`,
-      name: "Autograph Exchange",
-      url: siteUrl,
-      description,
-      inLanguage: "en-US",
-      publisher: {
-        "@id": "https://foreverlotus.com/#organization",
-      },
-    },
-    {
-      "@type": "WebApplication",
-      "@id": `${siteUrl}/#webapp`,
-      name: "Autograph Exchange",
-      url: siteUrl,
-      description,
-      applicationCategory: "SocialNetworkingApplication",
-      operatingSystem: "Web",
-      inLanguage: "en-US",
-      isAccessibleForFree: true,
-      publisher: {
-        "@id": "https://foreverlotus.com/#organization",
-      },
-    },
-  ],
-};
-
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body>
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(siteJsonLd) }}
         />
         <Providers>{children}</Providers>
       </body>

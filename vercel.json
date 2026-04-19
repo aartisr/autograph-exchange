@@ -1,4 +1,4 @@
 {
-  "installCommand": "NPM_CONFIG_USERCONFIG=/dev/null npm install --no-audit --no-fund --registry=https://registry.npmjs.org",
+  "installCommand": "node scripts/vercel-install.mjs",
   "buildCommand": "npm run build"
 }
