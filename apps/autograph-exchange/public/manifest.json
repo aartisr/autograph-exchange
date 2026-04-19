@@ -1,0 +1,36 @@
+{
+  "name": "Autograph Exchange",
+  "short_name": "Autograph",
+  "description": "A joyful digital autograph book for communities, schools, and events.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#effcfb",
+  "theme_color": "#0f766e",
+  "categories": ["social", "education", "events"],
+  "lang": "en",
+  "dir": "ltr",
+  "icons": [
+    {
+      "src": "/autograph-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/autograph-icon-maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Open Autograph Exchange",
+      "short_name": "Open",
+      "description": "Start or revisit your autograph keepsakes.",
+      "url": "/",
+      "icons": [{ "src": "/autograph-icon.svg", "sizes": "any" }]
+    }
+  ]
+}

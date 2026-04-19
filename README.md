@@ -89,7 +89,7 @@ Recommended Vercel project settings:
 
 - Framework preset: `Next.js`
 - Root directory: repository root
-- Install command: from `vercel.json` (`NPM_CONFIG_USERCONFIG=/dev/null npm install --no-audit --no-fund --registry=https://registry.npmjs.org`)
+- Install command: from `vercel.json` (`node scripts/vercel-install.mjs`)
 - Build command: from `vercel.json` (`npm run build`)
 
 Required production environment variables:
@@ -100,7 +100,7 @@ Recommended production environment variables:
 
 - `NEXTAUTH_URL` or `AUTH_URL` set to your deployed site URL
 
-The standalone repo is configured to install from the public npm registry for deployment and can be validated from its own root with:
+The standalone repo is configured to install from the public npm registry for deployment while stripping stale npm auth variables that can trigger 401s on Vercel. It can be validated from its own root with:
 
 ```bash
 npm install --no-audit --no-fund
