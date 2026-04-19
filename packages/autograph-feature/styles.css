@@ -689,11 +689,20 @@
 
 .autograph-hero-kicker {
   margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.38rem;
   font-size: 0.7rem;
   font-weight: 800;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--autograph-kicker);
+}
+
+.autograph-inline-icon {
+  width: 0.92rem;
+  height: 0.92rem;
+  opacity: 0.92;
 }
 
 .autograph-hero-title {
@@ -718,6 +727,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 0.4rem;
   width: fit-content;
   min-height: 2.35rem;
   margin-top: 0.2rem;
@@ -936,6 +946,20 @@
   font-size: 1.08rem;
   font-weight: 760;
   letter-spacing: -0.02em;
+}
+
+.autograph-title-with-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.autograph-title-icon {
+  width: 1rem;
+  height: 1rem;
+  color: var(--autograph-tone-heading, var(--autograph-heading-color));
+  opacity: 0.88;
+  flex-shrink: 0;
 }
 
 .autograph-lane-subtitle {
@@ -1512,6 +1536,20 @@
   text-transform: uppercase;
   letter-spacing: 0.08em;
   transition: border-color 150ms ease, transform 150ms ease, box-shadow 150ms ease;
+}
+
+.autograph-button-with-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.42rem;
+}
+
+.autograph-button-icon {
+  width: 0.92rem;
+  height: 0.92rem;
+  flex-shrink: 0;
+  opacity: 0.9;
 }
 
 .autograph-secondary-btn:hover,
