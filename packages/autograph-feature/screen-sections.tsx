@@ -35,6 +35,8 @@ const SECTION_IDS = {
   composer: "autograph-request-composer",
 } as const;
 
+type KeepsakeDownloadFormat = "svg" | "png" | "jpg" | "gif";
+
 type HeroJumpTarget = {
   count: number;
   href: string;
@@ -148,6 +150,253 @@ function downloadKeepsakeText(filename: string, text: string) {
   link.click();
   link.remove();
   URL.revokeObjectURL(url);
+}
+
+function downloadKeepsakeBlob(filename: string, blob: Blob) {
+  if (typeof document === "undefined") {
+    return;
+  }
+
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
+function writeUint16(target: number[], value: number) {
+  target.push(value & 0xff, (value >> 8) & 0xff);
+}
+
+function createGif332Palette(): Uint8Array {
+  const palette = new Uint8Array(256 * 3);
+
+  for (let index = 0; index < 256; index += 1) {
+    const red = ((index >> 5) & 0x07) * 255 / 7;
+    const green = ((index >> 2) & 0x07) * 255 / 7;
+    const blue = (index & 0x03) * 255 / 3;
+    const offset = index * 3;
+
+    palette[offset] = Math.round(red);
+    palette[offset + 1] = Math.round(green);
+    palette[offset + 2] = Math.round(blue);
+  }
+
+  return palette;
+}
+
+function rgbaToGifIndices(rgba: Uint8ClampedArray): Uint8Array {
+  const indices = new Uint8Array(Math.floor(rgba.length / 4));
+
+  for (let pixel = 0; pixel < indices.length; pixel += 1) {
+    const offset = pixel * 4;
+    const red = rgba[offset] >> 5;
+    const green = rgba[offset + 1] >> 5;
+    const blue = rgba[offset + 2] >> 6;
+    indices[pixel] = (red << 5) | (green << 2) | blue;
+  }
+
+  return indices;
+}
+
+function lzwEncodeGifIndices(indices: Uint8Array, minCodeSize: number): Uint8Array {
+  const clearCode = 1 << minCodeSize;
+  const endCode = clearCode + 1;
+
+  const output: number[] = [];
+  let bitBuffer = 0;
+  let bitLength = 0;
+
+  let codeSize = minCodeSize + 1;
+  let nextCode = endCode + 1;
+  let maxCode = 1 << codeSize;
+  const dictionary = new Map<string, number>();
+
+  const flushCode = (code: number) => {
+    bitBuffer |= code << bitLength;
+    bitLength += codeSize;
+
+    while (bitLength >= 8) {
+      output.push(bitBuffer & 0xff);
+      bitBuffer >>= 8;
+      bitLength -= 8;
+    }
+  };
+
+  const resetDictionary = () => {
+    dictionary.clear();
+    codeSize = minCodeSize + 1;
+    nextCode = endCode + 1;
+    maxCode = 1 << codeSize;
+  };
+
+  flushCode(clearCode);
+  resetDictionary();
+
+  let prefix = indices[0] ?? 0;
+
+  for (let cursor = 1; cursor < indices.length; cursor += 1) {
+    const value = indices[cursor];
+    const key = `${prefix},${value}`;
+    const existing = dictionary.get(key);
+
+    if (existing !== undefined) {
+      prefix = existing;
+      continue;
+    }
+
+    flushCode(prefix);
+
+    if (nextCode < 4096) {
+      dictionary.set(key, nextCode);
+      nextCode += 1;
+
+      if (nextCode === maxCode && codeSize < 12) {
+        codeSize += 1;
+        maxCode = 1 << codeSize;
+      }
+    } else {
+      flushCode(clearCode);
+      resetDictionary();
+    }
+
+    prefix = value;
+  }
+
+  flushCode(prefix);
+  flushCode(endCode);
+
+  if (bitLength > 0) {
+    output.push(bitBuffer & 0xff);
+  }
+
+  return new Uint8Array(output);
+}
+
+function buildGifDataSubBlocks(data: Uint8Array): Uint8Array {
+  const blocks: number[] = [];
+  let offset = 0;
+
+  while (offset < data.length) {
+    const size = Math.min(255, data.length - offset);
+    blocks.push(size);
+
+    for (let index = 0; index < size; index += 1) {
+      blocks.push(data[offset + index]);
+    }
+
+    offset += size;
+  }
+
+  blocks.push(0);
+  return new Uint8Array(blocks);
+}
+
+function encodeGifFrame(rgba: Uint8ClampedArray, width: number, height: number): Uint8Array {
+  const palette = createGif332Palette();
+  const indices = rgbaToGifIndices(rgba);
+  const compressed = lzwEncodeGifIndices(indices, 8);
+  const imageDataBlocks = buildGifDataSubBlocks(compressed);
+
+  const bytes: number[] = [];
+
+  // Header + logical screen descriptor + global color table.
+  bytes.push(0x47, 0x49, 0x46, 0x38, 0x39, 0x61);
+  writeUint16(bytes, width);
+  writeUint16(bytes, height);
+  bytes.push(0xf7, 0x00, 0x00);
+  for (let index = 0; index < palette.length; index += 1) {
+    bytes.push(palette[index]);
+  }
+
+  // Graphic control extension.
+  bytes.push(0x21, 0xf9, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00);
+
+  // Image descriptor.
+  bytes.push(0x2c);
+  writeUint16(bytes, 0);
+  writeUint16(bytes, 0);
+  writeUint16(bytes, width);
+  writeUint16(bytes, height);
+  bytes.push(0x00);
+
+  // Image data (LZW minimum code size + sub-blocks).
+  bytes.push(0x08);
+  for (let index = 0; index < imageDataBlocks.length; index += 1) {
+    bytes.push(imageDataBlocks[index]);
+  }
+
+  // Trailer.
+  bytes.push(0x3b);
+
+  return new Uint8Array(bytes);
+}
+
+async function loadImage(src: string): Promise<HTMLImageElement> {
+  const image = new Image();
+  image.decoding = "async";
+
+  await new Promise<void>((resolve, reject) => {
+    image.onload = () => resolve();
+    image.onerror = () => reject(new Error("Unable to render keepsake image."));
+    image.src = src;
+  });
+
+  return image;
+}
+
+async function rasterizeSvg(svgText: string, mimeType: "image/png" | "image/jpeg" | "image/gif"): Promise<Blob> {
+  if (typeof document === "undefined") {
+    throw new Error("Download unavailable");
+  }
+
+  const svgBlob = new Blob([svgText], { type: "image/svg+xml;charset=utf-8" });
+  const svgUrl = URL.createObjectURL(svgBlob);
+
+  try {
+    const image = await loadImage(svgUrl);
+    const canvas = document.createElement("canvas");
+    const width = image.naturalWidth || 1200;
+    const height = image.naturalHeight || 1500;
+
+    canvas.width = width;
+    canvas.height = height;
+
+    const context = canvas.getContext("2d");
+    if (!context) {
+      throw new Error("Canvas unavailable");
+    }
+
+    if (mimeType === "image/jpeg") {
+      context.fillStyle = "#ffffff";
+      context.fillRect(0, 0, width, height);
+    }
+
+    context.drawImage(image, 0, 0, width, height);
+
+    if (mimeType === "image/gif") {
+      const imageData = context.getImageData(0, 0, width, height);
+      const bytes = encodeGifFrame(imageData.data, width, height);
+      const payload = new ArrayBuffer(bytes.byteLength);
+      new Uint8Array(payload).set(bytes);
+      return new Blob([payload], { type: "image/gif" });
+    }
+
+    const blob = await new Promise<Blob | null>((resolve) => {
+      canvas.toBlob(resolve, mimeType, mimeType === "image/jpeg" ? 0.94 : undefined);
+    });
+
+    if (!blob) {
+      throw new Error("Unable to export keepsake image.");
+    }
+
+    return blob;
+  } finally {
+    URL.revokeObjectURL(svgUrl);
+  }
 }
 
 export interface MomentumSectionProps {
@@ -747,6 +996,7 @@ export function ArchiveLane({
     ? filteredArchive.find((item) => item.id === lastSignedRequestId) ?? null
     : null;
   const [keepsakeStatus, setKeepsakeStatus] = React.useState<string | null>(null);
+  const [downloadFormat, setDownloadFormat] = React.useState<KeepsakeDownloadFormat>("svg");
 
   async function handleShare(item: AutographRequest) {
     const title = `${item.requesterDisplayName} ↔ ${item.signerDisplayName}`;
@@ -775,15 +1025,36 @@ export function ArchiveLane({
     }
   }
 
-  function handleDownload(item: AutographRequest) {
+  async function handleDownload(item: AutographRequest) {
     const safeName = `${item.requesterDisplayName}-${item.signerDisplayName}`
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-+|-+$/g, "")
       .slice(0, 48);
 
-    downloadKeepsakeText(`${safeName || "autograph-keepsake"}.svg`, buildKeepsakeSvg(copy, item));
-    setKeepsakeStatus(copy.keepsakeDownloadedStatus);
+    const baseName = safeName || "autograph-keepsake";
+    const svg = buildKeepsakeSvg(copy, item);
+
+    try {
+      if (downloadFormat === "svg") {
+        downloadKeepsakeText(`${baseName}.svg`, svg);
+        setKeepsakeStatus(copy.keepsakeDownloadedStatus);
+        return;
+      }
+
+      const mimeType =
+        downloadFormat === "png"
+          ? "image/png"
+          : downloadFormat === "jpg"
+            ? "image/jpeg"
+            : "image/gif";
+
+      const blob = await rasterizeSvg(svg, mimeType);
+      downloadKeepsakeBlob(`${baseName}.${downloadFormat}`, blob);
+      setKeepsakeStatus(copy.keepsakeDownloadedStatus);
+    } catch {
+      setKeepsakeStatus(copy.keepsakeUnavailableStatus);
+    }
   }
 
   return (
@@ -839,7 +1110,20 @@ export function ArchiveLane({
               <button type="button" className="autograph-secondary-btn" onClick={() => void handleCopy(revealItem)}>
                 {copy.copyKeepsakeLabel}
               </button>
-              <button type="button" className="autograph-secondary-btn" onClick={() => handleDownload(revealItem)}>
+              <label className="autograph-visually-hidden" htmlFor="autograph-download-format-reveal">{copy.downloadFormatLabel}</label>
+              <select
+                id="autograph-download-format-reveal"
+                className={`${INPUT_CLASS} autograph-download-format`}
+                value={downloadFormat}
+                onChange={(event) => setDownloadFormat(event.target.value as KeepsakeDownloadFormat)}
+                aria-label={copy.downloadFormatLabel}
+              >
+                <option value="svg">{copy.downloadSvgLabel}</option>
+                <option value="png">{copy.downloadPngLabel}</option>
+                <option value="jpg">{copy.downloadJpgLabel}</option>
+                <option value="gif">{copy.downloadGifLabel}</option>
+              </select>
+              <button type="button" className="autograph-secondary-btn" onClick={() => void handleDownload(revealItem)}>
                 {copy.downloadKeepsakeLabel}
               </button>
             </div>
@@ -955,7 +1239,20 @@ export function ArchiveLane({
                 <button type="button" className="autograph-secondary-btn" onClick={() => void handleCopy(item)}>
                   {copy.copyKeepsakeLabel}
                 </button>
-                <button type="button" className="autograph-secondary-btn" onClick={() => handleDownload(item)}>
+                <label className="autograph-visually-hidden" htmlFor={`autograph-download-format-${item.id}`}>{copy.downloadFormatLabel}</label>
+                <select
+                  id={`autograph-download-format-${item.id}`}
+                  className={`${INPUT_CLASS} autograph-download-format`}
+                  value={downloadFormat}
+                  onChange={(event) => setDownloadFormat(event.target.value as KeepsakeDownloadFormat)}
+                  aria-label={copy.downloadFormatLabel}
+                >
+                  <option value="svg">{copy.downloadSvgLabel}</option>
+                  <option value="png">{copy.downloadPngLabel}</option>
+                  <option value="jpg">{copy.downloadJpgLabel}</option>
+                  <option value="gif">{copy.downloadGifLabel}</option>
+                </select>
+                <button type="button" className="autograph-secondary-btn" onClick={() => void handleDownload(item)}>
                   {copy.downloadKeepsakeLabel}
                 </button>
               </div>
