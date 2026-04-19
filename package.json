@@ -22,7 +22,8 @@
     "publish:npm": "npm publish --workspace=packages/autograph-contract --access public --registry=https://registry.npmjs.org && npm publish --workspace=packages/autograph-core --access public --registry=https://registry.npmjs.org && npm publish --workspace=packages/autograph-feature --access public --registry=https://registry.npmjs.org",
     "publish:npm:feature": "npm publish --workspace=packages/autograph-feature --access public --registry=https://registry.npmjs.org",
     "publish:github": "npm publish --workspace=packages/autograph-contract --access public --registry=https://npm.pkg.github.com && npm publish --workspace=packages/autograph-core --access public --registry=https://npm.pkg.github.com && npm publish --workspace=packages/autograph-feature --access public --registry=https://npm.pkg.github.com",
-    "publish:github:canary": "npm publish --workspace=packages/autograph-contract --tag canary --access public --registry=https://npm.pkg.github.com && npm publish --workspace=packages/autograph-core --tag canary --access public --registry=https://npm.pkg.github.com && npm publish --workspace=packages/autograph-feature --tag canary --access public --registry=https://npm.pkg.github.com"
+    "publish:github:canary": "npm publish --workspace=packages/autograph-contract --tag canary --access public --registry=https://npm.pkg.github.com && npm publish --workspace=packages/autograph-core --tag canary --access public --registry=https://npm.pkg.github.com && npm publish --workspace=packages/autograph-feature --tag canary --access public --registry=https://npm.pkg.github.com",
+    "deploy:github:latest": "bash ./scripts/deploy-latest-github-packages.sh"
   },
   "workspaces": [
     "apps/*",
