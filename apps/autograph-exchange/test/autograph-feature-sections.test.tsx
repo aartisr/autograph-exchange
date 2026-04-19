@@ -148,6 +148,9 @@ describe("autograph feature sections", () => {
       <ArchiveLane
         copy={DEFAULT_AUTOGRAPH_COPY}
         filteredArchive={[signedRequest]}
+        hasMoreArchive={false}
+        archiveLoadingMore={false}
+        onLoadMoreArchive={async () => {}}
         archiveFilter=""
         setArchiveFilter={vi.fn()}
         archiveSort="newest"
@@ -171,6 +174,7 @@ describe("autograph feature sections", () => {
     expect(archiveHtml).toContain('option value="png"');
     expect(archiveHtml).toContain('option value="jpg"');
     expect(archiveHtml).toContain('option value="gif"');
+    expect(archiveHtml).toContain('option value="pdf"');
     expect(outboxHtml).toContain("autograph-outbox-card");
     expect(outboxHtml).toContain("autograph-outbox-message");
   });

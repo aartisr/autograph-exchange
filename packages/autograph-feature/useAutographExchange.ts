@@ -13,6 +13,15 @@ import type {
   SignRequestInput,
 } from "./types";
 
+type AutographRequestPageResponse = {
+  items: AutographRequest[];
+  nextCursor: string | null;
+  hasMore: boolean;
+  total: number;
+};
+
+type AutographRequestListResponse = AutographRequest[] | AutographRequestPageResponse;
+
 async function defaultFetchJson<T>(input: string, init?: RequestInit): Promise<T> {
   const response = await fetch(input, {
     ...init,
@@ -69,6 +78,37 @@ function dedupeSignerChoices(profiles: AutographProfile[]): AutographProfile[] {
   return [...byVisibleIdentity.values()].sort((a, b) => a.displayName.localeCompare(b.displayName));
 }
 
+function normalizeRequestPage(response: AutographRequestListResponse): AutographRequestPageResponse {
+  if (Array.isArray(response)) {
+    return {
+      items: response,
+      nextCursor: null,
+      hasMore: false,
+      total: response.length,
+    };
+  }
+
+  return {
+    items: Array.isArray(response.items) ? response.items : [],
+    nextCursor: typeof response.nextCursor === "string" ? response.nextCursor : null,
+    hasMore: Boolean(response.hasMore),
+    total: Number.isFinite(response.total) ? response.total : 0,
+  };
+}
+
+function buildRequestsUrl(baseUrl: string, params: Record<string, string | null | undefined>): string {
+  const search = new URLSearchParams();
+
+  for (const [key, value] of Object.entries(params)) {
+    if (typeof value === "string" && value.trim()) {
+      search.set(key, value);
+    }
+  }
+
+  const query = search.toString();
+  return query ? `${baseUrl}?${query}` : baseUrl;
+}
+
 export function useAutographExchange(
   currentUserId?: string,
   config?: AutographApiConfig,
@@ -76,6 +116,10 @@ export function useAutographExchange(
 ): UseAutographExchangeResult {
   const [profiles, setProfiles] = useState<AutographProfile[]>([]);
   const [requests, setRequests] = useState<AutographRequest[]>([]);
+  const [archive, setArchive] = useState<AutographRequest[]>([]);
+  const [archiveNextCursor, setArchiveNextCursor] = useState<string | null>(null);
+  const [hasMoreArchive, setHasMoreArchive] = useState(false);
+  const [archiveLoadingMore, setArchiveLoadingMore] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [busyAction, setBusyAction] = useState<string | null>(null);
@@ -102,6 +146,10 @@ export function useAutographExchange(
     if (!currentUserId) {
       setProfiles([]);
       setRequests([]);
+      setArchive([]);
+      setArchiveNextCursor(null);
+      setHasMoreArchive(false);
+      setArchiveLoadingMore(false);
       setLoading(false);
       return;
     }
@@ -110,16 +158,34 @@ export function useAutographExchange(
     setError(null);
 
     try {
-      const [profileData, requestData] = await Promise.all([
+      const [profileData, pendingResponse, signedResponse] = await Promise.all([
         fetchJson<AutographProfile[]>(endpoints.profiles),
-        fetchJson<AutographRequest[]>(endpoints.requests),
+        fetchJson<AutographRequestListResponse>(
+          buildRequestsUrl(endpoints.requests, {
+            status: "pending",
+            limit: "100",
+          }),
+        ),
+        fetchJson<AutographRequestListResponse>(
+          buildRequestsUrl(endpoints.requests, {
+            status: "signed",
+            limit: "24",
+          }),
+        ),
       ]);
+
+      const pendingPage = normalizeRequestPage(pendingResponse);
+      const signedPage = normalizeRequestPage(signedResponse);
+
       setProfiles(Array.isArray(profileData) ? dedupeProfilesByUserId(profileData) : []);
-      setRequests(Array.isArray(requestData) ? requestData : []);
+      setRequests(pendingPage.items);
+      setArchive(signedPage.items);
+      setArchiveNextCursor(signedPage.nextCursor);
+      setHasMoreArchive(signedPage.hasMore);
       emitEvent("load_succeeded", {
         metadata: {
           profileCount: Array.isArray(profileData) ? profileData.length : 0,
-          requestCount: Array.isArray(requestData) ? requestData.length : 0,
+          requestCount: pendingPage.items.length + signedPage.items.length,
         },
       });
     } catch (err) {
@@ -155,7 +221,34 @@ export function useAutographExchange(
     [requests, currentUserId],
   );
 
-  const archive = useMemo(() => requests.filter((item) => item.status === "signed"), [requests]);
+  const loadMoreArchive = useCallback(async () => {
+    if (!currentUserId || archiveLoadingMore || !archiveNextCursor) {
+      return;
+    }
+
+    setArchiveLoadingMore(true);
+    setError(null);
+
+    try {
+      const response = await fetchJson<AutographRequestListResponse>(
+        buildRequestsUrl(endpoints.requests, {
+          status: "signed",
+          limit: "24",
+          cursor: archiveNextCursor,
+        }),
+      );
+      const page = normalizeRequestPage(response);
+      setArchive((prev) => [...prev, ...page.items]);
+      setArchiveNextCursor(page.nextCursor);
+      setHasMoreArchive(page.hasMore);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Unable to load more archive items.";
+      setError(message);
+      emitEvent("load_failed", { message, metadata: { phase: "loadMoreArchive" } });
+    } finally {
+      setArchiveLoadingMore(false);
+    }
+  }, [archiveLoadingMore, archiveNextCursor, currentUserId, emitEvent, endpoints.requests, fetchJson]);
 
   const saveProfile = useCallback(
     async (input: SaveProfileInput) => {
@@ -225,6 +318,7 @@ export function useAutographExchange(
             signerUserId: created.signerUserId,
           },
         });
+        return created;
       } catch (err) {
         const message = err instanceof Error ? err.message : "Unable to create autograph request.";
         setError(message);
@@ -251,7 +345,8 @@ export function useAutographExchange(
           }),
         });
 
-        setRequests((prev) => prev.map((item) => (item.id === updated.id ? updated : item)));
+        setRequests((prev) => prev.filter((item) => item.id !== updated.id));
+        setArchive((prev) => [updated, ...prev]);
         emitEvent("request_signed", {
           requestId: updated.id,
           metadata: {
@@ -278,6 +373,8 @@ export function useAutographExchange(
     inbox,
     outbox,
     archive,
+    hasMoreArchive,
+    archiveLoadingMore,
     loading,
     error,
     busyAction,
@@ -285,5 +382,6 @@ export function useAutographExchange(
     saveProfile,
     requestAutograph,
     signAutograph,
+    loadMoreArchive,
   };
 }

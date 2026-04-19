@@ -34,6 +34,38 @@ function featureIsDisabled(isEnabled?: FeatureEnabledCheck) {
   return typeof isEnabled === "function" && !isEnabled();
 }
 
+function parsePositiveInt(value: string | null, fallback: number): number {
+  if (!value) {
+    return fallback;
+  }
+
+  const parsed = Number.parseInt(value, 10);
+  if (!Number.isFinite(parsed) || parsed < 1) {
+    return fallback;
+  }
+
+  return parsed;
+}
+
+function decodeCursor(cursor: string | null): number {
+  if (!cursor) {
+    return 0;
+  }
+
+  try {
+    const decoded = Buffer.from(cursor, "base64url").toString("utf8");
+    const payload = JSON.parse(decoded) as { offset?: number };
+    const offset = payload?.offset;
+    return Number.isFinite(offset) && typeof offset === "number" && offset > 0 ? Math.floor(offset) : 0;
+  } catch {
+    return 0;
+  }
+}
+
+function encodeCursor(offset: number): string {
+  return Buffer.from(JSON.stringify({ offset }), "utf8").toString("base64url");
+}
+
 export function createAutographProfilesGetHandler(config: AutographNextRouteConfig) {
   return async function GET() {
     if (featureIsDisabled(config.isEnabled)) {
@@ -77,7 +109,7 @@ export function createAutographProfilesPutHandler(config: AutographNextRouteConf
 }
 
 export function createAutographRequestsGetHandler(config: AutographNextRouteConfig) {
-  return async function GET() {
+  return async function GET(req: NextRequest) {
     if (featureIsDisabled(config.isEnabled)) {
       return featureDisabledResponse();
     }
@@ -85,7 +117,48 @@ export function createAutographRequestsGetHandler(config: AutographNextRouteConf
     try {
       const userId = await config.getUserId();
       const requests = await config.service.listVisibleAutographRequests(userId);
-      return NextResponse.json(requests);
+      const searchParams = req.nextUrl.searchParams;
+      const status = searchParams.get("status");
+      const query = searchParams.get("q")?.trim().toLowerCase() ?? "";
+      const cursor = searchParams.get("cursor");
+      const limit = Math.min(100, parsePositiveInt(searchParams.get("limit"), 24));
+
+      const needsPaging = Boolean(status || query || cursor || searchParams.has("limit"));
+
+      if (!needsPaging) {
+        return NextResponse.json(requests);
+      }
+
+      const statusFiltered =
+        status === "pending" || status === "signed"
+          ? requests.filter((item) => item.status === status)
+          : requests;
+
+      const filtered = query
+        ? statusFiltered.filter((item) => {
+            const haystack = [
+              item.requesterDisplayName,
+              item.signerDisplayName,
+              item.message,
+              item.signatureText ?? "",
+            ]
+              .join(" ")
+              .toLowerCase();
+            return haystack.includes(query);
+          })
+        : statusFiltered;
+
+      const offset = decodeCursor(cursor);
+      const items = filtered.slice(offset, offset + limit);
+      const nextOffset = offset + items.length;
+      const hasMore = nextOffset < filtered.length;
+
+      return NextResponse.json({
+        items,
+        nextCursor: hasMore ? encodeCursor(nextOffset) : null,
+        hasMore,
+        total: filtered.length,
+      });
     } catch (error) {
       if (isAuthRequiredError(error)) {
         return NextResponse.json({ error: "Authentication required." }, { status: 401 });

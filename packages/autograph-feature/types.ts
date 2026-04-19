@@ -32,6 +32,7 @@ export type SignaturePreset = {
 export type AutographExchangeCopy = {
   heroKicker: string;
   heroTitle: string;
+  heroGuidanceLabel: string;
   journeyTitle: string;
   journeySubtitle: string;
   journeyProfileLabel: string;
@@ -71,6 +72,7 @@ export type AutographExchangeCopy = {
   downloadPngLabel: string;
   downloadJpgLabel: string;
   downloadGifLabel: string;
+  downloadPdfLabel: string;
   keepsakeSharedStatus: string;
   keepsakeCopiedStatus: string;
   keepsakeDownloadedStatus: string;
@@ -106,6 +108,17 @@ export type AutographExchangeCopy = {
   signerSelectedLabel: string;
   whyAreYouAsking: string;
   askForAutograph: string;
+  sendingRequest: string;
+  requestAlreadyPending: string;
+  requestSentTitle: string;
+  requestSentDetail: string;
+  requestSentOutboxCta: string;
+  requestPendingForSignerHint: string;
+  nextStepCtaProfile: string;
+  nextStepCtaComposer: string;
+  nextStepCtaInbox: string;
+  nextStepCtaOutbox: string;
+  nextStepCtaArchive: string;
   saveProfileFirstHint: string;
   youAreAsking: string;
   signerInboxHintPrefix: string;
@@ -151,6 +164,9 @@ export interface AutographExchangeScreenProps {
   inbox: AutographRequest[];
   outbox: AutographRequest[];
   filteredArchive: AutographRequest[];
+  hasMoreArchive: boolean;
+  archiveLoadingMore: boolean;
+  onLoadMoreArchive: () => Promise<void>;
   loading: boolean;
   busyAction: string | null;
   roleOptions: RoleOption[];
@@ -228,13 +244,16 @@ export interface UseAutographExchangeResult {
   inbox: AutographRequest[];
   outbox: AutographRequest[];
   archive: AutographRequest[];
+  hasMoreArchive: boolean;
+  archiveLoadingMore: boolean;
   loading: boolean;
   error: string | null;
   busyAction: string | null;
   reload: () => Promise<void>;
   saveProfile: (input: SaveProfileInput) => Promise<void>;
-  requestAutograph: (input: CreateRequestInput) => Promise<void>;
+  requestAutograph: (input: CreateRequestInput) => Promise<AutographRequest>;
   signAutograph: (input: SignRequestInput) => Promise<void>;
+  loadMoreArchive: () => Promise<void>;
 }
 
 export type AutographFeatureAuthStatus = "loading" | "authenticated" | "unauthenticated";
@@ -276,7 +295,10 @@ export interface UseAutographExchangeViewModelArgs {
   profileDisplayName?: string;
   profileRole?: AutographRole;
   archive: AutographRequest[];
+  hasMoreArchive: boolean;
+  archiveLoadingMore: boolean;
+  onLoadMoreArchive: () => Promise<void>;
   saveProfile: (input: SaveProfileInput) => Promise<void>;
-  requestAutograph: (input: RequestFormState) => Promise<void>;
+  requestAutograph: (input: RequestFormState) => Promise<AutographRequest>;
   signAutograph: (input: { requestId: string; signatureText: string }) => Promise<void>;
 }

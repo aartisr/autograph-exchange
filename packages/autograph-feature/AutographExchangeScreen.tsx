@@ -16,6 +16,9 @@ export function AutographExchangeScreen(props: AutographExchangeScreenProps) {
     inbox,
     outbox,
     filteredArchive,
+    hasMoreArchive,
+    archiveLoadingMore,
+    onLoadMoreArchive,
     loading,
     busyAction,
     roleOptions,
@@ -58,6 +61,26 @@ export function AutographExchangeScreen(props: AutographExchangeScreenProps) {
     setIsEditingProfile(!hasProfile);
   }, [hasProfile]);
 
+  const nextStepCta = useMemo(() => {
+    if (focusSection === "profile") {
+      return { href: "#autograph-profile-setup", label: copy.nextStepCtaProfile };
+    }
+
+    if (focusSection === "composer") {
+      return { href: "#autograph-request-composer", label: copy.nextStepCtaComposer };
+    }
+
+    if (focusSection === "inbox") {
+      return { href: "#autograph-requests-for-you", label: copy.nextStepCtaInbox };
+    }
+
+    if (focusSection === "outbox") {
+      return { href: "#autograph-requests-sent", label: copy.nextStepCtaOutbox };
+    }
+
+    return { href: "#autograph-signed-autographs", label: copy.nextStepCtaArchive };
+  }, [copy, focusSection]);
+
   return (
     <div className="autograph-screen autograph-shell">
       <div className="autograph-live-region" aria-live="polite" aria-atomic="true">
@@ -72,6 +95,8 @@ export function AutographExchangeScreen(props: AutographExchangeScreenProps) {
       <HeroSection
         copy={copy}
         nextAction={nextAction}
+        nextStepHref={nextStepCta.href}
+        nextStepLabel={nextStepCta.label}
         outboxCount={outbox.length}
         inboxCount={inbox.length}
         archiveCount={filteredArchive.length}
@@ -133,6 +158,9 @@ export function AutographExchangeScreen(props: AutographExchangeScreenProps) {
         <ArchiveLane
           copy={copy}
           filteredArchive={filteredArchive}
+          hasMoreArchive={hasMoreArchive}
+          archiveLoadingMore={archiveLoadingMore}
+          onLoadMoreArchive={onLoadMoreArchive}
           archiveFilter={archiveFilter}
           setArchiveFilter={setArchiveFilter}
           archiveSort={archiveSort}

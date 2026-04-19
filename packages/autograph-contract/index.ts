@@ -35,6 +35,13 @@ export interface AutographRequest {
   signedAt?: string;
 }
 
+export interface AutographRequestPage {
+  items: AutographRequest[];
+  nextCursor: string | null;
+  hasMore: boolean;
+  total: number;
+}
+
 export interface UpsertAutographProfileInput {
   displayName: string;
   role: AutographRole;
