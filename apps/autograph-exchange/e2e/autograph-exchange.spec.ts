@@ -54,6 +54,42 @@ test("signed-out experience is responsive and accessible", async ({ page }) => {
   await expectNoSeriousA11yViolations(page);
 });
 
+test("signed-out experience keeps readable layout on mobile viewport", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+
+  const title = page.getByRole("heading", { name: /warm, simple place/i });
+  const cta = page.getByRole("link", { name: /start exchanging autographs/i });
+  const featureCard = page.locator(".autograph-feature-card-signed-out");
+
+  await expect(title).toBeVisible();
+  await expect(cta).toBeVisible();
+  await expect(featureCard).toBeVisible();
+
+  const titleBox = await title.boundingBox();
+  const cardBox = await featureCard.boundingBox();
+  expect(titleBox).not.toBeNull();
+  expect(cardBox).not.toBeNull();
+  expect(titleBox!.width).toBeGreaterThan(180);
+  expect(cardBox!.width).toBeGreaterThan(280);
+
+  await expectNoSeriousA11yViolations(page);
+});
+
+test("signed-out experience keeps readable layout on tablet viewport", async ({ page }) => {
+  await page.setViewportSize({ width: 768, height: 1024 });
+  await page.goto("/");
+
+  const featureCard = page.locator(".autograph-feature-card-signed-out");
+  const benefits = page.locator(".autograph-feature-benefit");
+
+  await expect(featureCard).toBeVisible();
+  await expect(benefits.first()).toBeVisible();
+  await expect(benefits).toHaveCount(3);
+
+  await expectNoSeriousA11yViolations(page);
+});
+
 test("sign-in page is usable and accessible", async ({ page }) => {
   await page.goto("/sign-in");
 

@@ -18,7 +18,8 @@
     "test:boundaries": "node ./scripts/verify-package-boundaries.mjs",
     "test:repo": "node ./scripts/verify-repo-hygiene.mjs",
     "ci": "npm run test:repo && npm run test:boundaries && npm run test && npm run build",
-    "publish:npm": "npm publish --workspace=packages/autograph-contract --access public --registry=https://registry.npmjs.org && npm publish --workspace=packages/autograph-core --access public --registry=https://registry.npmjs.org && npm publish --workspace=packages/autograph-feature --access public --registry=https://registry.npmjs.org"
+    "publish:npm": "npm publish --workspace=packages/autograph-contract --access public --registry=https://registry.npmjs.org && npm publish --workspace=packages/autograph-core --access public --registry=https://registry.npmjs.org && npm publish --workspace=packages/autograph-feature --access public --registry=https://registry.npmjs.org",
+    "publish:npm:feature": "npm publish --workspace=packages/autograph-feature --access public --registry=https://registry.npmjs.org"
   },
   "workspaces": [
     "apps/*",

@@ -1233,13 +1233,74 @@
 }
 
 .autograph-jump-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.45rem;
+  padding: 0.58rem 1rem;
+  border-radius: 0.82rem;
+  border: 1px solid var(--autograph-button-primary-border);
+  background: var(--autograph-button-primary-bg);
+  color: var(--autograph-button-primary-text);
+  box-shadow: var(--autograph-button-primary-shadow);
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  line-height: 1;
   text-decoration: none;
+  transition: transform 140ms ease, box-shadow 140ms ease, filter 140ms ease;
+}
+
+.autograph-jump-link--subtle {
+  border-color: var(--autograph-chip-border-strong);
+  background: var(--autograph-chip-bg);
+  color: var(--autograph-chip-text);
+  box-shadow: 0 6px 14px rgba(23, 52, 42, 0.08);
+}
+
+.autograph-jump-link--premium {
+  border-color: var(--autograph-button-primary-border);
+  background: var(--autograph-button-primary-bg);
+  color: var(--autograph-button-primary-text);
+  box-shadow: var(--autograph-button-primary-shadow);
+}
+
+.autograph-jump-link--playful {
+  border-color: var(--autograph-accent-border);
+  background: linear-gradient(135deg, #2a6d59 0%, #d7a85f 100%);
+  color: #fffaf0;
+  box-shadow: 0 14px 28px rgba(42, 109, 89, 0.24);
 }
 
 .autograph-jump-link:hover,
 .autograph-jump-link:focus-visible {
-  color: var(--autograph-button-primary-text);
   text-decoration: none;
+  transform: translateY(-1px);
+  filter: saturate(1.03);
+  box-shadow: 0 14px 28px rgba(20, 58, 48, 0.22);
+}
+
+.autograph-jump-link--subtle:hover,
+.autograph-jump-link--subtle:focus-visible {
+  color: var(--autograph-chip-text);
+  box-shadow: 0 10px 20px rgba(23, 52, 42, 0.12);
+}
+
+.autograph-jump-link--premium:hover,
+.autograph-jump-link--premium:focus-visible {
+  color: var(--autograph-button-primary-text);
+}
+
+.autograph-jump-link--playful:hover,
+.autograph-jump-link--playful:focus-visible {
+  color: #fffaf0;
+  box-shadow: 0 16px 30px rgba(42, 109, 89, 0.28);
+}
+
+.autograph-jump-link:active {
+  transform: translateY(0);
+  box-shadow: 0 9px 18px rgba(20, 58, 48, 0.2);
 }
 
 .autograph-form-actions {
@@ -2090,7 +2151,7 @@
     --autograph-chip-bg: linear-gradient(180deg, rgba(38, 63, 53, 0.94) 0%, rgba(30, 51, 43, 0.9) 100%);
     --autograph-chip-border: rgba(171, 214, 194, 0.3);
     --autograph-chip-border-strong: rgba(171, 214, 194, 0.5);
-    --autograph-button-primary-text: #fdfcf7;
+    --autograph-button-primary-text: #1d160d;
     --autograph-button-primary-bg: linear-gradient(135deg, #f0d39f 0%, #cf9d56 100%);
     --autograph-button-primary-border: rgba(255, 240, 201, 0.42);
     --autograph-button-primary-shadow: 0 14px 28px rgba(0, 0, 0, 0.28);

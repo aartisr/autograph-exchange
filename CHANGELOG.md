@@ -6,6 +6,12 @@ This project follows a human-maintained changelog format and a semantic-versioni
 
 ## [Unreleased]
 
+### Fixed
+
+- Restored dark-mode primary action contrast by aligning `--autograph-button-primary-text` with the dark gold primary gradient surface in `@aartisr/autograph-feature`.
+- Added regression coverage for gradient-based primary action contrast tokens in light and dark mode.
+- Added mobile and tablet browser-level visibility/accessibility checks for signed-out Autograph Exchange screens.
+
 ### Added
 
 - Standalone website and reusable package architecture

@@ -30,3 +30,18 @@ npm run build
 4. Run `npm run test:e2e` for browser-level confidence
 5. Confirm docs reflect the released public surface
 6. Tag and release only with owner approval
+
+## Patch release workflow (single package)
+
+Use this flow when only one package changes (for example, a contrast or accessibility fix in `@aartisr/autograph-feature`):
+
+1. Bump the package version in its own `package.json` (patch for bug/accessibility fixes).
+2. Add release notes to `CHANGELOG.md` under `Unreleased`.
+3. Run the full validation checklist above.
+4. Publish only that package:
+
+```bash
+npm run publish:npm:feature
+```
+
+5. Tag the release after publish and owner approval.

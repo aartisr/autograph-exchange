@@ -63,6 +63,19 @@ function contrastRatio(foreground: string, background: string) {
   return (lighter + 0.05) / (darker + 0.05);
 }
 
+function extractHexes(value: string): string[] {
+  return (value.match(/#[0-9a-fA-F]{3,6}/g) ?? []).map((hex) => hex.toLowerCase());
+}
+
+function minContrastAgainstStops(foreground: string, gradientOrColor: string): number {
+  const stops = extractHexes(gradientOrColor);
+  if (!stops.length) {
+    throw new Error(`No hex stops found in color token: ${gradientOrColor}`);
+  }
+
+  return Math.min(...stops.map((stop) => contrastRatio(foreground, stop)));
+}
+
 describe("autograph feature contrast tokens", () => {
   it("defines safe light-mode input tokens for typed and placeholder text", () => {
     const inputSurface = extractToken(stylesheet, "--autograph-input-surface");
@@ -124,5 +137,17 @@ describe("autograph feature contrast tokens", () => {
     expect(stylesheet).toContain("select.app-form-input option");
     expect(stylesheet).toContain("select.autograph-input option");
     expect(stylesheet).toContain("option:checked");
+  });
+
+  it("keeps primary action text readable against gradient button backgrounds in light and dark mode", () => {
+    const lightPrimaryText = extractToken(stylesheet, "--autograph-button-primary-text");
+    const lightPrimaryBg = extractToken(stylesheet, "--autograph-button-primary-bg");
+    const darkBlock = extractDarkModeBlock(stylesheet);
+    const darkPrimaryText = extractToken(darkBlock, "--autograph-button-primary-text");
+    const darkPrimaryBg = extractToken(darkBlock, "--autograph-button-primary-bg");
+
+    expect(minContrastAgainstStops(lightPrimaryText, lightPrimaryBg)).toBeGreaterThanOrEqual(4.5);
+    expect(minContrastAgainstStops(darkPrimaryText, darkPrimaryBg)).toBeGreaterThanOrEqual(4.5);
+    expect(stylesheet).toContain(".autograph-feature-cta");
   });
 });
