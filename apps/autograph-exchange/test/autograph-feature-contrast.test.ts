@@ -150,4 +150,26 @@ describe("autograph feature contrast tokens", () => {
     expect(minContrastAgainstStops(darkPrimaryText, darkPrimaryBg)).toBeGreaterThanOrEqual(4.5);
     expect(stylesheet).toContain(".autograph-feature-cta");
   });
+
+  it("keeps dark-mode momentum and setup tiles on dark surfaces", () => {
+    const darkBlock = extractDarkModeBlock(stylesheet);
+
+    expect(darkBlock).toContain(".autograph-momentum-step {");
+    expect(darkBlock).toContain("background: linear-gradient(180deg, rgba(36, 60, 51, 0.94) 0%, rgba(28, 47, 40, 0.9) 100%);");
+    expect(darkBlock).toContain(".autograph-momentum-step.is-complete {");
+    expect(darkBlock).toContain("background: linear-gradient(180deg, rgba(43, 84, 67, 0.94) 0%, rgba(34, 66, 53, 0.9) 100%);");
+    expect(darkBlock).toContain(".autograph-step-state-success {");
+    expect(darkBlock).toContain(".autograph-step-state-warning {");
+  });
+
+  it("keeps dark-mode keepsake panels and collection cards on dark surfaces", () => {
+    const darkBlock = extractDarkModeBlock(stylesheet);
+
+    expect(darkBlock).toContain(".autograph-collection-spotlight {");
+    expect(darkBlock).toContain(".autograph-social-card {");
+    expect(darkBlock).toContain(".autograph-keepsake-panel {");
+    expect(darkBlock).toContain(".autograph-keepsake-panel-signature {");
+    expect(darkBlock).toContain(".autograph-keepsake-panel-label,");
+    expect(darkBlock).toContain(".autograph-keepsake-footer {");
+  });
 });

@@ -1,6 +1,22 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { DEFAULT_AUTOGRAPH_COPY } from "../../../packages/autograph-feature/copy";
-import { formatRelativeDate, rolePairLabel, titleCaseRole } from "../../../packages/autograph-feature/screen-utils";
+import { buildKeepsakeSvg, formatRelativeDate, rolePairLabel, titleCaseRole } from "../../../packages/autograph-feature/screen-utils";
+
+const SAMPLE_KEEPSAKE_REQUEST = {
+  id: "request-1",
+  requesterDisplayName: "Aarti",
+  signerDisplayName: "Guide",
+  requesterRole: "student",
+  signerRole: "teacher",
+  message: "For helping me stay steady through every challenge.",
+  signatureText: "With blessings and gratitude.",
+  createdAt: "2026-04-17T12:00:00.000Z",
+  signedAt: "2026-04-18T12:00:00.000Z",
+} as const;
+
+function extractGradientType(token: string): "linearGradient" | "radialGradient" {
+  return token.includes("linearGradient") ? "linearGradient" : "radialGradient";
+}
 
 describe("autograph feature screen utils", () => {
   afterEach(() => {
@@ -36,5 +52,37 @@ describe("autograph feature screen utils", () => {
         signerRole: "teacher",
       } as never),
     ).toBe("student to teacher");
+  });
+
+  it("builds keepsake svg with balanced defs and gradient tags", () => {
+    const svg = buildKeepsakeSvg(DEFAULT_AUTOGRAPH_COPY, SAMPLE_KEEPSAKE_REQUEST as never);
+
+    expect(svg).toContain("<defs>");
+    expect(svg).toContain("</defs>");
+
+    const gradientTokens = Array.from(svg.matchAll(/<\/?(?:linearGradient|radialGradient)\b[^>]*>/g), (match) => match[0]);
+    const stack: Array<"linearGradient" | "radialGradient"> = [];
+
+    for (const token of gradientTokens) {
+      const type = extractGradientType(token);
+      const isClosingTag = token.startsWith("</");
+
+      if (!isClosingTag) {
+        stack.push(type);
+        continue;
+      }
+
+      expect(stack.pop()).toBe(type);
+    }
+
+    expect(stack).toHaveLength(0);
+  });
+
+  it("keeps critical premium gradients present in output", () => {
+    const svg = buildKeepsakeSvg(DEFAULT_AUTOGRAPH_COPY, SAMPLE_KEEPSAKE_REQUEST as never);
+
+    expect(svg).toContain('id="sig-gradient"');
+    expect(svg).toContain('id="sig-accent"');
+    expect(svg).toContain('id="royal-gold"');
   });
 });
