@@ -424,7 +424,7 @@ export function buildKeepsakeSvg(copy: AutographExchangeCopy, item: AutographReq
     <radialGradient id="sig-accent" cx="32%" cy="38%" r="74%">
       <stop offset="0%" stop-color="hsla(${hueStart} 74% 42% / 0.2)"/>
       <stop offset="100%" stop-color="hsla(${hueEnd} 66% 26% / 0)"/>
-    </linearGradient>
+    </radialGradient>
   </defs>
   <rect width="1200" height="1500" rx="62" fill="url(#bg)"/>
   <rect width="1200" height="1500" rx="62" fill="url(#glow)"/>

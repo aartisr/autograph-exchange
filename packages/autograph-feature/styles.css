@@ -2216,6 +2216,30 @@
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
   }
 
+  .autograph-momentum-bar {
+    background: linear-gradient(180deg, rgba(36, 61, 51, 0.9) 0%, rgba(28, 48, 40, 0.88) 100%);
+  }
+
+  .autograph-momentum-step {
+    border-color: rgba(171, 214, 194, 0.32);
+    background: linear-gradient(180deg, rgba(36, 60, 51, 0.94) 0%, rgba(28, 47, 40, 0.9) 100%);
+  }
+
+  .autograph-momentum-step.is-complete {
+    border-color: rgba(126, 194, 164, 0.38);
+    background: linear-gradient(180deg, rgba(43, 84, 67, 0.94) 0%, rgba(34, 66, 53, 0.9) 100%);
+  }
+
+  .autograph-step-state-success {
+    background: linear-gradient(180deg, rgba(43, 84, 67, 0.94) 0%, rgba(34, 63, 51, 0.9) 100%);
+    border-color: rgba(126, 194, 164, 0.38);
+  }
+
+  .autograph-step-state-warning {
+    background: linear-gradient(180deg, rgba(109, 77, 30, 0.94) 0%, rgba(83, 61, 28, 0.9) 100%);
+    border-color: rgba(224, 182, 116, 0.42);
+  }
+
   .autograph-stat-sent {
     --autograph-tone-surface: linear-gradient(180deg, rgba(67, 51, 25, 0.86) 0%, rgba(49, 39, 23, 0.8) 100%);
     --autograph-tone-border: rgba(224, 182, 116, 0.38);
@@ -2300,6 +2324,50 @@
     background: rgba(13, 27, 40, 0.52);
     border-left-color: rgba(129, 178, 223, 0.5);
     color: var(--autograph-tone-heading);
+  }
+
+  .autograph-collection-spotlight {
+    border-color: rgba(129, 178, 223, 0.34);
+    background:
+      linear-gradient(180deg, rgba(29, 52, 74, 0.92) 0%, rgba(22, 41, 59, 0.88) 100%),
+      radial-gradient(circle at top right, rgba(124, 171, 214, 0.2), transparent 42%);
+  }
+
+  .autograph-social-card {
+    border-color: rgba(129, 178, 223, 0.3);
+    background:
+      linear-gradient(135deg, rgba(27, 50, 72, 0.92) 0%, rgba(22, 41, 60, 0.88) 100%),
+      radial-gradient(circle at top right, rgba(124, 171, 214, 0.24), transparent 44%);
+    box-shadow: none;
+  }
+
+  .autograph-social-card-label {
+    color: #d8e8f8;
+  }
+
+  .autograph-social-card-title,
+  .autograph-social-card-quote {
+    color: #f0f7ff;
+  }
+
+  .autograph-keepsake-panel {
+    border-color: rgba(129, 178, 223, 0.32);
+    background:
+      linear-gradient(180deg, rgba(27, 50, 72, 0.92) 0%, rgba(22, 41, 60, 0.88) 100%),
+      radial-gradient(circle at top right, rgba(124, 171, 214, 0.2), transparent 42%);
+  }
+
+  .autograph-keepsake-panel-signature {
+    background:
+      linear-gradient(180deg, rgba(31, 58, 83, 0.94) 0%, rgba(25, 48, 68, 0.9) 100%),
+      radial-gradient(circle at top right, rgba(160, 197, 231, 0.22), transparent 44%);
+  }
+
+  .autograph-keepsake-panel-label,
+  .autograph-collection-count-label,
+  .autograph-keepsake-piece,
+  .autograph-keepsake-footer {
+    color: #deebf9;
   }
 
   .autograph-tone-sent.autograph-outbox-card,

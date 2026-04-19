@@ -125,3 +125,35 @@ test("authenticated flow works and key layout regions stay visible", async ({ pa
 
   await expectNoSeriousA11yViolations(page);
 });
+
+test("authenticated flow keeps key tiles readable on iPhone dark mode", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ colorScheme: "dark" });
+
+  await signInAs(page, { name: "Asha Raman", email: "asha@example.com" });
+  await page.goto("/");
+
+  await expect(page.locator(".autograph-momentum-step").first()).toBeVisible();
+  await expect(page.locator(".autograph-setup-card").first()).toBeVisible();
+  await expect(page.locator(".autograph-lane-archive")).toBeVisible();
+
+  const stepContrast = await page.locator(".autograph-momentum-step").first().evaluate((node) => {
+    const label = node.querySelector(".autograph-momentum-step-label");
+    if (!label) {
+      return { color: "", backgroundImage: "none" };
+    }
+
+    const nodeStyle = window.getComputedStyle(node);
+    const labelStyle = window.getComputedStyle(label);
+
+    return {
+      color: labelStyle.color,
+      backgroundImage: nodeStyle.backgroundImage,
+    };
+  });
+
+  expect(stepContrast.backgroundImage).not.toBe("none");
+  expect(stepContrast.color).not.toBe("rgb(255, 255, 255)");
+
+  await expectNoSeriousA11yViolations(page);
+});
