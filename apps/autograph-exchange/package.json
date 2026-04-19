@@ -1,9 +1,9 @@
 {
   "name": "autograph-exchange",
   "version": "0.1.0",
-  "private": true,
+  "private": false,
   "author": "aartisr (Aarti Sri Ravikumar)",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "scripts": {
     "clean": "rm -rf .next",
     "dev": "next dev",

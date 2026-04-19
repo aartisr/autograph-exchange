@@ -43,8 +43,8 @@ for (const file of packageFiles) {
     violations.push(`${file} must declare the owner as author.`);
   }
 
-  if (pkg.license !== "UNLICENSED") {
-    violations.push(`${file} must declare license UNLICENSED.`);
+  if (pkg.license !== "MIT") {
+    violations.push(`${file} must declare license MIT.`);
   }
 }
 

@@ -109,30 +109,7 @@ npm run build
 
 ## Publishing
 
-This repository is registry-neutral by default.
-
-That means:
-
-- package metadata does not hardwire GitHub Packages
-- the repo can publish to GitHub Packages or npmjs
-- the registry is chosen by the command or workflow you use
-
-### Publish to GitHub Packages
-
-Local example:
-
-```bash
-npm login --scope=@aartisr --auth-type=legacy --registry=https://npm.pkg.github.com
-npm run publish:github
-```
-
-GitHub Actions workflow:
-
-- `.github/workflows/publish-github-packages.yml`
-
-Optional install template for consumers:
-
-- `.npmrc.github-example`
+This repository is configured for public npmjs publishing.
 
 ### Publish to npmjs
 
@@ -151,8 +128,7 @@ GitHub Actions workflow:
 
 1. Run `npm install`
 2. Run `npm run ci`
-3. Publish to GitHub Packages if you want controlled consumption
-4. Publish to npmjs if you want easy public installs
+3. Publish to npmjs
 
 ## Validate
 
@@ -207,4 +183,4 @@ npm run test:e2e
 
 Copyright (c) 2026 Aarti Sri Ravikumar.
 
-This repository is currently marked as `UNLICENSED` unless a separate written license or commercial agreement is provided by the owner.
+This repository is licensed under the MIT License.
