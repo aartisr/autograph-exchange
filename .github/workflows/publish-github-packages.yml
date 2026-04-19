@@ -1,0 +1,56 @@
+name: Publish GitHub Packages
+
+on:
+  workflow_dispatch:
+    inputs:
+      releaseType:
+        description: "canary (from main) or stable (tagged versions in repo)"
+        required: true
+        default: "canary"
+        type: choice
+        options:
+          - canary
+          - stable
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://npm.pkg.github.com
+          scope: "@aartisr"
+
+      - name: Install
+        run: npm ci --no-audit --no-fund
+
+      - name: Build
+        run: npm run build
+
+      - name: Prepare canary versions
+        if: ${{ github.event_name == 'push' || github.event.inputs.releaseType == 'canary' }}
+        run: npm run prepare:github:canary
+
+      - name: Publish GitHub Packages (canary)
+        if: ${{ github.event_name == 'push' || github.event.inputs.releaseType == 'canary' }}
+        run: npm run publish:github:canary
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish GitHub Packages (stable)
+        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.releaseType == 'stable' }}
+        run: npm run publish:github
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
