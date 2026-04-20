@@ -17,6 +17,7 @@
     "@aartisr/autograph-contract": "^0.1.0",
     "@aartisr/autograph-core": "^0.1.0",
     "@aartisr/autograph-feature": "^0.1.0",
+    "@microsoft/clarity": "^1.0.0",
     "@supabase/supabase-js": "^2.57.4",
     "autoprefixer": "^10.4.27",
     "next": "14.2.35",

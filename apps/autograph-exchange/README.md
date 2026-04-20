@@ -45,6 +45,14 @@ For production or shared environments, set one of:
 
 Production runtime should always provide a real secret. The fallback is only there to keep local development and framework builds friction-free.
 
+## Microsoft Clarity
+
+Set this environment variable to enable client-side Clarity instrumentation:
+
+- `NEXT_PUBLIC_CLARITY_PROJECT_ID`
+
+When this value is not set, Clarity is not initialized.
+
 ## Local storage
 
 The standalone site uses a file-backed storage adapter at:
