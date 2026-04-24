@@ -12,9 +12,9 @@ type PageMetadataOptions = {
 
 export const siteUrl = getSiteUrl();
 export const siteName = "Autograph Exchange";
-export const siteTitle = "Autograph Exchange | ForeverLotus";
+export const siteTitle = "Autograph Exchange Digital Keepsake App for Schools and Communities";
 export const siteDescription =
-  "A joyful, reusable digital autograph experience for communities, schools, and events.";
+  "Autograph Exchange is a reusable digital autograph book for schools, events, and communities to collect thoughtful messages, signatures, and keepsakes online.";
 export const organizationName = "ForeverLotus";
 export const organizationUrl = "https://foreverlotus.com";
 export const authorName = "Aarti Sri Ravikumar";
