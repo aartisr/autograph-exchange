@@ -3,6 +3,7 @@ import React from "react";
 import "./globals.css";
 import "@aartisr/autograph-feature/styles.css";
 import { Providers } from "./providers";
+import { Analytics } from "@vercel/analytics/next";
 import {
   authorName,
   authorUrl,
@@ -89,6 +90,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           dangerouslySetInnerHTML={{ __html: JSON.stringify(siteJsonLd) }}
         />
         <Providers>{children}</Providers>
+        <Analytics />
       </body>
     </html>
   );
