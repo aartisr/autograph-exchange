@@ -114,6 +114,7 @@ export function AutographExchangeScreen(props: AutographExchangeScreenProps) {
       <ProfileSection
         copy={copy}
         hasProfile={hasProfile}
+        myProfile={myProfile}
         isEditingProfile={isEditingProfile}
         setIsEditingProfile={setIsEditingProfile}
         effectiveProfileName={effectiveProfileName}

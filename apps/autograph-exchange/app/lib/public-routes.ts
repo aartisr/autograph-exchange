@@ -16,4 +16,10 @@ export const publicRoutes: PublicRoute[] = [
     changeFrequency: "daily",
     priority: 1,
   },
+  {
+    path: "/profiles",
+    lastModified: AUTOGRAPH_PUBLIC_LAST_MODIFIED,
+    changeFrequency: "weekly",
+    priority: 0.8,
+  },
 ];

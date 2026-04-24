@@ -9,6 +9,8 @@ import type {
   AutographRequest,
   AutographRole,
   ArchiveSort,
+  ProfileFormState,
+  SaveProfileInput,
   SignaturePreset,
 } from "../../types";
 
@@ -20,7 +22,7 @@ type UseAutographFeatureAdapterArgs = {
   loading: boolean;
   error?: string | null;
   busyAction?: string | null;
-  saveProfile: (input: { displayName: string; role: AutographRole }) => Promise<void>;
+  saveProfile: (input: SaveProfileInput) => Promise<void>;
   requestAutograph: (input: { signerUserId: string; message: string }) => Promise<void>;
   signAutograph: (input: { requestId: string; signatureText: string }) => Promise<void>;
   buildSignaturePreset: (userId: string, displayName: string) => SignaturePreset;
@@ -73,9 +75,17 @@ export function useAutographFeatureAdapter({
   signAutograph,
   buildSignaturePreset,
 }: UseAutographFeatureAdapterArgs): UseAutographFeatureAdapterResult {
-  const [profileForm, setProfileForm] = useState<{ displayName: string; role: AutographRole }>({
+  const [profileForm, setProfileForm] = useState<ProfileFormState>({
     displayName: "",
     role: "student",
+    headline: "",
+    bio: "",
+    avatarUrl: "",
+    affiliation: "",
+    location: "",
+    subjects: "",
+    interests: "",
+    signaturePrompt: "",
   });
   const [requestForm, setRequestForm] = useState<{ signerUserId: string; message: string }>({
     signerUserId: "",
@@ -180,8 +190,16 @@ export function useAutographFeatureAdapter({
         await saveProfile({
           displayName: (profileForm.displayName || effectiveProfileName).trim(),
           role: profileForm.role || effectiveProfileRole,
+          headline: profileForm.headline.trim(),
+          bio: profileForm.bio.trim(),
+          avatarUrl: profileForm.avatarUrl.trim(),
+          affiliation: profileForm.affiliation.trim(),
+          location: profileForm.location.trim(),
+          subjects: profileForm.subjects.split(",").map((item) => item.trim()).filter(Boolean),
+          interests: profileForm.interests.split(",").map((item) => item.trim()).filter(Boolean),
+          signaturePrompt: profileForm.signaturePrompt.trim(),
         });
-        setProfileForm({ displayName: "", role: effectiveProfileRole });
+        setProfileForm((prev) => ({ ...prev, displayName: "", role: effectiveProfileRole }));
         return true;
       },
       onRequestSubmit: async (event) => {

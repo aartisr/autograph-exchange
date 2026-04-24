@@ -17,6 +17,7 @@
   ],
   "exports": {
     ".": "./index.ts",
+    "./profile-components": "./profile-components.tsx",
     "./styles.css": "./styles.css"
   },
   "private": false,

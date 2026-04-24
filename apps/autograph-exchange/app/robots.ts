@@ -11,7 +11,7 @@ const allowPublic = [
   "/BingSiteAuth.xml",
   "/CFDF5F11-6B5A-420D-A46E-578D550EA51B.txt",
 ];
-const disallowPrivate = ["/api/", "/sign-in"];
+const disallowPrivate = ["/api/", "/admin/", "/admin", "/sign-in"];
 
 export default function robots(): MetadataRoute.Robots {
   return {

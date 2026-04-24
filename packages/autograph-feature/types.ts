@@ -5,12 +5,30 @@ import type {
   AutographRequest,
   AutographRole,
   AutographVisibility,
+  PublicAutographProfile,
 } from "@aartisr/autograph-contract";
 
-export type { AutographProfile, AutographRequest, AutographRole, AutographVisibility } from "@aartisr/autograph-contract";
+export type {
+  AutographProfile,
+  AutographRequest,
+  AutographRole,
+  AutographVisibility,
+  PublicAutographProfile,
+} from "@aartisr/autograph-contract";
 
 export type ArchiveSort = "newest" | "oldest";
-export type ProfileFormState = { displayName: string; role: AutographRole };
+export type ProfileFormState = {
+  displayName: string;
+  role: AutographRole;
+  headline: string;
+  bio: string;
+  avatarUrl: string;
+  affiliation: string;
+  location: string;
+  subjects: string;
+  interests: string;
+  signaturePrompt: string;
+};
 export type RequestFormState = { signerUserId: string; message: string };
 export type RoleOption = { value: AutographRole; label: string };
 export type AutographSuggestion = { label: string; text: string };
@@ -295,6 +313,14 @@ export type AutographFeatureEventHandler = (event: AutographFeatureEvent) => voi
 export interface SaveProfileInput {
   displayName: string;
   role: AutographRole;
+  headline?: string;
+  bio?: string;
+  avatarUrl?: string;
+  affiliation?: string;
+  location?: string;
+  subjects?: string[];
+  interests?: string[];
+  signaturePrompt?: string;
 }
 
 export interface CreateRequestInput {
@@ -366,6 +392,14 @@ export interface UseAutographExchangeViewModelArgs {
   sessionEmail?: string | null;
   profileDisplayName?: string;
   profileRole?: AutographRole;
+  profileHeadline?: string;
+  profileBio?: string;
+  profileAvatarUrl?: string;
+  profileAffiliation?: string;
+  profileLocation?: string;
+  profileSubjects?: string[];
+  profileInterests?: string[];
+  profileSignaturePrompt?: string;
   archive: AutographRequest[];
   hasMoreArchive: boolean;
   archiveLoadingMore: boolean;

@@ -43,7 +43,7 @@ describe("Autograph Exchange crawl signals", () => {
         "/CFDF5F11-6B5A-420D-A46E-578D550EA51B.txt",
       ]),
     );
-    expect(disallow).toEqual(expect.arrayContaining(["/api/", "/sign-in"]));
+    expect(disallow).toEqual(expect.arrayContaining(["/api/", "/admin/", "/admin", "/sign-in"]));
     expect(robots().sitemap).toBe("https://autograph.foreverlotus.com/sitemap.xml");
   });
 });

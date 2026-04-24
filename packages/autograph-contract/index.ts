@@ -16,8 +16,18 @@ export interface AutographProfile {
   userId: string;
   displayName: string;
   role: AutographRole;
+  headline?: string;
+  bio?: string;
+  avatarUrl?: string;
+  affiliation?: string;
+  location?: string;
+  subjects?: string[];
+  interests?: string[];
+  signaturePrompt?: string;
   updatedAt: string;
 }
+
+export type PublicAutographProfile = Omit<AutographProfile, "userId">;
 
 export interface AutographRequest {
   id: string;
@@ -45,10 +55,23 @@ export interface AutographRequestPage {
 export interface UpsertAutographProfileInput {
   displayName: string;
   role: AutographRole;
+  headline?: string;
+  bio?: string;
+  avatarUrl?: string;
+  affiliation?: string;
+  location?: string;
+  subjects?: string[];
+  interests?: string[];
+  signaturePrompt?: string;
+}
+
+export interface AdminUpsertAutographProfileInput extends UpsertAutographProfileInput {
+  userId: string;
 }
 
 export interface CreateAutographRequestInput {
-  signerUserId: string;
+  signerUserId?: string;
+  signerProfileId?: string;
   message: string;
 }
 

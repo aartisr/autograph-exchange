@@ -3,6 +3,11 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import { DEFAULT_AUTOGRAPH_COPY } from "../../../packages/autograph-feature/copy";
 import {
+  AutographProfileAdminPanel,
+  AutographProfileDirectory,
+  AutographProfileShowcase,
+} from "../../../packages/autograph-feature/profile-components";
+import {
   ArchiveLane,
   HeroSection,
   InboxLane,
@@ -25,6 +30,13 @@ const signerProfile: AutographProfile = {
   userId: "user-2",
   displayName: "Ravi Kumar",
   role: "teacher",
+  headline: "Teacher and community mentor",
+  bio: "Guides students with practical, compassionate encouragement.",
+  affiliation: "Forever Lotus",
+  location: "Online",
+  subjects: ["Meditation", "Mentorship"],
+  interests: ["Service", "Music"],
+  signaturePrompt: "Ask me for one memory or one blessing for your next step.",
   updatedAt: "2026-04-18T10:00:00.000Z",
 };
 
@@ -46,7 +58,38 @@ const roleOptions: Array<{ value: AutographProfile["role"]; label: string }> = [
   { value: "teacher", label: "Guide" },
 ];
 
+const emptyProfileForm = {
+  displayName: "",
+  role: "student" as const,
+  headline: "",
+  bio: "",
+  avatarUrl: "",
+  affiliation: "",
+  location: "",
+  subjects: "",
+  interests: "",
+  signaturePrompt: "",
+};
+
 describe("autograph feature sections", () => {
+  it("renders reusable public profile directory, showcase, and admin surfaces", () => {
+    const directoryHtml = renderToStaticMarkup(<AutographProfileDirectory profiles={[signerProfile]} />);
+    const showcaseHtml = renderToStaticMarkup(
+      <AutographProfileShowcase profile={signerProfile} viewer={{ id: "user-2", email: "ravi@example.com" }} canEdit />,
+    );
+    const adminHtml = renderToStaticMarkup(<AutographProfileAdminPanel initialProfiles={[signerProfile]} />);
+
+    expect(directoryHtml).toContain("autograph-profile-directory");
+    expect(directoryHtml).toContain("Teacher and community mentor");
+    expect(directoryHtml).toContain("Meditation");
+    expect(showcaseHtml).toContain("autograph-profile-showcase");
+    expect(showcaseHtml).toContain("Your public profile");
+    expect(showcaseHtml).not.toContain("Request an autograph");
+    expect(adminHtml).toContain("autograph-admin-profiles");
+    expect(adminHtml).toContain("Create and curate people profiles");
+    expect(adminHtml).toContain("View public page");
+  });
+
   it("renders the hero section with package-owned structure", () => {
     const html = renderToStaticMarkup(
       <HeroSection
@@ -81,7 +124,7 @@ describe("autograph feature sections", () => {
         effectiveProfileName="Asha Raman"
         effectiveProfileRole="student"
         sessionIdentity="asha@example.com"
-        profileForm={{ displayName: "", role: "student" }}
+        profileForm={emptyProfileForm}
         setProfileForm={setProfileForm}
         roleOptions={roleOptions}
         busyAction={null}

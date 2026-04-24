@@ -54,15 +54,24 @@ describe("createModuleAutographStorage", () => {
     const requester = await service.upsertAutographProfile("user-1", {
       displayName: "Aarti Ravikumar",
       role: "student",
+      headline: "Student of meditation, music, and community learning",
+      subjects: ["Meditation", "Music"],
+      interests: ["Service"],
     });
 
     const signer = await service.upsertAutographProfile("user-2", {
       displayName: "Ravikumar Raman",
       role: "teacher",
+      headline: "Teacher and mentor",
+      bio: "Guides students with patience and practical encouragement.",
+      affiliation: "Forever Lotus",
+      location: "Online",
+      signaturePrompt: "Ask me for a memory or encouragement for your next step.",
     });
 
+    const publicProfiles = await service.listPublicAutographProfiles();
     const request = await service.createAutographRequest("user-1", {
-      signerUserId: "user-2",
+      signerProfileId: signer.id,
       message: "Thank you for teaching me with patience.",
     });
 
@@ -72,7 +81,11 @@ describe("createModuleAutographStorage", () => {
     });
 
     expect(requester.userId).toBe("user-1");
+    expect(requester.subjects).toEqual(["Meditation", "Music"]);
     expect(signer.userId).toBe("user-2");
+    expect(signer.signaturePrompt).toBe("Ask me for a memory or encouragement for your next step.");
+    expect(publicProfiles).toHaveLength(2);
+    expect(publicProfiles[0]).not.toHaveProperty("userId");
     expect(signed.status).toBe("signed");
     expect(signed.signatureText).toBe("Keep growing with courage.");
     expect(moduleStore.state.autograph_profiles).toHaveLength(2);

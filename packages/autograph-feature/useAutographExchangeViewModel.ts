@@ -15,6 +15,44 @@ function defaultRoleLabel(role: AutographRole): string {
   return role === "teacher" ? "Teacher" : "Student";
 }
 
+function joinProfileTags(value: string[] | undefined): string {
+  return (value ?? []).join(", ");
+}
+
+function splitProfileTags(value: string): string[] {
+  return value
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .slice(0, 8);
+}
+
+function createProfileFormState(input: {
+  displayName?: string;
+  role?: AutographRole;
+  headline?: string;
+  bio?: string;
+  avatarUrl?: string;
+  affiliation?: string;
+  location?: string;
+  subjects?: string[];
+  interests?: string[];
+  signaturePrompt?: string;
+}): ProfileFormState {
+  return {
+    displayName: input.displayName ?? "",
+    role: input.role ?? "student",
+    headline: input.headline ?? "",
+    bio: input.bio ?? "",
+    avatarUrl: input.avatarUrl ?? "",
+    affiliation: input.affiliation ?? "",
+    location: input.location ?? "",
+    subjects: joinProfileTags(input.subjects),
+    interests: joinProfileTags(input.interests),
+    signaturePrompt: input.signaturePrompt ?? "",
+  };
+}
+
 export function useAutographExchangeViewModel({
   roleLabels,
   userId,
@@ -22,6 +60,14 @@ export function useAutographExchangeViewModel({
   sessionEmail,
   profileDisplayName,
   profileRole,
+  profileHeadline,
+  profileBio,
+  profileAvatarUrl,
+  profileAffiliation,
+  profileLocation,
+  profileSubjects,
+  profileInterests,
+  profileSignaturePrompt,
   archive,
   hasMoreArchive,
   archiveLoadingMore,
@@ -30,7 +76,20 @@ export function useAutographExchangeViewModel({
   requestAutograph,
   signAutograph,
 }: UseAutographExchangeViewModelArgs) {
-  const [profileForm, setProfileForm] = useState<ProfileFormState>({ displayName: "", role: "student" });
+  const [profileForm, setProfileForm] = useState<ProfileFormState>(() =>
+    createProfileFormState({
+      displayName: profileDisplayName,
+      role: profileRole,
+      headline: profileHeadline,
+      bio: profileBio,
+      avatarUrl: profileAvatarUrl,
+      affiliation: profileAffiliation,
+      location: profileLocation,
+      subjects: profileSubjects,
+      interests: profileInterests,
+      signaturePrompt: profileSignaturePrompt,
+    }),
+  );
   const [requestForm, setRequestForm] = useState<RequestFormState>({ signerUserId: "", message: "" });
   const [signatureDrafts, setSignatureDrafts] = useState<Record<string, string>>({});
   const [expandedRequestId, setExpandedRequestId] = useState<string | null>(null);
@@ -78,6 +137,51 @@ export function useAutographExchangeViewModel({
   const effectiveProfileRole = profileRole ?? "student";
   const sessionIdentity = sessionEmail ?? userId ?? "Current signed-in account";
 
+  useEffect(() => {
+    const hasSavedProfileDetails = Boolean(
+      profileDisplayName
+        || profileHeadline
+        || profileBio
+        || profileAvatarUrl
+        || profileAffiliation
+        || profileLocation
+        || profileSubjects?.length
+        || profileInterests?.length
+        || profileSignaturePrompt,
+    );
+
+    if (!hasSavedProfileDetails) {
+      setProfileForm((prev) => ({ ...prev, role: profileRole ?? prev.role }));
+      return;
+    }
+
+    setProfileForm(
+      createProfileFormState({
+        displayName: profileDisplayName,
+        role: profileRole,
+        headline: profileHeadline,
+        bio: profileBio,
+        avatarUrl: profileAvatarUrl,
+        affiliation: profileAffiliation,
+        location: profileLocation,
+        subjects: profileSubjects,
+        interests: profileInterests,
+        signaturePrompt: profileSignaturePrompt,
+      }),
+    );
+  }, [
+    profileAffiliation,
+    profileAvatarUrl,
+    profileBio,
+    profileDisplayName,
+    profileHeadline,
+    profileInterests,
+    profileLocation,
+    profileRole,
+    profileSignaturePrompt,
+    profileSubjects,
+  ]);
+
   const signaturePreset = useMemo(
     () => buildSignaturePreset(userId ?? "anonymous", effectiveProfileName),
     [userId, effectiveProfileName],
@@ -89,8 +193,19 @@ export function useAutographExchangeViewModel({
     const role = profileForm.role || effectiveProfileRole;
 
     try {
-      await saveProfile({ displayName, role });
-      setProfileForm({ displayName: "", role });
+      await saveProfile({
+        displayName,
+        role,
+        headline: profileForm.headline.trim(),
+        bio: profileForm.bio.trim(),
+        avatarUrl: profileForm.avatarUrl.trim(),
+        affiliation: profileForm.affiliation.trim(),
+        location: profileForm.location.trim(),
+        subjects: splitProfileTags(profileForm.subjects),
+        interests: splitProfileTags(profileForm.interests),
+        signaturePrompt: profileForm.signaturePrompt.trim(),
+      });
+      setProfileForm((prev) => ({ ...prev, displayName, role }));
       setStatusMessage(`Profile saved for ${displayName}. It is linked to ${sessionIdentity}.`);
       return true;
     } catch {

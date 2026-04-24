@@ -7,6 +7,14 @@ type SupabaseProfileRow = {
   user_id: string;
   display_name: string;
   role: ProfileEntry["role"];
+  headline: string | null;
+  bio: string | null;
+  avatar_url: string | null;
+  affiliation: string | null;
+  location: string | null;
+  subjects: string[] | null;
+  interests: string[] | null;
+  signature_prompt: string | null;
   updated_at: string;
 };
 
@@ -31,6 +39,14 @@ type WritableProfile = {
   userId: string;
   displayName: string;
   role: ProfileEntry["role"];
+  headline?: string;
+  bio?: string;
+  avatarUrl?: string;
+  affiliation?: string;
+  location?: string;
+  subjects?: string[];
+  interests?: string[];
+  signaturePrompt?: string;
   updatedAt: string;
 };
 
@@ -71,6 +87,14 @@ function normalizeWritableProfile(
     userId?: unknown;
     displayName?: unknown;
     role?: unknown;
+    headline?: unknown;
+    bio?: unknown;
+    avatarUrl?: unknown;
+    affiliation?: unknown;
+    location?: unknown;
+    subjects?: unknown;
+    interests?: unknown;
+    signaturePrompt?: unknown;
     updatedAt?: unknown;
   };
 
@@ -79,6 +103,14 @@ function normalizeWritableProfile(
     userId: requireString(source.userId, "profile.userId"),
     displayName: requireString(source.displayName, "profile.displayName"),
     role: requireString(source.role, "profile.role") as ProfileEntry["role"],
+    headline: optionalString(source.headline),
+    bio: optionalString(source.bio),
+    avatarUrl: optionalString(source.avatarUrl),
+    affiliation: optionalString(source.affiliation),
+    location: optionalString(source.location),
+    subjects: Array.isArray(source.subjects) ? source.subjects.filter((item): item is string => typeof item === "string") : [],
+    interests: Array.isArray(source.interests) ? source.interests.filter((item): item is string => typeof item === "string") : [],
+    signaturePrompt: optionalString(source.signaturePrompt),
     updatedAt: requireString(source.updatedAt, "profile.updatedAt"),
   };
 }
@@ -155,6 +187,14 @@ function mapProfileRow(row: SupabaseProfileRow): ProfileEntry {
     userId: row.user_id,
     displayName: row.display_name,
     role: row.role,
+    headline: row.headline ?? undefined,
+    bio: row.bio ?? undefined,
+    avatarUrl: row.avatar_url ?? undefined,
+    affiliation: row.affiliation ?? undefined,
+    location: row.location ?? undefined,
+    subjects: row.subjects ?? [],
+    interests: row.interests ?? [],
+    signaturePrompt: row.signature_prompt ?? undefined,
     updatedAt: row.updated_at,
   };
 }
@@ -183,6 +223,14 @@ function toProfileRow(profile: WritableProfile): Partial<SupabaseProfileRow> {
     user_id: profile.userId,
     display_name: profile.displayName,
     role: profile.role,
+    headline: profile.headline ?? null,
+    bio: profile.bio ?? null,
+    avatar_url: profile.avatarUrl ?? null,
+    affiliation: profile.affiliation ?? null,
+    location: profile.location ?? null,
+    subjects: profile.subjects ?? [],
+    interests: profile.interests ?? [],
+    signature_prompt: profile.signaturePrompt ?? null,
     updated_at: profile.updatedAt,
   };
 }
@@ -258,7 +306,21 @@ export function createSupabaseAutographStorage(config: AutographSupabasePersiste
   });
 
   const db = config.schema === "public" ? client : client.schema(config.schema);
-  const profileColumns = selectColumns(["id", "user_id", "display_name", "role", "updated_at"]);
+  const profileColumns = selectColumns([
+    "id",
+    "user_id",
+    "display_name",
+    "role",
+    "headline",
+    "bio",
+    "avatar_url",
+    "affiliation",
+    "location",
+    "subjects",
+    "interests",
+    "signature_prompt",
+    "updated_at",
+  ]);
   const requestColumns = selectColumns([
     "id",
     "requester_user_id",

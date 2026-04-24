@@ -1,11 +1,13 @@
 import {
   AUTOGRAPH_PROFILES_MODULE,
   AUTOGRAPH_REQUESTS_MODULE,
+  type AdminUpsertAutographProfileInput,
   type AutographProfile,
   type AutographRequest,
   type AutographRole,
   type AutographVisibility,
   type CreateAutographRequestInput,
+  type PublicAutographProfile,
   type SignAutographRequestInput,
   type UpsertAutographProfileInput,
 } from "@aartisr/autograph-contract";
@@ -48,9 +50,20 @@ export interface AutographModuleStore {
 
 export interface AutographService {
   listAutographProfiles(): Promise<AutographProfile[]>;
+  listPublicAutographProfiles(): Promise<PublicAutographProfile[]>;
+  getPublicAutographProfile(profileId: string): Promise<PublicAutographProfile | null>;
   upsertAutographProfile(
     actorUserId: string,
     input: UpsertAutographProfileInput,
+  ): Promise<AutographProfile>;
+  adminUpsertAutographProfile(
+    input: AdminUpsertAutographProfileInput & { id?: string },
+  ): Promise<AutographProfile>;
+  updateAutographProfile(
+    actorUserId: string,
+    profileId: string,
+    input: UpsertAutographProfileInput,
+    options?: { canManageAllProfiles?: boolean },
   ): Promise<AutographProfile>;
   listVisibleAutographRequests(actorUserId: string): Promise<AutographRequest[]>;
   createAutographRequest(
@@ -68,6 +81,14 @@ export type ProfileEntry = AutographEntity & {
   userId: string;
   displayName: string;
   role: AutographRole;
+  headline?: string;
+  bio?: string;
+  avatarUrl?: string;
+  affiliation?: string;
+  location?: string;
+  subjects?: string[];
+  interests?: string[];
+  signaturePrompt?: string;
   updatedAt: string;
 };
 
@@ -98,6 +119,45 @@ function sanitizeDisplayName(value: string): string {
   return value.trim().slice(0, 80);
 }
 
+function sanitizeOptionalText(value: unknown, maxLength: number): string | undefined {
+  if (typeof value !== "string") {
+    return undefined;
+  }
+
+  const trimmed = value.trim().slice(0, maxLength);
+  return trimmed || undefined;
+}
+
+function sanitizeOptionalUrl(value: unknown): string | undefined {
+  const trimmed = sanitizeOptionalText(value, 300);
+  if (!trimmed) {
+    return undefined;
+  }
+
+  if (trimmed.startsWith("/")) {
+    return trimmed;
+  }
+
+  try {
+    const parsed = new URL(trimmed);
+    return parsed.protocol === "https:" || parsed.protocol === "http:" ? parsed.toString() : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function sanitizeTags(value: unknown): string[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  const tags = value
+    .map((item) => (typeof item === "string" ? item.trim().slice(0, 36) : ""))
+    .filter(Boolean);
+
+  return Array.from(new Set(tags)).slice(0, 8);
+}
+
 function sanitizeMessage(value: string): string {
   return value.trim().slice(0, 600);
 }
@@ -116,7 +176,35 @@ function normalizeProfile(entry: Partial<ProfileEntry>): AutographProfile | null
     userId: entry.userId,
     displayName: entry.displayName,
     role: entry.role,
+    headline: sanitizeOptionalText(entry.headline, 120),
+    bio: sanitizeOptionalText(entry.bio, 500),
+    avatarUrl: sanitizeOptionalUrl(entry.avatarUrl),
+    affiliation: sanitizeOptionalText(entry.affiliation, 120),
+    location: sanitizeOptionalText(entry.location, 120),
+    subjects: sanitizeTags(entry.subjects),
+    interests: sanitizeTags(entry.interests),
+    signaturePrompt: sanitizeOptionalText(entry.signaturePrompt, 180),
     updatedAt: entry.updatedAt || new Date(0).toISOString(),
+  };
+}
+
+function toPublicProfile(profile: AutographProfile): PublicAutographProfile {
+  const { userId: _userId, ...publicProfile } = profile;
+  return publicProfile;
+}
+
+function sanitizeProfileInput(input: UpsertAutographProfileInput) {
+  return {
+    displayName: sanitizeDisplayName(input.displayName),
+    role: input.role,
+    headline: sanitizeOptionalText(input.headline, 120),
+    bio: sanitizeOptionalText(input.bio, 500),
+    avatarUrl: sanitizeOptionalUrl(input.avatarUrl),
+    affiliation: sanitizeOptionalText(input.affiliation, 120),
+    location: sanitizeOptionalText(input.location, 120),
+    subjects: sanitizeTags(input.subjects),
+    interests: sanitizeTags(input.interests),
+    signaturePrompt: sanitizeOptionalText(input.signaturePrompt, 180),
   };
 }
 
@@ -204,6 +292,64 @@ export function createModuleAutographStorage(store: AutographModuleStore): Autog
   };
 }
 
+async function findLatestProfileForUser(storage: AutographStorage, userId: string): Promise<AutographProfile | undefined> {
+  const existingEntries = await storage.listProfiles({ userId });
+  return existingEntries
+    .map((entry) => normalizeProfile(entry))
+    .filter((entry): entry is AutographProfile => Boolean(entry))
+    .sort((a, b) => profileRecencyValue(b) - profileRecencyValue(a))[0];
+}
+
+async function saveProfileForUser(
+  storage: AutographStorage,
+  targetUserId: string,
+  input: UpsertAutographProfileInput,
+  profileId?: string,
+): Promise<AutographProfile> {
+  const sanitized = sanitizeProfileInput(input);
+
+  if (!sanitized.displayName) {
+    throw new Error("Display name is required.");
+  }
+
+  if (!isRole(sanitized.role)) {
+    throw new Error("Role must be student or teacher.");
+  }
+
+  const existing = profileId
+    ? (await storage.listProfiles()).map((entry) => normalizeProfile(entry)).find((entry) => entry?.id === profileId)
+    : await findLatestProfileForUser(storage, targetUserId);
+
+  if (profileId && (!existing || existing.userId !== targetUserId)) {
+    throw new Error("Profile not found.");
+  }
+
+  const saved = await storage.saveProfile(
+    {
+      id: existing?.id,
+      userId: targetUserId,
+      displayName: sanitized.displayName,
+      role: sanitized.role,
+      headline: sanitized.headline,
+      bio: sanitized.bio,
+      avatarUrl: sanitized.avatarUrl,
+      affiliation: sanitized.affiliation,
+      location: sanitized.location,
+      subjects: sanitized.subjects,
+      interests: sanitized.interests,
+      signaturePrompt: sanitized.signaturePrompt,
+      updatedAt: new Date().toISOString(),
+    },
+    { userId: targetUserId },
+  );
+
+  const normalized = normalizeProfile(saved);
+  if (!normalized) {
+    throw new Error("Unable to save profile.");
+  }
+  return normalized;
+}
+
 export function createAutographService(storage: AutographStorage): AutographService {
   return {
     async listAutographProfiles(): Promise<AutographProfile[]> {
@@ -216,43 +362,52 @@ export function createAutographService(storage: AutographStorage): AutographServ
       );
     },
 
+    async listPublicAutographProfiles(): Promise<PublicAutographProfile[]> {
+      const profiles = await this.listAutographProfiles();
+      return profiles.map(toPublicProfile);
+    },
+
+    async getPublicAutographProfile(profileId: string): Promise<PublicAutographProfile | null> {
+      const profile = (await this.listAutographProfiles()).find((item) => item.id === profileId);
+      return profile ? toPublicProfile(profile) : null;
+    },
+
     async upsertAutographProfile(
       actorUserId: string,
       input: UpsertAutographProfileInput,
     ): Promise<AutographProfile> {
-      const displayName = sanitizeDisplayName(input.displayName);
+      return saveProfileForUser(storage, actorUserId, input);
+    },
 
-      if (!displayName) {
-        throw new Error("Display name is required.");
+    async adminUpsertAutographProfile(
+      input: AdminUpsertAutographProfileInput & { id?: string },
+    ): Promise<AutographProfile> {
+      const targetUserId = input.userId.trim().toLowerCase();
+
+      if (!targetUserId) {
+        throw new Error("User ID is required.");
       }
 
-      if (!isRole(input.role)) {
-        throw new Error("Role must be student or teacher.");
+      return saveProfileForUser(storage, targetUserId, input, input.id);
+    },
+
+    async updateAutographProfile(
+      actorUserId: string,
+      profileId: string,
+      input: UpsertAutographProfileInput,
+      options?: { canManageAllProfiles?: boolean },
+    ): Promise<AutographProfile> {
+      const current = (await this.listAutographProfiles()).find((profile) => profile.id === profileId);
+
+      if (!current) {
+        throw new Error("Profile not found.");
       }
 
-      const now = new Date().toISOString();
-      const existingEntries = await storage.listProfiles({ userId: actorUserId });
-      const existing = existingEntries
-        .map((entry) => normalizeProfile(entry))
-        .filter((entry): entry is AutographProfile => Boolean(entry))
-        .sort((a, b) => profileRecencyValue(b) - profileRecencyValue(a))[0];
-
-      const saved = await storage.saveProfile(
-        {
-          id: existing?.id,
-          userId: actorUserId,
-          displayName,
-          role: input.role,
-          updatedAt: now,
-        },
-        { userId: actorUserId },
-      );
-
-      const normalized = normalizeProfile(saved);
-      if (!normalized) {
-        throw new Error("Unable to save profile.");
+      if (!options?.canManageAllProfiles && current.userId !== actorUserId) {
+        throw new Error("Only the profile owner can edit this profile.");
       }
-      return normalized;
+
+      return saveProfileForUser(storage, current.userId, input, profileId);
     },
 
     async listVisibleAutographRequests(actorUserId: string): Promise<AutographRequest[]> {
@@ -273,10 +428,11 @@ export function createAutographService(storage: AutographStorage): AutographServ
       actorUserId: string,
       input: CreateAutographRequestInput,
     ): Promise<AutographRequest> {
-      const signerUserId = input.signerUserId.trim();
+      const signerUserIdInput = input.signerUserId?.trim() ?? "";
+      const signerProfileId = input.signerProfileId?.trim() ?? "";
       const message = sanitizeMessage(input.message);
 
-      if (!signerUserId) {
+      if (!signerUserIdInput && !signerProfileId) {
         throw new Error("Signer is required.");
       }
 
@@ -284,13 +440,11 @@ export function createAutographService(storage: AutographStorage): AutographServ
         throw new Error("Message is required.");
       }
 
-      if (signerUserId === actorUserId) {
-        throw new Error("You cannot request your own autograph.");
-      }
-
       const profiles = await this.listAutographProfiles();
       const requesterProfile = profiles.find((profile) => profile.userId === actorUserId);
-      const signerProfile = profiles.find((profile) => profile.userId === signerUserId);
+      const signerProfile = signerProfileId
+        ? profiles.find((profile) => profile.id === signerProfileId)
+        : profiles.find((profile) => profile.userId === signerUserIdInput);
 
       if (!requesterProfile) {
         throw new Error("Please save your autograph profile first.");
@@ -300,11 +454,15 @@ export function createAutographService(storage: AutographStorage): AutographServ
         throw new Error("The selected signer does not have an autograph profile yet.");
       }
 
+      if (signerProfile.userId === actorUserId) {
+        throw new Error("You cannot request your own autograph.");
+      }
+
       const created = await storage.createRequest({
         requesterUserId: actorUserId,
         requesterDisplayName: requesterProfile.displayName,
         requesterRole: requesterProfile.role,
-        signerUserId,
+        signerUserId: signerProfile.userId,
         signerDisplayName: signerProfile.displayName,
         signerRole: signerProfile.role,
         message,

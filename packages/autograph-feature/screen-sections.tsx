@@ -483,6 +483,7 @@ export const HeroSection = React.memo(HeroSectionComponent);
 export interface ProfileSectionProps {
   copy: AutographExchangeCopy;
   hasProfile: boolean;
+  myProfile?: AutographProfile | null;
   isFocused: boolean;
   isEditingProfile: boolean;
   setIsEditingProfile: React.Dispatch<React.SetStateAction<boolean>>;
@@ -499,6 +500,7 @@ export interface ProfileSectionProps {
 export function ProfileSection({
   copy,
   hasProfile,
+  myProfile,
   isFocused,
   isEditingProfile,
   setIsEditingProfile,
@@ -516,6 +518,8 @@ export function ProfileSection({
   const roleHintId = React.useId();
   const effectiveRoleLabel = getRoleLabel(effectiveProfileRole, roleOptions);
   const previewRoleLabel = getRoleLabel(profileForm.role || effectiveProfileRole, roleOptions);
+  const profileSubjects = myProfile?.subjects?.filter(Boolean) ?? [];
+  const profileInterests = myProfile?.interests?.filter(Boolean) ?? [];
 
   return (
     <section
@@ -555,6 +559,21 @@ export function ProfileSection({
               <span className="autograph-role-summary-label">{copy.savedRoleLabel}</span>
               <span className="autograph-role-chip">{effectiveRoleLabel}</span>
             </div>
+            {myProfile?.headline ? <p className="autograph-context-detail">{myProfile.headline}</p> : null}
+            {myProfile?.affiliation || myProfile?.location ? (
+              <p className="autograph-profile-summary-meta">
+                {[myProfile.affiliation, myProfile.location].filter(Boolean).join(" · ")}
+              </p>
+            ) : null}
+            {profileSubjects.length || profileInterests.length ? (
+              <div className="autograph-profile-summary-tags">
+                {[...profileSubjects, ...profileInterests].slice(0, 6).map((tag) => (
+                  <span key={tag} className="autograph-profile-summary-tag">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            ) : null}
           </div>
           <p className="autograph-context-detail">{copy.profileSkipHint}</p>
           <div className="autograph-request-actions start">
@@ -615,6 +634,82 @@ export function ProfileSection({
             <p id={roleHintId} className="autograph-field-hint">
               {copy.roleHint}
             </p>
+          </label>
+          <label className="autograph-field">
+            <span className="app-form-label">Headline</span>
+            <input
+              className={INPUT_CLASS}
+              value={profileForm.headline}
+              maxLength={120}
+              onChange={(event) => setProfileForm((prev) => ({ ...prev, headline: event.target.value }))}
+              placeholder="Teacher of mindful movement, lifelong student, community mentor"
+            />
+          </label>
+          <label className="autograph-field">
+            <span className="app-form-label">Affiliation</span>
+            <input
+              className={INPUT_CLASS}
+              value={profileForm.affiliation}
+              onChange={(event) => setProfileForm((prev) => ({ ...prev, affiliation: event.target.value }))}
+              placeholder="Forever Lotus community"
+            />
+          </label>
+          <label className="autograph-field">
+            <span className="app-form-label">Location</span>
+            <input
+              className={INPUT_CLASS}
+              value={profileForm.location}
+              onChange={(event) => setProfileForm((prev) => ({ ...prev, location: event.target.value }))}
+              placeholder="City, state, or online"
+            />
+          </label>
+          <label className="autograph-field autograph-profile-wide-field">
+            <span className="app-form-label">About</span>
+            <textarea
+              className={INPUT_CLASS}
+              rows={4}
+              maxLength={500}
+              value={profileForm.bio}
+              onChange={(event) => setProfileForm((prev) => ({ ...prev, bio: event.target.value }))}
+              placeholder="Share a short introduction so requests feel personal and rooted in context."
+            />
+          </label>
+          <label className="autograph-field">
+            <span className="app-form-label">Photo URL</span>
+            <input
+              className={INPUT_CLASS}
+              value={profileForm.avatarUrl}
+              onChange={(event) => setProfileForm((prev) => ({ ...prev, avatarUrl: event.target.value }))}
+              placeholder="https://..."
+            />
+          </label>
+          <label className="autograph-field">
+            <span className="app-form-label">Focus areas</span>
+            <input
+              className={INPUT_CLASS}
+              value={profileForm.subjects}
+              onChange={(event) => setProfileForm((prev) => ({ ...prev, subjects: event.target.value }))}
+              placeholder="Meditation, music, mentorship"
+            />
+          </label>
+          <label className="autograph-field">
+            <span className="app-form-label">Interests</span>
+            <input
+              className={INPUT_CLASS}
+              value={profileForm.interests}
+              onChange={(event) => setProfileForm((prev) => ({ ...prev, interests: event.target.value }))}
+              placeholder="Service, poetry, learning"
+            />
+          </label>
+          <label className="autograph-field autograph-profile-wide-field">
+            <span className="app-form-label">Autograph prompt</span>
+            <input
+              className={INPUT_CLASS}
+              maxLength={180}
+              value={profileForm.signaturePrompt}
+              onChange={(event) => setProfileForm((prev) => ({ ...prev, signaturePrompt: event.target.value }))}
+              placeholder="Ask me for a blessing, a memory, or encouragement for your next step."
+            />
           </label>
           <div className="autograph-form-actions autograph-form-actions-end">
             <button type="submit" className="app-button-primary autograph-button-fill" disabled={busyAction === "profile"}>

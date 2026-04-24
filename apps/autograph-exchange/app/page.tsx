@@ -23,8 +23,14 @@ export default function HomePage() {
           <p className="site-copy">A calmer, friendlier way to ask for a meaningful autograph, reply with care, and keep each signed note easy to revisit.</p>
         </div>
         <div className="site-auth-actions">
+          <a href="/profiles" className="site-auth-link">
+            Profiles
+          </a>
           {viewer ? (
             <>
+              <a href="/admin/profiles" className="site-auth-link">
+                Manage profiles
+              </a>
               <span className="site-copy">{viewer.name ?? viewer.email}</span>
               <button type="button" className="site-auth-button" onClick={() => void signOut({ callbackUrl: "/" })}>
                 Sign out
