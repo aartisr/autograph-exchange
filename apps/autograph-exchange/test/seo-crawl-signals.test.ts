@@ -34,7 +34,15 @@ describe("Autograph Exchange crawl signals", () => {
       ? bingbotRule?.disallow
       : [bingbotRule?.disallow];
 
-    expect(allow).toEqual(expect.arrayContaining(["/", "/llms.txt", "/llms-full.txt", "/BingSiteAuth.xml"]));
+    expect(allow).toEqual(
+      expect.arrayContaining([
+        "/",
+        "/llms.txt",
+        "/llms-full.txt",
+        "/BingSiteAuth.xml",
+        "/CFDF5F11-6B5A-420D-A46E-578D550EA51B.txt",
+      ]),
+    );
     expect(disallow).toEqual(expect.arrayContaining(["/api/", "/sign-in"]));
     expect(robots().sitemap).toBe("https://autograph.foreverlotus.com/sitemap.xml");
   });

@@ -9,6 +9,7 @@ const allowPublic = [
   "/opengraph-image",
   "/twitter-image",
   "/BingSiteAuth.xml",
+  "/CFDF5F11-6B5A-420D-A46E-578D550EA51B.txt",
 ];
 const disallowPrivate = ["/api/", "/sign-in"];
 
