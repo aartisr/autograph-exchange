@@ -4,6 +4,8 @@ import { getSiteUrl } from "./lib/site-url";
 const baseUrl = getSiteUrl();
 const allowPublic = [
   "/",
+  "/profiles",
+  "/profiles/",
   "/llms.txt",
   "/llms-full.txt",
   "/opengraph-image",

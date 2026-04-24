@@ -7,16 +7,19 @@ import {
 } from "../app/lib/public-routes";
 
 describe("Autograph Exchange crawl signals", () => {
-  it("keeps sitemap entries canonical and stable", () => {
-    const entries = sitemap();
+  it("keeps sitemap entries canonical and stable", async () => {
+    const entries = await sitemap();
     const paths = entries.map((entry) => new URL(entry.url).pathname);
 
-    expect(paths).toEqual(publicRoutes.map((route) => route.path));
-    expect(entries.map((entry) => entry.lastModified)).toEqual(
+    expect(paths).toEqual(
+      expect.arrayContaining(publicRoutes.map((route) => route.path)),
+    );
+    expect(entries.slice(0, publicRoutes.length).map((entry) => entry.lastModified)).toEqual(
       publicRoutes.map((route) => route.lastModified),
     );
     expect(entries[0].lastModified).toBe(AUTOGRAPH_PUBLIC_LAST_MODIFIED);
     expect(entries[0].url).toBe("https://autograph.foreverlotus.com/");
+    expect(paths.filter((path) => path.startsWith("/profiles/")).every((path) => !path.endsWith("/"))).toBe(true);
   });
 
   it("allows Bing crawlers while blocking private routes", () => {
@@ -37,6 +40,8 @@ describe("Autograph Exchange crawl signals", () => {
     expect(allow).toEqual(
       expect.arrayContaining([
         "/",
+        "/profiles",
+        "/profiles/",
         "/llms.txt",
         "/llms-full.txt",
         "/BingSiteAuth.xml",

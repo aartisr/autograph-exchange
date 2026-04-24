@@ -2,6 +2,7 @@
 
 import React, { useState, useTransition } from "react";
 import { signIn } from "next-auth/react";
+import { SiteHeader } from "../site-header";
 
 export default function SignInPage() {
   const [name, setName] = useState("");
@@ -11,6 +12,7 @@ export default function SignInPage() {
 
   return (
     <div className="site-shell">
+      <SiteHeader />
       <section className="site-form-card">
         <div className="site-brand">
           <p className="site-kicker">Generic Sign In</p>

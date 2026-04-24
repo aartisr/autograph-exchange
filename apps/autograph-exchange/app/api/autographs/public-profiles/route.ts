@@ -1,12 +1,14 @@
-import { createAutographPublicProfilesGetHandler } from "@aartisr/autograph-core";
-import { requireSessionUserId } from "../_session";
+import { NextResponse } from "next/server";
+import { withDisplayAvatarUrls } from "../_profile-payload";
 import { autographService } from "../_service";
-
-const config = {
-  service: autographService,
-  getUserId: requireSessionUserId,
-};
 
 export const dynamic = "force-dynamic";
 
-export const GET = createAutographPublicProfilesGetHandler(config);
+export async function GET() {
+  try {
+    const profiles = await autographService.listPublicAutographProfiles();
+    return NextResponse.json(withDisplayAvatarUrls(profiles));
+  } catch {
+    return NextResponse.json({ error: "Unable to load public profiles." }, { status: 500 });
+  }
+}

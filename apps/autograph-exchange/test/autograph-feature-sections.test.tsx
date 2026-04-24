@@ -77,16 +77,45 @@ describe("autograph feature sections", () => {
     const showcaseHtml = renderToStaticMarkup(
       <AutographProfileShowcase profile={signerProfile} viewer={{ id: "user-2", email: "ravi@example.com" }} canEdit />,
     );
+    const requestHtml = renderToStaticMarkup(
+      <AutographProfileShowcase
+        profile={{ ...signerProfile, signaturePrompt: undefined }}
+        viewer={{ id: "user-1", email: "asha@example.com" }}
+        viewerHasProfile
+      />,
+    );
+    const missingProfileHtml = renderToStaticMarkup(
+      <AutographProfileShowcase profile={signerProfile} viewer={{ id: "new-user", email: "new@example.com" }} />,
+    );
     const adminHtml = renderToStaticMarkup(<AutographProfileAdminPanel initialProfiles={[signerProfile]} />);
 
     expect(directoryHtml).toContain("autograph-profile-directory");
+    expect(directoryHtml).toContain("Profile navigation");
+    expect(directoryHtml).toContain("Back to autograph screen");
+    expect(directoryHtml).toContain('href="/#autograph-request-composer"');
     expect(directoryHtml).toContain("Teacher and community mentor");
     expect(directoryHtml).toContain("Meditation");
     expect(showcaseHtml).toContain("autograph-profile-showcase");
+    expect(showcaseHtml).toContain("autograph-profile-hero-grid");
+    expect(showcaseHtml).toContain("autograph-profile-highlight-grid");
+    expect(showcaseHtml).toContain("Autograph Exchange");
+    expect(showcaseHtml).toContain("Profiles");
+    expect(showcaseHtml).toContain("Back to autograph screen");
     expect(showcaseHtml).toContain("Your public profile");
+    expect(showcaseHtml).toContain("Profile snapshot");
+    expect(showcaseHtml).toContain("A good place to begin");
     expect(showcaseHtml).not.toContain("Request an autograph");
+    expect(requestHtml).toContain("Could you share a favorite memory, encouragement, or blessing for me to keep?");
+    expect(requestHtml).toContain("Ask Ravi Kumar");
+    expect(missingProfileHtml).toContain("Save your profile first");
+    expect(missingProfileHtml).toContain("Save my profile");
+    expect(missingProfileHtml).toContain('href="/#autograph-profile-setup"');
     expect(adminHtml).toContain("autograph-admin-profiles");
     expect(adminHtml).toContain("Create and curate people profiles");
+    expect(adminHtml).toContain("autograph-admin-fieldset");
+    expect(adminHtml).toContain("Public profile");
+    expect(adminHtml).toContain("Profile roster");
+    expect(adminHtml).toContain("Search profiles");
     expect(adminHtml).toContain("View public page");
   });
 
@@ -153,6 +182,8 @@ describe("autograph feature sections", () => {
     expect(profileHtml).toContain("autograph-section-card");
     expect(profileHtml).toContain("autograph-profile-grid");
     expect(profileHtml).toContain("autograph-field-hint");
+    expect(profileHtml).toContain('type="file"');
+    expect(profileHtml).toContain("Paste an image URL or choose a local image under 1 MB.");
     expect(profileHtml).toContain("asha@example.com");
     expect(requestHtml).toContain("autograph-section-card");
     expect(requestHtml).toContain("Choose one person");

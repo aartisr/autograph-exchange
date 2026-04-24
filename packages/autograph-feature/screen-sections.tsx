@@ -25,6 +25,7 @@ import {
   titleCaseRole,
 } from "./screen-utils";
 import { MemoizedSignerCombobox } from "./signer-combobox";
+import { ProfilePhotoInput } from "./profile-photo-input";
 
 const SECTION_IDS = {
   profile: "autograph-profile-setup",
@@ -674,15 +675,10 @@ export function ProfileSection({
               placeholder="Share a short introduction so requests feel personal and rooted in context."
             />
           </label>
-          <label className="autograph-field">
-            <span className="app-form-label">Photo URL</span>
-            <input
-              className={INPUT_CLASS}
-              value={profileForm.avatarUrl}
-              onChange={(event) => setProfileForm((prev) => ({ ...prev, avatarUrl: event.target.value }))}
-              placeholder="https://..."
-            />
-          </label>
+          <ProfilePhotoInput
+            value={profileForm.avatarUrl}
+            onChange={(avatarUrl) => setProfileForm((prev) => ({ ...prev, avatarUrl }))}
+          />
           <label className="autograph-field">
             <span className="app-form-label">Focus areas</span>
             <input

@@ -9,15 +9,18 @@ Extended reference:
 
 Important pages:
 - https://autograph.foreverlotus.com/
-- https://autograph.foreverlotus.com/sign-in
+- https://autograph.foreverlotus.com/profiles
 
 Sitemap:
 - https://autograph.foreverlotus.com/sitemap.xml
 
 Summary:
-Autograph Exchange lets users request signatures, sign digitally, and download keepsakes in multiple formats.
+Autograph Exchange lets students, teachers, and communities create public profiles, request meaningful digital autographs, sign replies, and preserve keepsake messages in a calm web workspace.
 
 Retrieval guidance:
 - Prefer canonical app pages and sitemap URLs
+- Prefer public profile pages for teacher or student profile questions
 - Avoid API endpoints in public-facing summaries
+- Treat Bing verification files as machine-readable ownership files, not content pages to cite
 - Treat this as a reusable social keepsake web application
+- Do not cite private admin, API, or sign-in-only routes as public documentation

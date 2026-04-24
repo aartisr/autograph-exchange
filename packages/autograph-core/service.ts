@@ -146,6 +146,23 @@ function sanitizeOptionalUrl(value: unknown): string | undefined {
   }
 }
 
+function sanitizeAvatarUrl(value: unknown): string | undefined {
+  if (typeof value !== "string") {
+    return undefined;
+  }
+
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return undefined;
+  }
+
+  if (/^data:image\/(png|jpe?g|webp|gif);base64,[a-z0-9+/=]+$/i.test(trimmed)) {
+    return trimmed.length <= 380_000 ? trimmed : undefined;
+  }
+
+  return sanitizeOptionalUrl(trimmed);
+}
+
 function sanitizeTags(value: unknown): string[] {
   if (!Array.isArray(value)) {
     return [];
@@ -178,7 +195,7 @@ function normalizeProfile(entry: Partial<ProfileEntry>): AutographProfile | null
     role: entry.role,
     headline: sanitizeOptionalText(entry.headline, 120),
     bio: sanitizeOptionalText(entry.bio, 500),
-    avatarUrl: sanitizeOptionalUrl(entry.avatarUrl),
+    avatarUrl: sanitizeAvatarUrl(entry.avatarUrl),
     affiliation: sanitizeOptionalText(entry.affiliation, 120),
     location: sanitizeOptionalText(entry.location, 120),
     subjects: sanitizeTags(entry.subjects),
@@ -199,7 +216,7 @@ function sanitizeProfileInput(input: UpsertAutographProfileInput) {
     role: input.role,
     headline: sanitizeOptionalText(input.headline, 120),
     bio: sanitizeOptionalText(input.bio, 500),
-    avatarUrl: sanitizeOptionalUrl(input.avatarUrl),
+    avatarUrl: sanitizeAvatarUrl(input.avatarUrl),
     affiliation: sanitizeOptionalText(input.affiliation, 120),
     location: sanitizeOptionalText(input.location, 120),
     subjects: sanitizeTags(input.subjects),

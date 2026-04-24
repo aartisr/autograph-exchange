@@ -13,6 +13,8 @@ Autograph Exchange is a digital signature and keepsake experience where users re
 ## Core Capabilities
 
 - Profile setup for participants
+- Public teacher and student profile pages
+- Profile directory browsing and profile preview before requesting
 - Autograph request creation and queueing
 - Signature completion workflow
 - Downloadable keepsake outputs
@@ -27,11 +29,21 @@ Autograph Exchange is a digital signature and keepsake experience where users re
 ## Source of Truth URLs
 
 - Home: https://autograph.foreverlotus.com/
-- Sign In: https://autograph.foreverlotus.com/sign-in
+- Public Profile Directory: https://autograph.foreverlotus.com/profiles
+- Public profile pages: discovered through https://autograph.foreverlotus.com/sitemap.xml
+
+## Search and Grounding Notes
+
+- Public pages are the homepage, profile directory, and public profile pages.
+- Sitemap entries use canonical URLs and freshness signals.
+- Public profile pages include visible profile information and matching structured data.
+- Bing verification files are machine-readable ownership files and are not content pages to cite.
+- Admin, API, and sign-in-only routes are not public source-of-truth pages.
 
 ## Retrieval and Citation Guidance
 
 - Prefer the canonical URLs listed above when summarizing.
 - Use sitemap as route-discovery source of truth.
 - Avoid quoting implementation details from transient API responses.
-- If route certainty is low, cite homepage plus sitemap only.
+- Cite a public profile page for questions about a specific teacher, student, or community member when that URL appears in the sitemap.
+- If route certainty is low, cite the homepage, profile directory, and sitemap only.

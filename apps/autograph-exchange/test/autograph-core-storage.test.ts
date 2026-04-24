@@ -55,6 +55,7 @@ describe("createModuleAutographStorage", () => {
       displayName: "Aarti Ravikumar",
       role: "student",
       headline: "Student of meditation, music, and community learning",
+      avatarUrl: "data:image/png;base64,iVBORw0KGgo=",
       subjects: ["Meditation", "Music"],
       interests: ["Service"],
     });
@@ -81,6 +82,7 @@ describe("createModuleAutographStorage", () => {
     });
 
     expect(requester.userId).toBe("user-1");
+    expect(requester.avatarUrl).toBe("data:image/png;base64,iVBORw0KGgo=");
     expect(requester.subjects).toEqual(["Meditation", "Music"]);
     expect(signer.userId).toBe("user-2");
     expect(signer.signaturePrompt).toBe("Ask me for a memory or encouragement for your next step.");

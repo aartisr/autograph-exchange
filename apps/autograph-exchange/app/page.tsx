@@ -1,8 +1,9 @@
 "use client";
 
 import React from "react";
-import { useSession, signOut } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { AutographExchangeFeature } from "@aartisr/autograph-feature";
+import { SiteHeader } from "./site-header";
 
 export default function HomePage() {
   const { data: session, status } = useSession();
@@ -16,33 +17,7 @@ export default function HomePage() {
 
   return (
     <div className="site-shell">
-      <header className="site-header">
-        <div className="site-brand">
-          <p className="site-kicker">Standalone Site</p>
-          <h1 className="site-title">Autograph Exchange</h1>
-          <p className="site-copy">A calmer, friendlier way to ask for a meaningful autograph, reply with care, and keep each signed note easy to revisit.</p>
-        </div>
-        <div className="site-auth-actions">
-          <a href="/profiles" className="site-auth-link">
-            Profiles
-          </a>
-          {viewer ? (
-            <>
-              <a href="/admin/profiles" className="site-auth-link">
-                Manage profiles
-              </a>
-              <span className="site-copy">{viewer.name ?? viewer.email}</span>
-              <button type="button" className="site-auth-button" onClick={() => void signOut({ callbackUrl: "/" })}>
-                Sign out
-              </button>
-            </>
-          ) : (
-            <a href="/sign-in" className="site-auth-link">
-              Sign in
-            </a>
-          )}
-        </div>
-      </header>
+      <SiteHeader />
 
       <AutographExchangeFeature
         authStatus={status === "loading" ? "loading" : viewer ? "authenticated" : "unauthenticated"}

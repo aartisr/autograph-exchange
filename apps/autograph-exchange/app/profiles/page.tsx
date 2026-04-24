@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { AutographProfileDirectory } from "@aartisr/autograph-feature/profile-components";
 import { autographService } from "../api/autographs/_service";
+import { withDisplayAvatarUrls } from "../api/autographs/_profile-payload";
 import { buildPageMetadata } from "../lib/seo";
+import { SiteHeader } from "../site-header";
 
 export const metadata: Metadata = buildPageMetadata({
   title: "Autograph Exchange Profiles for Teachers and Students",
@@ -18,7 +20,8 @@ export default async function ProfilesPage() {
 
   return (
     <main className="site-shell">
-      <AutographProfileDirectory profiles={profiles} />
+      <SiteHeader />
+      <AutographProfileDirectory profiles={withDisplayAvatarUrls(profiles)} />
     </main>
   );
 }
