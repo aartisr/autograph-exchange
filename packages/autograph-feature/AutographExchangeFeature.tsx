@@ -92,6 +92,7 @@ export function AutographExchangeFeature({
   signInLabel = "Sign in",
   renderShell,
   renderSignaturePreview,
+  profileHrefForSigner,
   onEvent,
 }: AutographExchangeFeatureProps) {
   const userId = viewer?.id;
@@ -204,6 +205,7 @@ export function AutographExchangeFeature({
         hasMoreArchive={viewModel.hasMoreArchive}
         archiveLoadingMore={viewModel.archiveLoadingMore}
         onLoadMoreArchive={viewModel.onLoadMoreArchive}
+        profileHrefForSigner={profileHrefForSigner}
         loading={loading}
         busyAction={busyAction}
         roleOptions={viewModel.roleOptions}

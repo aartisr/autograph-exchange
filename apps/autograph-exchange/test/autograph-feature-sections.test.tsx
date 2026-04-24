@@ -157,6 +157,8 @@ describe("autograph feature sections", () => {
     expect(requestHtml).toContain("autograph-section-card");
     expect(requestHtml).toContain("Choose one person");
     expect(requestHtml).toContain("Ravi Kumar Guide");
+    expect(requestHtml).toContain(DEFAULT_AUTOGRAPH_COPY.viewProfileBeforeRequest);
+    expect(requestHtml).toContain('href="/profiles/profile-2"');
     expect(requestHtml).toContain("autograph-form-actions");
     expect(requestHtml).toContain("autograph-suggestion-chip");
   });

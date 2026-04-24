@@ -746,10 +746,15 @@ export interface RequestComposerSectionProps {
   roleOptions: RoleOption[];
   outbox: AutographRequest[];
   lastCreatedRequest: AutographRequest | null;
+  profileHrefForSigner?: (profile: AutographProfile) => string;
   requestForm: RequestFormState;
   setRequestForm: React.Dispatch<React.SetStateAction<RequestFormState>>;
   busyAction: string | null;
   onRequestSubmit: (event: React.FormEvent<HTMLFormElement>) => Promise<void>;
+}
+
+function defaultProfileHrefForSigner(profile: AutographProfile): string {
+  return `/profiles/${encodeURIComponent(profile.id)}`;
 }
 
 export function RequestComposerSection({
@@ -762,6 +767,7 @@ export function RequestComposerSection({
   roleOptions,
   outbox,
   lastCreatedRequest,
+  profileHrefForSigner = defaultProfileHrefForSigner,
   requestForm,
   setRequestForm,
   busyAction,
@@ -871,6 +877,11 @@ export function RequestComposerSection({
             <p className="autograph-context-detail">
               {copy.signerInboxHintPrefix} {myProfile?.displayName ?? copy.signerInboxFallbackName} {copy.signerInboxHintSuffix}
             </p>
+            <div className="autograph-context-actions">
+              <a className="autograph-jump-link autograph-jump-link--subtle" href={profileHrefForSigner(selectedSigner)}>
+                {copy.viewProfileBeforeRequest}
+              </a>
+            </div>
           </div>
         ) : null}
         {pendingRequestForSigner && showRequestFeedback ? (

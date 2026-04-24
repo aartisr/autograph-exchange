@@ -1613,6 +1613,12 @@
   color: var(--autograph-copy-color);
 }
 
+.autograph-context-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
 .autograph-form-grid {
   display: grid;
   gap: var(--autograph-space-3);

@@ -183,6 +183,7 @@ export type AutographExchangeCopy = {
   requestMessageHint: string;
   requestMetaHint: string;
   askForAutograph: string;
+  viewProfileBeforeRequest: string;
   sendingRequest: string;
   requestAlreadyPending: string;
   requestSentTitle: string;
@@ -256,6 +257,7 @@ export interface AutographExchangeScreenProps {
   hasMoreArchive: boolean;
   archiveLoadingMore: boolean;
   onLoadMoreArchive: () => Promise<void>;
+  profileHrefForSigner?: (profile: AutographProfile) => string;
   loading: boolean;
   busyAction: string | null;
   roleOptions: RoleOption[];
@@ -382,6 +384,7 @@ export interface AutographExchangeFeatureProps {
   signInLabel?: string;
   renderShell?: (content: React.ReactNode) => React.ReactNode;
   renderSignaturePreview?: (preset: SignaturePreset, previewId: string) => React.ReactNode;
+  profileHrefForSigner?: (profile: AutographProfile) => string;
   onEvent?: AutographFeatureEventHandler;
 }
 

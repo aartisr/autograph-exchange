@@ -19,6 +19,7 @@ export function AutographExchangeScreen(props: AutographExchangeScreenProps) {
     hasMoreArchive,
     archiveLoadingMore,
     onLoadMoreArchive,
+    profileHrefForSigner,
     loading,
     busyAction,
     roleOptions,
@@ -137,6 +138,7 @@ export function AutographExchangeScreen(props: AutographExchangeScreenProps) {
         roleOptions={roleOptions}
         outbox={outbox}
         lastCreatedRequest={lastCreatedRequest}
+        profileHrefForSigner={profileHrefForSigner}
         requestForm={requestForm}
         setRequestForm={setRequestForm}
         busyAction={busyAction}

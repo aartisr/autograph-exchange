@@ -136,6 +136,7 @@ export const DEFAULT_AUTOGRAPH_COPY: AutographExchangeCopy = {
   requestMessageHint: "A few sincere lines are enough. Specific requests usually get warmer replies.",
   requestMetaHint: "Clear, specific requests feel more personal and are easier to answer well.",
   askForAutograph: "Send request",
+  viewProfileBeforeRequest: "View profile before asking",
   sendingRequest: "Sending request...",
   requestAlreadyPending: "Already pending",
   requestSentTitle: "Request sent",
