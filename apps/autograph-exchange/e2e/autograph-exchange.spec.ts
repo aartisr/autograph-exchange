@@ -163,6 +163,168 @@ async function expectReadableComboboxContrast(page: Page) {
   }
 }
 
+async function expectReadableSignInContrast(page: Page) {
+  const results = await page.evaluate(() => {
+    type Rgba = { r: number; g: number; b: number; a: number };
+
+    const parseColor = (value: string): Rgba | null => {
+      const match = value.match(/rgba?\(([^)]+)\)/);
+      if (!match) {
+        return null;
+      }
+
+      const parts = match[1].split(",").map((part) => part.trim());
+      const [r, g, b] = parts.slice(0, 3).map((part) => Number.parseFloat(part));
+      const a = parts[3] === undefined ? 1 : Number.parseFloat(parts[3]);
+
+      if (![r, g, b, a].every(Number.isFinite)) {
+        return null;
+      }
+
+      return { r, g, b, a };
+    };
+
+    const blend = (foreground: Rgba, background: Rgba): Rgba => ({
+      r: foreground.r * foreground.a + background.r * (1 - foreground.a),
+      g: foreground.g * foreground.a + background.g * (1 - foreground.a),
+      b: foreground.b * foreground.a + background.b * (1 - foreground.a),
+      a: 1,
+    });
+
+    const channelToLinear = (channel: number) => {
+      const normalized = channel / 255;
+      return normalized <= 0.03928 ? normalized / 12.92 : ((normalized + 0.055) / 1.055) ** 2.4;
+    };
+
+    const luminance = (color: Rgba) =>
+      0.2126 * channelToLinear(color.r) + 0.7152 * channelToLinear(color.g) + 0.0722 * channelToLinear(color.b);
+
+    const contrastRatio = (foreground: Rgba, background: Rgba) => {
+      const lighter = Math.max(luminance(foreground), luminance(background));
+      const darker = Math.min(luminance(foreground), luminance(background));
+      return (lighter + 0.05) / (darker + 0.05);
+    };
+
+    const effectiveBackground = (element: Element): Rgba => {
+      const chain: Element[] = [];
+      let cursor: Element | null = element;
+
+      while (cursor) {
+        chain.push(cursor);
+        cursor = cursor.parentElement;
+      }
+
+      let background: Rgba = { r: 255, g: 255, b: 255, a: 1 };
+      for (const node of chain.reverse()) {
+        const parsed = parseColor(window.getComputedStyle(node).backgroundColor);
+        if (parsed && parsed.a > 0) {
+          background = parsed.a < 1 ? blend(parsed, background) : parsed;
+        }
+      }
+
+      return background;
+    };
+
+    const contrastFor = (node: Element, color: string, label: string) => {
+      const foreground = parseColor(color);
+      const background = effectiveBackground(node);
+      const compositedForeground = foreground && foreground.a < 1 ? blend(foreground, background) : foreground;
+
+      return {
+        label,
+        color,
+        background: `rgb(${Math.round(background.r)}, ${Math.round(background.g)}, ${Math.round(background.b)})`,
+        ratio: compositedForeground ? contrastRatio(compositedForeground, background) : 0,
+      };
+    };
+
+    const checks = [
+      [".site-kicker", "kicker"],
+      [".site-title", "title"],
+      [".site-copy", "copy"],
+      [".site-label", "label"],
+      [".site-input", "input"],
+      [".site-submit", "submit"],
+    ] as const;
+
+    const textResults = checks.flatMap(([selector, label]) =>
+      Array.from(document.querySelectorAll(selector)).map((node) =>
+        contrastFor(node, window.getComputedStyle(node).color, label),
+      ),
+    );
+
+    const placeholderResults = Array.from(document.querySelectorAll(".site-input")).map((node) =>
+      contrastFor(node, window.getComputedStyle(node, "::placeholder").color, "input placeholder"),
+    );
+
+    return [...textResults, ...placeholderResults];
+  });
+
+  expect(results.length).toBeGreaterThan(0);
+
+  for (const result of results) {
+    expect(result.ratio, JSON.stringify(result, null, 2)).toBeGreaterThanOrEqual(4.5);
+  }
+}
+
+async function expectReadableSignedOutBenefitContrast(page: Page) {
+  const results = await page.evaluate(() => {
+    type Rgba = { r: number; g: number; b: number; a: number };
+
+    const parseColor = (value: string): Rgba | null => {
+      const match = value.match(/rgba?\(([^)]+)\)/);
+      if (!match) {
+        return null;
+      }
+
+      const parts = match[1].split(",").map((part) => part.trim());
+      const [r, g, b] = parts.slice(0, 3).map((part) => Number.parseFloat(part));
+      const a = parts[3] === undefined ? 1 : Number.parseFloat(parts[3]);
+
+      if (![r, g, b, a].every(Number.isFinite)) {
+        return null;
+      }
+
+      return { r, g, b, a };
+    };
+
+    const channelToLinear = (channel: number) => {
+      const normalized = channel / 255;
+      return normalized <= 0.03928 ? normalized / 12.92 : ((normalized + 0.055) / 1.055) ** 2.4;
+    };
+
+    const luminance = (color: Rgba) =>
+      0.2126 * channelToLinear(color.r) + 0.7152 * channelToLinear(color.g) + 0.0722 * channelToLinear(color.b);
+
+    const contrastRatio = (foreground: Rgba, background: Rgba) => {
+      const lighter = Math.max(luminance(foreground), luminance(background));
+      const darker = Math.min(luminance(foreground), luminance(background));
+      return (lighter + 0.05) / (darker + 0.05);
+    };
+
+    return Array.from(
+      document.querySelectorAll(".autograph-feature-benefit-title, .autograph-feature-benefit-copy"),
+    ).map((node) => {
+      const card = node.closest(".autograph-feature-benefit") ?? node;
+      const foreground = parseColor(window.getComputedStyle(node).color) ?? { r: 0, g: 0, b: 0, a: 1 };
+      const background = parseColor(window.getComputedStyle(card).backgroundColor) ?? { r: 255, g: 255, b: 255, a: 1 };
+
+      return {
+        className: node.getAttribute("class") ?? node.tagName,
+        color: window.getComputedStyle(node).color,
+        background: window.getComputedStyle(card).backgroundColor,
+        ratio: contrastRatio(foreground, background),
+      };
+    });
+  });
+
+  expect(results).toHaveLength(6);
+
+  for (const result of results) {
+    expect(result.ratio, JSON.stringify(result, null, 2)).toBeGreaterThanOrEqual(4.5);
+  }
+}
+
 async function openSeededSignerCombobox(page: Page, testInfo: TestInfo) {
   const identities = await seedComboboxProfiles(page, testInfo);
 
@@ -186,19 +348,23 @@ async function selectSeededSigner(page: Page, testInfo: TestInfo) {
 }
 
 test("signed-out experience is responsive and accessible", async ({ page }) => {
-  await page.goto("/");
+  for (const colorScheme of ["light", "dark"] as const) {
+    await page.emulateMedia({ colorScheme });
+    await page.goto("/");
 
-  await expect(page.getByRole("heading", { name: /warm, simple place/i })).toBeVisible();
-  await expect(page.getByRole("link", { name: /start exchanging autographs/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /warm, simple place/i })).toBeVisible();
+    await expect(page.getByRole("link", { name: /start exchanging autographs/i })).toBeVisible();
 
-  const featureCard = page.locator(".autograph-feature-card-signed-out");
-  await expect(featureCard).toBeVisible();
+    const featureCard = page.locator(".autograph-feature-card-signed-out");
+    await expect(featureCard).toBeVisible();
 
-  const box = await featureCard.boundingBox();
-  expect(box).not.toBeNull();
-  expect(box!.width).toBeGreaterThan(260);
+    const box = await featureCard.boundingBox();
+    expect(box).not.toBeNull();
+    expect(box!.width).toBeGreaterThan(260);
 
-  await expectNoSeriousA11yViolations(page);
+    await expectReadableSignedOutBenefitContrast(page);
+    await expectNoSeriousA11yViolations(page);
+  }
 });
 
 test("signed-out experience keeps readable layout on mobile viewport", async ({ page }) => {
@@ -238,14 +404,18 @@ test("signed-out experience keeps readable layout on tablet viewport", async ({ 
 });
 
 test("sign-in page is usable and accessible", async ({ page }) => {
-  await page.goto("/sign-in");
+  for (const colorScheme of ["light", "dark"] as const) {
+    await page.emulateMedia({ colorScheme });
+    await page.goto("/sign-in");
 
-  await expect(page.getByRole("heading", { name: /join autograph exchange/i })).toBeVisible();
-  await expect(page.getByLabel("Name")).toBeVisible();
-  await expect(page.getByLabel("Email")).toBeVisible();
-  await expect(page.getByRole("button", { name: /continue/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /join autograph exchange/i })).toBeVisible();
+    await expect(page.getByLabel("Name")).toBeVisible();
+    await expect(page.getByLabel("Email")).toBeVisible();
+    await expect(page.getByRole("button", { name: /continue/i })).toBeVisible();
 
-  await expectNoSeriousA11yViolations(page);
+    await expectReadableSignInContrast(page);
+    await expectNoSeriousA11yViolations(page);
+  }
 });
 
 test("authenticated flow works and key layout regions stay visible", async ({ page }) => {

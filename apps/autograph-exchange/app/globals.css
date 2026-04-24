@@ -6,6 +6,8 @@
   --surface-strong: rgba(255, 255, 255, 0.96);
   --border: rgba(61, 94, 82, 0.18);
   --copy-soft: rgba(23, 53, 45, 0.76);
+  --kicker: #7a5d31;
+  --input-placeholder: #52635b;
   --primary: #21493b;
 }
 
@@ -21,6 +23,7 @@ body {
   background:
     radial-gradient(circle at top right, rgba(214, 194, 147, 0.36), transparent 28rem),
     linear-gradient(180deg, #f7f4ed 0%, #eef4f1 100%);
+  background-color: var(--background);
   color: var(--foreground);
 }
 
@@ -70,7 +73,7 @@ select {
   font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.14em;
-  color: #7a5d31;
+  color: var(--kicker);
   font-weight: 800;
 }
 
@@ -145,6 +148,11 @@ select {
   color: var(--foreground);
 }
 
+.site-input::placeholder {
+  color: var(--input-placeholder);
+  opacity: 1;
+}
+
 .site-submit {
   display: inline-flex;
   align-items: center;
@@ -154,6 +162,7 @@ select {
   border: 1px solid rgba(19, 45, 37, 0.42);
   border-radius: 0.85rem;
   background: linear-gradient(135deg, #21493b 0%, #3c755f 100%);
+  background-color: #21493b;
   color: #fdfcf7;
   font-weight: 700;
   cursor: pointer;
@@ -183,6 +192,8 @@ select {
     --surface-strong: rgba(20, 34, 29, 0.96);
     --border: rgba(171, 214, 194, 0.22);
     --copy-soft: rgba(228, 239, 234, 0.8);
+    --kicker: #f1ce8c;
+    --input-placeholder: #b9cbc2;
     --primary: #d1ab6b;
   }
 
@@ -191,6 +202,7 @@ select {
     background:
       radial-gradient(circle at top right, rgba(209, 171, 107, 0.18), transparent 24rem),
       linear-gradient(180deg, #10211b 0%, #152922 100%);
+    background-color: var(--background);
   }
 
   .site-header {

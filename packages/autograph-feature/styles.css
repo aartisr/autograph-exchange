@@ -11,6 +11,9 @@
   --autograph-archive-border: rgba(61, 104, 150, 0.26);
   --autograph-card-bg: rgba(255, 255, 255, 0.9);
   --autograph-card-border: rgba(30, 71, 61, 0.15);
+  --autograph-signed-out-benefit-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.9) 0%, rgba(239, 247, 243, 0.86) 100%);
+  --autograph-signed-out-benefit-surface: #f2f8f5;
+  --autograph-signed-out-benefit-border: rgba(30, 71, 61, 0.16);
   --autograph-shadow-soft: 0 18px 40px rgba(26, 51, 43, 0.08);
   --autograph-shadow-strong: 0 28px 64px rgba(26, 51, 43, 0.14);
   --autograph-kicker: #7c5521;
@@ -131,6 +134,21 @@
 }
 
 .autograph-feature-state {
+  --autograph-space-3: 1rem;
+  --autograph-radius-xl: 1.45rem;
+  --autograph-card-border: rgba(30, 71, 61, 0.15);
+  --autograph-signed-out-benefit-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.9) 0%, rgba(239, 247, 243, 0.86) 100%);
+  --autograph-signed-out-benefit-surface: #f2f8f5;
+  --autograph-signed-out-benefit-border: rgba(30, 71, 61, 0.16);
+  --autograph-shadow-soft: 0 18px 40px rgba(26, 51, 43, 0.08);
+  --autograph-kicker: #7c5521;
+  --autograph-heading-color: #15352d;
+  --autograph-copy-color: #486659;
+  --autograph-display: "Avenir Next", "Nunito Sans", "Source Sans 3", sans-serif;
+  --autograph-button-primary-text: #fffdf8;
+  --autograph-button-primary-bg: linear-gradient(135deg, #143f35 0%, #226150 100%);
+  --autograph-button-primary-border: rgba(11, 35, 29, 0.44);
+  --autograph-button-primary-shadow: 0 18px 36px rgba(20, 58, 48, 0.24);
   max-width: 48rem;
   margin: 0 auto;
 }
@@ -189,10 +207,11 @@
   gap: 0.35rem;
   padding: 0.95rem 1rem;
   border-radius: 1rem;
-  border: 1px solid rgba(30, 71, 61, 0.1);
+  border: 1px solid var(--autograph-signed-out-benefit-border);
   background:
     repeating-linear-gradient(180deg, transparent 0, transparent 1.55rem, rgba(30, 71, 61, 0.045) 1.59rem),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.76) 0%, rgba(250, 252, 250, 0.62) 100%);
+    var(--autograph-signed-out-benefit-bg);
+  background-color: var(--autograph-signed-out-benefit-surface);
 }
 
 .autograph-feature-benefit-title,
@@ -2607,6 +2626,9 @@
     --autograph-archive-border: rgba(126, 194, 164, 0.4);
     --autograph-card-bg: rgba(24, 41, 35, 0.9);
     --autograph-card-border: rgba(171, 214, 194, 0.28);
+    --autograph-signed-out-benefit-bg: linear-gradient(180deg, rgba(28, 54, 45, 0.98) 0%, rgba(18, 37, 31, 0.98) 100%);
+    --autograph-signed-out-benefit-surface: #142820;
+    --autograph-signed-out-benefit-border: rgba(171, 214, 194, 0.36);
     --autograph-text-dim: rgba(226, 238, 232, 0.85);
     --autograph-stat-label-color: #e8f2ed;
     --autograph-stat-value-color: #f3faf7;
@@ -2688,6 +2710,21 @@
   .autograph-feature-card,
   .autograph-shell .app-surface-card {
     background: linear-gradient(180deg, rgba(26, 45, 38, 0.96) 0%, rgba(20, 34, 29, 0.92) 100%);
+  }
+
+  .autograph-feature-state {
+    --autograph-card-border: rgba(171, 214, 194, 0.28);
+    --autograph-signed-out-benefit-bg: linear-gradient(180deg, rgba(28, 54, 45, 0.98) 0%, rgba(18, 37, 31, 0.98) 100%);
+    --autograph-signed-out-benefit-surface: #142820;
+    --autograph-signed-out-benefit-border: rgba(171, 214, 194, 0.36);
+    --autograph-shadow-soft: 0 18px 40px rgba(0, 0, 0, 0.24);
+    --autograph-kicker: #f0d39f;
+    --autograph-heading-color: #f4f8f6;
+    --autograph-copy-color: #dce9e3;
+    --autograph-button-primary-text: #1d160d;
+    --autograph-button-primary-bg: linear-gradient(135deg, #f0d39f 0%, #cf9d56 100%);
+    --autograph-button-primary-border: rgba(255, 240, 201, 0.42);
+    --autograph-button-primary-shadow: 0 14px 28px rgba(0, 0, 0, 0.28);
   }
 
   .autograph-shell .app-form-input {
