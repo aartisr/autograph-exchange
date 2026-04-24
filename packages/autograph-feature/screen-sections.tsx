@@ -21,9 +21,7 @@ import {
   buildMomentumState,
   formatRelativeDate,
   INPUT_CLASS,
-  REQUEST_PROMPTS,
   rolePairLabel,
-  SIGNATURE_IDEAS,
   titleCaseRole,
 } from "./screen-utils";
 import { MemoizedSignerCombobox } from "./signer-combobox";
@@ -52,9 +50,11 @@ type IconName =
   | "inbox"
   | "archive"
   | "trophy"
+  | "bookOpen"
   | "download"
   | "copy"
   | "share"
+  | "x"
   | "arrowRight";
 
 interface DecorativeIconProps {
@@ -99,6 +99,13 @@ function DecorativeIcon({ name, className }: DecorativeIconProps) {
         <path d="M9 20h6" />
       </>
     ),
+    bookOpen: (
+      <>
+        <path d="M4 5.5c2.4-.7 5.2-.35 8 1.05v12c-2.8-1.4-5.6-1.75-8-1.05v-12z" />
+        <path d="M20 5.5c-2.4-.7-5.2-.35-8 1.05v12c2.8-1.4 5.6-1.75 8-1.05v-12z" />
+        <path d="M12 6.55v12" />
+      </>
+    ),
     download: (
       <>
         <path d="M12 4v10" />
@@ -119,6 +126,12 @@ function DecorativeIcon({ name, className }: DecorativeIconProps) {
         <circle cx="18" cy="19" r="2" />
         <path d="M8 12l8-6" />
         <path d="M8 12l8 7" />
+      </>
+    ),
+    x: (
+      <>
+        <path d="M6 6l12 12" />
+        <path d="M18 6L6 18" />
       </>
     ),
     arrowRight: <path d="M5 12h13M13 7l5 5-5 5" />,
@@ -174,15 +187,16 @@ function HeroJumpStat({ count, href, label, toneClassName }: HeroJumpStatProps) 
 
 interface StatusPillProps {
   status: AutographRequest["status"];
+  copy: AutographExchangeCopy;
 }
 
-function StatusPill({ status }: StatusPillProps) {
+function StatusPill({ status, copy }: StatusPillProps) {
   return (
     <span
       className={`autograph-status-pill ${status === "pending" ? "is-pending" : "is-signed"}`}
       data-testid={`status-${status}`}
     >
-      {status === "pending" ? "Pending" : "Signed"}
+      {status === "pending" ? copy.pendingStatusLabel : copy.signedStatusLabel}
     </span>
   );
 }
@@ -215,6 +229,17 @@ function SectionFocusPill({ label }: SectionFocusPillProps) {
   return <span className="autograph-focus-pill">{label}</span>;
 }
 
+function buildRoleLabelMap(roleOptions: RoleOption[]): Partial<Record<AutographRole, string>> {
+  return roleOptions.reduce<Partial<Record<AutographRole, string>>>((labels, option) => {
+    labels[option.value] = option.label;
+    return labels;
+  }, {});
+}
+
+function getRoleLabel(role: AutographRole, roleOptions: RoleOption[]): string {
+  return buildRoleLabelMap(roleOptions)[role] ?? titleCaseRole(role);
+}
+
 async function copyKeepsakeText(text: string) {
   if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
     await navigator.clipboard.writeText(text);
@@ -231,357 +256,6 @@ async function shareKeepsakeText(text: string, title: string) {
   }
 
   return false;
-}
-
-function downloadKeepsakeText(filename: string, text: string) {
-  if (typeof document === "undefined") {
-    return;
-  }
-
-  const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = filename;
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  URL.revokeObjectURL(url);
-}
-
-function downloadKeepsakeBlob(filename: string, blob: Blob) {
-  if (typeof document === "undefined") {
-    return;
-  }
-
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = filename;
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  URL.revokeObjectURL(url);
-}
-
-function writeUint16(target: number[], value: number) {
-  target.push(value & 0xff, (value >> 8) & 0xff);
-}
-
-function createGif332Palette(): Uint8Array {
-  const palette = new Uint8Array(256 * 3);
-
-  for (let index = 0; index < 256; index += 1) {
-    const red = ((index >> 5) & 0x07) * 255 / 7;
-    const green = ((index >> 2) & 0x07) * 255 / 7;
-    const blue = (index & 0x03) * 255 / 3;
-    const offset = index * 3;
-
-    palette[offset] = Math.round(red);
-    palette[offset + 1] = Math.round(green);
-    palette[offset + 2] = Math.round(blue);
-  }
-
-  return palette;
-}
-
-function rgbaToGifIndices(rgba: Uint8ClampedArray): Uint8Array {
-  const indices = new Uint8Array(Math.floor(rgba.length / 4));
-
-  for (let pixel = 0; pixel < indices.length; pixel += 1) {
-    const offset = pixel * 4;
-    const red = rgba[offset] >> 5;
-    const green = rgba[offset + 1] >> 5;
-    const blue = rgba[offset + 2] >> 6;
-    indices[pixel] = (red << 5) | (green << 2) | blue;
-  }
-
-  return indices;
-}
-
-function lzwEncodeGifIndices(indices: Uint8Array, minCodeSize: number): Uint8Array {
-  const clearCode = 1 << minCodeSize;
-  const endCode = clearCode + 1;
-
-  const output: number[] = [];
-  let bitBuffer = 0;
-  let bitLength = 0;
-
-  let codeSize = minCodeSize + 1;
-  let nextCode = endCode + 1;
-  let maxCode = 1 << codeSize;
-  const dictionary = new Map<string, number>();
-
-  const flushCode = (code: number) => {
-    bitBuffer |= code << bitLength;
-    bitLength += codeSize;
-
-    while (bitLength >= 8) {
-      output.push(bitBuffer & 0xff);
-      bitBuffer >>= 8;
-      bitLength -= 8;
-    }
-  };
-
-  const resetDictionary = () => {
-    dictionary.clear();
-    codeSize = minCodeSize + 1;
-    nextCode = endCode + 1;
-    maxCode = 1 << codeSize;
-  };
-
-  flushCode(clearCode);
-  resetDictionary();
-
-  let prefix = indices[0] ?? 0;
-
-  for (let cursor = 1; cursor < indices.length; cursor += 1) {
-    const value = indices[cursor];
-    const key = `${prefix},${value}`;
-    const existing = dictionary.get(key);
-
-    if (existing !== undefined) {
-      prefix = existing;
-      continue;
-    }
-
-    flushCode(prefix);
-
-    if (nextCode < 4096) {
-      dictionary.set(key, nextCode);
-      nextCode += 1;
-
-      if (nextCode === maxCode && codeSize < 12) {
-        codeSize += 1;
-        maxCode = 1 << codeSize;
-      }
-    } else {
-      flushCode(clearCode);
-      resetDictionary();
-    }
-
-    prefix = value;
-  }
-
-  flushCode(prefix);
-  flushCode(endCode);
-
-  if (bitLength > 0) {
-    output.push(bitBuffer & 0xff);
-  }
-
-  return new Uint8Array(output);
-}
-
-function buildGifDataSubBlocks(data: Uint8Array): Uint8Array {
-  const blocks: number[] = [];
-  let offset = 0;
-
-  while (offset < data.length) {
-    const size = Math.min(255, data.length - offset);
-    blocks.push(size);
-
-    for (let index = 0; index < size; index += 1) {
-      blocks.push(data[offset + index]);
-    }
-
-    offset += size;
-  }
-
-  blocks.push(0);
-  return new Uint8Array(blocks);
-}
-
-function encodeGifFrame(rgba: Uint8ClampedArray, width: number, height: number): Uint8Array {
-  const palette = createGif332Palette();
-  const indices = rgbaToGifIndices(rgba);
-  const compressed = lzwEncodeGifIndices(indices, 8);
-  const imageDataBlocks = buildGifDataSubBlocks(compressed);
-
-  const bytes: number[] = [];
-
-  // Header + logical screen descriptor + global color table.
-  bytes.push(0x47, 0x49, 0x46, 0x38, 0x39, 0x61);
-  writeUint16(bytes, width);
-  writeUint16(bytes, height);
-  bytes.push(0xf7, 0x00, 0x00);
-  for (let index = 0; index < palette.length; index += 1) {
-    bytes.push(palette[index]);
-  }
-
-  // Graphic control extension.
-  bytes.push(0x21, 0xf9, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00);
-
-  // Image descriptor.
-  bytes.push(0x2c);
-  writeUint16(bytes, 0);
-  writeUint16(bytes, 0);
-  writeUint16(bytes, width);
-  writeUint16(bytes, height);
-  bytes.push(0x00);
-
-  // Image data (LZW minimum code size + sub-blocks).
-  bytes.push(0x08);
-  for (let index = 0; index < imageDataBlocks.length; index += 1) {
-    bytes.push(imageDataBlocks[index]);
-  }
-
-  // Trailer.
-  bytes.push(0x3b);
-
-  return new Uint8Array(bytes);
-}
-
-async function loadImage(src: string): Promise<HTMLImageElement> {
-  const image = new Image();
-  image.decoding = "async";
-
-  await new Promise<void>((resolve, reject) => {
-    image.onload = () => resolve();
-    image.onerror = () => reject(new Error("Unable to render keepsake image."));
-    image.src = src;
-  });
-
-  return image;
-}
-
-async function rasterizeSvg(svgText: string, mimeType: "image/png" | "image/jpeg" | "image/gif"): Promise<Blob> {
-  if (typeof document === "undefined") {
-    throw new Error("Download unavailable");
-  }
-
-  const svgBlob = new Blob([svgText], { type: "image/svg+xml;charset=utf-8" });
-  const svgUrl = URL.createObjectURL(svgBlob);
-
-  try {
-    const image = await loadImage(svgUrl);
-    const canvas = document.createElement("canvas");
-    const width = image.naturalWidth || 1200;
-    const height = image.naturalHeight || 1500;
-
-    canvas.width = width;
-    canvas.height = height;
-
-    const context = canvas.getContext("2d");
-    if (!context) {
-      throw new Error("Canvas unavailable");
-    }
-
-    if (mimeType === "image/jpeg") {
-      context.fillStyle = "#ffffff";
-      context.fillRect(0, 0, width, height);
-    }
-
-    context.drawImage(image, 0, 0, width, height);
-
-    if (mimeType === "image/gif") {
-      const imageData = context.getImageData(0, 0, width, height);
-      const bytes = encodeGifFrame(imageData.data, width, height);
-      const payload = new ArrayBuffer(bytes.byteLength);
-      new Uint8Array(payload).set(bytes);
-      return new Blob([payload], { type: "image/gif" });
-    }
-
-    const blob = await new Promise<Blob | null>((resolve) => {
-      canvas.toBlob(resolve, mimeType, mimeType === "image/jpeg" ? 0.94 : undefined);
-    });
-
-    if (!blob) {
-      throw new Error("Unable to export keepsake image.");
-    }
-
-    return blob;
-  } finally {
-    URL.revokeObjectURL(svgUrl);
-  }
-}
-
-function encodePdfText(value: string): Uint8Array {
-  return new TextEncoder().encode(value);
-}
-
-function concatPdfChunks(chunks: Uint8Array[]): Uint8Array {
-  const total = chunks.reduce((sum, chunk) => sum + chunk.length, 0);
-  const buffer = new Uint8Array(total);
-  let offset = 0;
-
-  for (const chunk of chunks) {
-    buffer.set(chunk, offset);
-    offset += chunk.length;
-  }
-
-  return buffer;
-}
-
-function buildPdfFromJpegBytes(jpegBytes: Uint8Array, sourceWidth: number, sourceHeight: number): Blob {
-  const pageWidth = 612;
-  const pageHeight = 792;
-  const margin = 36;
-  const fitScale = Math.min((pageWidth - margin * 2) / sourceWidth, (pageHeight - margin * 2) / sourceHeight);
-  const drawWidth = sourceWidth * fitScale;
-  const drawHeight = sourceHeight * fitScale;
-  const offsetX = (pageWidth - drawWidth) / 2;
-  const offsetY = (pageHeight - drawHeight) / 2;
-  const contents = `q\n${drawWidth.toFixed(2)} 0 0 ${drawHeight.toFixed(2)} ${offsetX.toFixed(2)} ${offsetY.toFixed(2)} cm\n/Im0 Do\nQ\n`;
-
-  const objectOffsets: number[] = [0];
-  const chunks: Uint8Array[] = [];
-  const pushChunk = (chunk: Uint8Array) => {
-    chunks.push(chunk);
-  };
-
-  pushChunk(encodePdfText("%PDF-1.4\n%\xE2\xE3\xCF\xD3\n"));
-  let offset = chunks[0].length;
-
-  const pushObject = (objectId: number, objectData: Uint8Array) => {
-    objectOffsets[objectId] = offset;
-    pushChunk(objectData);
-    offset += objectData.length;
-  };
-
-  pushObject(1, encodePdfText("1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n"));
-  pushObject(2, encodePdfText("2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n"));
-  pushObject(
-    3,
-    encodePdfText(
-      `3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pageWidth} ${pageHeight}] /Resources << /XObject << /Im0 4 0 R >> >> /Contents 5 0 R >>\nendobj\n`,
-    ),
-  );
-
-  const imageHead = encodePdfText(
-    `4 0 obj\n<< /Type /XObject /Subtype /Image /Width ${sourceWidth} /Height ${sourceHeight} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${jpegBytes.length} >>\nstream\n`,
-  );
-  const imageTail = encodePdfText("\nendstream\nendobj\n");
-  pushObject(4, concatPdfChunks([imageHead, jpegBytes, imageTail]));
-
-  const contentBytes = encodePdfText(contents);
-  pushObject(
-    5,
-    encodePdfText(`5 0 obj\n<< /Length ${contentBytes.length} >>\nstream\n${contents}endstream\nendobj\n`),
-  );
-
-  const xrefOffset = offset;
-  const xrefLines: string[] = ["xref", "0 6", "0000000000 65535 f "];
-  for (let objectId = 1; objectId <= 5; objectId += 1) {
-    xrefLines.push(`${objectOffsets[objectId].toString().padStart(10, "0")} 00000 n `);
-  }
-  xrefLines.push("trailer");
-  xrefLines.push("<< /Size 6 /Root 1 0 R >>");
-  xrefLines.push("startxref");
-  xrefLines.push(String(xrefOffset));
-  xrefLines.push("%%EOF");
-
-  pushChunk(encodePdfText(`${xrefLines.join("\n")}\n`));
-  const payload = concatPdfChunks(chunks);
-  const arrayBuffer = new ArrayBuffer(payload.byteLength);
-  new Uint8Array(arrayBuffer).set(payload);
-  return new Blob([arrayBuffer], { type: "application/pdf" });
-}
-
-async function renderPdfFromSvg(svgText: string): Promise<Blob> {
-  const jpegBlob = await rasterizeSvg(svgText, "image/jpeg");
-  const jpegBytes = new Uint8Array(await jpegBlob.arrayBuffer());
-  return buildPdfFromJpegBytes(jpegBytes, 1200, 1500);
 }
 
 export interface MomentumSectionProps {
@@ -621,7 +295,7 @@ function MomentumSectionComponent({
         </div>
         <div className="autograph-momentum-progress">
           <span className="autograph-momentum-progress-value">{momentum.completionPercent}%</span>
-          <span className="autograph-momentum-progress-label">complete</span>
+          <span className="autograph-momentum-progress-label">{copy.completeLabel}</span>
         </div>
       </div>
 
@@ -637,7 +311,7 @@ function MomentumSectionComponent({
           >
             <div className="autograph-momentum-step-header">
               <p className="autograph-momentum-step-label">{step.label}</p>
-              <span className="autograph-momentum-step-status">{step.completed ? "Done" : "Next"}</span>
+              <span className="autograph-momentum-step-status">{step.completed ? copy.doneLabel : copy.nextLabel}</span>
             </div>
             <p className="autograph-momentum-step-value">{step.value}</p>
           </article>
@@ -661,6 +335,64 @@ function MomentumSectionComponent({
 }
 
 export const MomentumSection = React.memo(MomentumSectionComponent);
+
+interface AutographBookPreviewProps {
+  copy: AutographExchangeCopy;
+  outboxCount: number;
+  inboxCount: number;
+  archiveCount: number;
+}
+
+function AutographBookPreview({
+  copy,
+  outboxCount,
+  inboxCount,
+  archiveCount,
+}: AutographBookPreviewProps) {
+  return (
+    <aside className="autograph-book-preview" aria-label={copy.bookPreviewLabel}>
+      <div className="autograph-book-preview-header">
+        <span className="autograph-book-mark" aria-hidden="true">
+          <DecorativeIcon name="bookOpen" className="autograph-book-mark-icon" />
+        </span>
+        <div>
+          <p className="autograph-book-cover-label">{copy.bookCoverLabel}</p>
+          <p className="autograph-book-proof-line">{copy.bookTrustLine}</p>
+        </div>
+      </div>
+
+      <div className="autograph-book" aria-hidden="true">
+        <div className="autograph-book-page autograph-book-page-left">
+          <p className="autograph-book-page-label">{copy.bookLeftPageLabel}</p>
+          <p className="autograph-book-page-title">{copy.bookLeftPageTitle}</p>
+          <p className="autograph-book-page-detail">{copy.bookLeftPageDetail}</p>
+          <div className="autograph-book-stat-grid">
+            <span className="autograph-book-stat">
+              <strong>{outboxCount}</strong>
+              <span>{copy.bookSentLabel}</span>
+            </span>
+            <span className="autograph-book-stat">
+              <strong>{inboxCount}</strong>
+              <span>{copy.bookWaitingLabel}</span>
+            </span>
+          </div>
+        </div>
+        <span className="autograph-book-spine" />
+        <div className="autograph-book-page autograph-book-page-right">
+          <p className="autograph-book-page-label">{copy.bookRightPageLabel}</p>
+          <p className="autograph-book-page-title autograph-book-signature-line">{copy.bookRightPageTitle}</p>
+          <p className="autograph-book-page-detail">{copy.bookRightPageDetail}</p>
+          <span className="autograph-book-saved-count">
+            <strong>{archiveCount}</strong>
+            <span>{copy.bookSignedLabel}</span>
+          </span>
+        </div>
+      </div>
+
+      <p className="autograph-book-export-line">{copy.bookExportLine}</p>
+    </aside>
+  );
+}
 
 export interface HeroSectionProps {
   copy: AutographExchangeCopy;
@@ -736,7 +468,8 @@ function HeroSectionComponent({
           <HeroJumpStat key={target.href} {...target} />
         ))}
       </div>
-      <div className="autograph-quick-steps" aria-label="How autograph exchange works">
+      <AutographBookPreview copy={copy} outboxCount={outboxCount} inboxCount={inboxCount} archiveCount={archiveCount} />
+      <div className="autograph-quick-steps" aria-label={copy.quickStepsAriaLabel}>
         <QuickStep step="1" title={copy.stepOneTitle} detail={copy.stepOneDetail} />
         <QuickStep step="2" title={copy.stepTwoTitle} detail={copy.stepTwoDetail} />
         <QuickStep step="3" title={copy.stepThreeTitle} detail={copy.stepThreeDetail} />
@@ -781,6 +514,8 @@ export function ProfileSection({
   const titleId = React.useId();
   const nameHintId = React.useId();
   const roleHintId = React.useId();
+  const effectiveRoleLabel = getRoleLabel(effectiveProfileRole, roleOptions);
+  const previewRoleLabel = getRoleLabel(profileForm.role || effectiveProfileRole, roleOptions);
 
   return (
     <section
@@ -794,16 +529,14 @@ export function ProfileSection({
           <div>
             <h3 id={titleId} className="autograph-section-title autograph-title-with-icon">
               <DecorativeIcon name="userCircle" className="autograph-title-icon" />
-              <span>Your autograph profile</span>
+              <span>{copy.profileTitle}</span>
             </h3>
             <p className="app-copy-soft autograph-section-copy">
-              {hasProfile
-                ? "Your profile is already saved, so you can skip this step unless you want to edit it."
-                : "Save your display name and role once so people can ask you for an autograph."}
+              {hasProfile ? copy.profileCompleteDescription : copy.profileMissingDescription}
             </p>
           </div>
           <div className="autograph-section-badges">
-            {isFocused ? <SectionFocusPill label={hasProfile ? "Optional now" : "Start here"} /> : null}
+            {isFocused ? <SectionFocusPill label={hasProfile ? copy.profileFocusOptionalLabel : copy.profileFocusStartLabel} /> : null}
             <span className={`autograph-setup-badge ${hasProfile ? "is-ready" : "is-action"}`}>
               {hasProfile ? copy.stepReady : copy.stepNeededOnce}
             </span>
@@ -820,7 +553,7 @@ export function ProfileSection({
             <p className="autograph-context-title">{effectiveProfileName}</p>
             <div className="autograph-role-summary">
               <span className="autograph-role-summary-label">{copy.savedRoleLabel}</span>
-              <span className="autograph-role-chip">{titleCaseRole(effectiveProfileRole)}</span>
+              <span className="autograph-role-chip">{effectiveRoleLabel}</span>
             </div>
           </div>
           <p className="autograph-context-detail">{copy.profileSkipHint}</p>
@@ -853,7 +586,7 @@ export function ProfileSection({
             <p className="autograph-context-detail">{copy.signedInIdentityHint}</p>
           </div>
           <label className="autograph-field">
-            <span className="app-form-label">Display name</span>
+            <span className="app-form-label">{copy.displayNameLabel}</span>
             <input
               className={INPUT_CLASS}
               value={profileForm.displayName}
@@ -862,11 +595,11 @@ export function ProfileSection({
               aria-describedby={nameHintId}
             />
             <p id={nameHintId} className="autograph-field-hint">
-              Use the name you want people to recognize right away.
+              {copy.displayNameHint}
             </p>
           </label>
           <label className="autograph-field">
-            <span className="app-form-label">Role</span>
+            <span className="app-form-label">{copy.roleLabel}</span>
             <select
               className={INPUT_CLASS}
               value={profileForm.role || effectiveProfileRole}
@@ -880,12 +613,12 @@ export function ProfileSection({
               ))}
             </select>
             <p id={roleHintId} className="autograph-field-hint">
-              Your role adds context so requests feel more personal.
+              {copy.roleHint}
             </p>
           </label>
           <div className="autograph-form-actions autograph-form-actions-end">
             <button type="submit" className="app-button-primary autograph-button-fill" disabled={busyAction === "profile"}>
-              {busyAction === "profile" ? "Saving profile..." : hasProfile ? copy.saveChanges : "Save profile"}
+              {busyAction === "profile" ? copy.savingProfile : hasProfile ? copy.saveChanges : copy.saveProfile}
             </button>
             {hasProfile ? (
               <button
@@ -901,8 +634,8 @@ export function ProfileSection({
         </form>
       )}
       <p className="autograph-inline-note">
-        {copy.profileAudiencePrefix} <strong>{effectiveProfileName || "you"}</strong> and can request an autograph from you as a{" "}
-        <strong>{titleCaseRole(profileForm.role || effectiveProfileRole)}</strong>.
+        {copy.profileAudiencePrefix} <strong>{effectiveProfileName || copy.profileAudienceFallback}</strong> {copy.profileAudienceConnector}{" "}
+        <strong>{previewRoleLabel}</strong>.
       </p>
     </section>
   );
@@ -915,6 +648,9 @@ export interface RequestComposerSectionProps {
   loading: boolean;
   myProfile: AutographProfile | null;
   availableSigners: AutographProfile[];
+  roleOptions: RoleOption[];
+  outbox: AutographRequest[];
+  lastCreatedRequest: AutographRequest | null;
   requestForm: RequestFormState;
   setRequestForm: React.Dispatch<React.SetStateAction<RequestFormState>>;
   busyAction: string | null;
@@ -928,6 +664,9 @@ export function RequestComposerSection({
   loading,
   myProfile,
   availableSigners,
+  roleOptions,
+  outbox,
+  lastCreatedRequest,
   requestForm,
   setRequestForm,
   busyAction,
@@ -936,8 +675,35 @@ export function RequestComposerSection({
   const titleId = React.useId();
   const signerHintId = React.useId();
   const messageHintId = React.useId();
+  const [dismissedRequestFeedbackId, setDismissedRequestFeedbackId] = React.useState<string | null>(null);
+  const [composerResetKey, setComposerResetKey] = React.useState(0);
   const selectedSigner = availableSigners.find((profile) => profile.userId === requestForm.signerUserId) ?? null;
-  const requestMessageLength = requestForm.message.trim().length;
+  const trimmedMessage = requestForm.message.trim();
+  const requestMessageLength = trimmedMessage.length;
+  const pendingRequestForSigner = selectedSigner
+    ? outbox.find((item) => item.signerUserId === selectedSigner.userId && item.status === "pending") ?? null
+    : null;
+  const justSentCurrentDraft =
+    Boolean(
+      pendingRequestForSigner
+        && lastCreatedRequest
+        && pendingRequestForSigner.id === lastCreatedRequest.id
+        && lastCreatedRequest.signerUserId === requestForm.signerUserId
+        && lastCreatedRequest.message.trim() === trimmedMessage,
+    );
+  const isRequestSending = busyAction === "request";
+  const canSubmitRequest =
+    hasProfile && Boolean(selectedSigner) && requestMessageLength > 0 && !pendingRequestForSigner && !isRequestSending;
+  const showRequestFeedback =
+    Boolean(pendingRequestForSigner) && dismissedRequestFeedbackId !== pendingRequestForSigner?.id;
+  const submitLabel =
+    isRequestSending
+      ? copy.sendingRequest
+      : justSentCurrentDraft
+        ? copy.requestSentTitle
+        : pendingRequestForSigner
+          ? copy.requestAlreadyPending
+          : copy.askForAutograph;
 
   return (
     <section
@@ -951,12 +717,12 @@ export function RequestComposerSection({
           <div>
             <h3 id={titleId} className="autograph-section-title autograph-title-with-icon">
               <DecorativeIcon name="send" className="autograph-title-icon" />
-              <span>Ask someone for an autograph</span>
+              <span>{copy.requestComposerTitle}</span>
             </h3>
             <p className="app-copy-soft autograph-section-copy">{copy.requestExplainer}</p>
           </div>
           <div className="autograph-section-badges">
-            {isFocused ? <SectionFocusPill label={hasProfile ? "Start here" : "Locked"} /> : null}
+            {isFocused ? <SectionFocusPill label={hasProfile ? copy.composerFocusStartLabel : copy.composerFocusLockedLabel} /> : null}
             <span className={`autograph-setup-badge ${hasProfile ? "is-ready" : ""}`}>
               {hasProfile ? copy.stepCanAsk : copy.stepCompleteFirst}
             </span>
@@ -965,8 +731,10 @@ export function RequestComposerSection({
       </header>
       <form className="autograph-form-grid autograph-composer-grid" onSubmit={onRequestSubmit}>
         <MemoizedSignerCombobox
+          key={composerResetKey}
           copy={copy}
           availableSigners={availableSigners}
+          roleOptions={roleOptions}
           requestForm={requestForm}
           setRequestForm={setRequestForm}
           hintId={signerHintId}
@@ -978,17 +746,17 @@ export function RequestComposerSection({
             rows={3}
             value={requestForm.message}
             onChange={(event) => setRequestForm((prev) => ({ ...prev, message: event.target.value }))}
-            placeholder="Say why you are asking and what you would love them to write."
+            placeholder={copy.requestMessagePlaceholder}
             maxLength={240}
             required
             aria-describedby={`${messageHintId} autograph-request-count`}
           />
           <p id={messageHintId} className="autograph-field-hint">
-            A few sincere lines are enough. Specific requests usually get warmer replies.
+            {copy.requestMessageHint}
           </p>
         </label>
         <div className="autograph-suggestion-row" aria-label={copy.requestIdeasLabel}>
-          {REQUEST_PROMPTS.map((prompt) => (
+          {copy.requestPrompts.map((prompt) => (
             <button
               key={prompt.label}
               type="button"
@@ -1003,16 +771,65 @@ export function RequestComposerSection({
           <div className="autograph-context-panel">
             <p className="autograph-context-label">{copy.youAreAsking}</p>
             <p className="autograph-context-title">
-              {selectedSigner.displayName} · {titleCaseRole(selectedSigner.role)}
+              {selectedSigner.displayName} · {getRoleLabel(selectedSigner.role, roleOptions)}
             </p>
             <p className="autograph-context-detail">
-              {copy.signerInboxHintPrefix} {myProfile?.displayName ?? "you"} and can sign it from their inbox.
+              {copy.signerInboxHintPrefix} {myProfile?.displayName ?? copy.signerInboxFallbackName} {copy.signerInboxHintSuffix}
             </p>
+          </div>
+        ) : null}
+        {pendingRequestForSigner && showRequestFeedback ? (
+          <div
+            className={`autograph-step-state ${justSentCurrentDraft ? "autograph-step-state-success" : "autograph-step-state-warning"} autograph-request-submit-state`}
+            role="status"
+            aria-live="polite"
+          >
+            <button
+              type="button"
+              className="autograph-feedback-dismiss"
+              aria-label={copy.dismissRequestFeedback}
+              onClick={() => setDismissedRequestFeedbackId(pendingRequestForSigner.id)}
+            >
+              <DecorativeIcon name="x" className="autograph-feedback-dismiss-icon" />
+            </button>
+            <p className="autograph-step-state-title">{justSentCurrentDraft ? copy.requestSentTitle : copy.requestAlreadyPending}</p>
+            <p className="autograph-step-state-copy">
+              {justSentCurrentDraft ? copy.requestSentDetail : copy.requestPendingForSignerHint}
+            </p>
+            <div className="autograph-request-submit-summary">
+              <p className="autograph-context-label">{copy.youAreAsking}</p>
+              <p className="autograph-context-title">
+                {pendingRequestForSigner.signerDisplayName} · {getRoleLabel(pendingRequestForSigner.signerRole, roleOptions)}
+              </p>
+              <p className="autograph-context-detail">{pendingRequestForSigner.message}</p>
+            </div>
+            <div className="autograph-feedback-actions">
+              <button
+                type="button"
+                className="autograph-secondary-btn"
+                onClick={() => {
+                  setRequestForm({ signerUserId: "", message: "" });
+                  setComposerResetKey((prev) => prev + 1);
+                }}
+              >
+                {copy.requestAskAnotherCta}
+              </button>
+              <a
+                className="autograph-jump-link autograph-jump-link--subtle"
+                href={`#${SECTION_IDS.outbox}`}
+                onClick={(event) => {
+                  event.preventDefault();
+                  scrollToSection(SECTION_IDS.outbox);
+                }}
+              >
+                {copy.requestSentOutboxCta}
+              </a>
+            </div>
           </div>
         ) : null}
         <div className="autograph-form-meta">
           <p className="autograph-inline-note">
-            Clear, specific requests feel more personal and are easier to answer well.
+            {copy.requestMetaHint}
           </p>
           <span id="autograph-request-count" className="autograph-char-count">
             {requestMessageLength}/240
@@ -1023,10 +840,14 @@ export function RequestComposerSection({
           <button
             type="submit"
             className="app-button-primary autograph-button-with-icon"
-            disabled={busyAction === "request" || !hasProfile}
+            disabled={!canSubmitRequest}
           >
-            <DecorativeIcon name="send" className="autograph-button-icon" />
-            <span>{busyAction === "request" ? "Sending request..." : copy.askForAutograph}</span>
+            {isRequestSending ? (
+              <span className="autograph-button-spinner" aria-hidden="true" />
+            ) : (
+              <DecorativeIcon name="send" className="autograph-button-icon" />
+            )}
+            <span>{submitLabel}</span>
           </button>
         </div>
       </form>
@@ -1039,6 +860,7 @@ export function RequestComposerSection({
 export interface InboxLaneProps {
   copy: AutographExchangeCopy;
   inbox: AutographRequest[];
+  roleOptions: RoleOption[];
   isFocused: boolean;
   lastSignedRequestId: string | null;
   expandedRequestId: string | null;
@@ -1054,6 +876,7 @@ export interface InboxLaneProps {
 export function InboxLane({
   copy,
   inbox,
+  roleOptions,
   isFocused,
   lastSignedRequestId,
   expandedRequestId,
@@ -1066,6 +889,7 @@ export function InboxLane({
   onSignRequest,
 }: InboxLaneProps) {
   const titleId = React.useId();
+  const roleLabels = React.useMemo(() => buildRoleLabelMap(roleOptions), [roleOptions]);
 
   return (
     <section
@@ -1082,7 +906,7 @@ export function InboxLane({
           <p className="autograph-lane-subtitle">{copy.inboxSubtitle}</p>
         </div>
         <div className="autograph-lane-header-actions">
-          {isFocused ? <SectionFocusPill label="Waiting on you" /> : null}
+          {isFocused ? <SectionFocusPill label={copy.inboxFocusLabel} /> : null}
           <p className="autograph-lane-meta">
             {inbox.length} {copy.waitingCountSuffix}
           </p>
@@ -1101,9 +925,9 @@ export function InboxLane({
               <p className="autograph-card-title">
                 {copy.fromPrefix} {item.requesterDisplayName}
               </p>
-              <StatusPill status={item.status} />
+              <StatusPill status={item.status} copy={copy} />
             </div>
-            <p className="autograph-request-pair">{rolePairLabel(item)}</p>
+            <p className="autograph-request-pair">{rolePairLabel(item, roleLabels)}</p>
             <div className="autograph-context-panel compact">
               <p className="autograph-context-label">{copy.theyAsked}</p>
               <p className="autograph-context-detail">{item.message}</p>
@@ -1117,7 +941,7 @@ export function InboxLane({
                 type="button"
                 className="autograph-secondary-btn"
                 onClick={() => setExpandedRequestId((prev) => (prev === item.id ? null : item.id))}
-                aria-label={`Open signing form for ${item.requesterDisplayName}`}
+                aria-label={`${copy.openSigningFormLabel} ${item.requesterDisplayName}`}
                 aria-expanded={expandedRequestId === item.id}
                 aria-controls={`autograph-sign-panel-${item.id}`}
               >
@@ -1135,17 +959,17 @@ export function InboxLane({
                     className={INPUT_CLASS}
                     rows={3}
                     value={signatureDrafts[item.id] ?? ""}
-                    placeholder="Write the autograph you want to give them."
+                    placeholder={copy.signaturePlaceholder}
                     maxLength={240}
                     onChange={(event) => setSignatureDrafts((prev) => ({ ...prev, [item.id]: event.target.value }))}
                     aria-describedby={`autograph-signature-hint-${item.id} autograph-signature-count-${item.id}`}
                   />
                   <p id={`autograph-signature-hint-${item.id}`} className="autograph-field-hint">
-                    Keep it brief, warm, and personal. One thoughtful paragraph is plenty.
+                    {copy.signatureHint}
                   </p>
                 </label>
                 <div className="autograph-suggestion-row" aria-label={copy.autographIdeasLabel}>
-                  {SIGNATURE_IDEAS.map((idea) => (
+                  {copy.signatureIdeas.map((idea) => (
                     <button
                       key={`${item.id}-${idea.label}`}
                       className="autograph-suggestion-chip"
@@ -1187,6 +1011,7 @@ export function InboxLane({
 export interface ArchiveLaneProps {
   copy: AutographExchangeCopy;
   filteredArchive: AutographRequest[];
+  roleOptions: RoleOption[];
   hasMoreArchive: boolean;
   archiveLoadingMore: boolean;
   onLoadMoreArchive: () => Promise<void>;
@@ -1201,6 +1026,7 @@ export interface ArchiveLaneProps {
 export function ArchiveLane({
   copy,
   filteredArchive,
+  roleOptions,
   hasMoreArchive,
   archiveLoadingMore,
   onLoadMoreArchive,
@@ -1213,6 +1039,7 @@ export function ArchiveLane({
 }: ArchiveLaneProps) {
   const titleId = React.useId();
   const loadMoreRef = React.useRef<HTMLDivElement | null>(null);
+  const roleLabels = React.useMemo(() => buildRoleLabelMap(roleOptions), [roleOptions]);
   const spotlightItem = filteredArchive[0] ?? null;
   const revealItem = lastSignedRequestId
     ? filteredArchive.find((item) => item.id === lastSignedRequestId) ?? null
@@ -1289,6 +1116,8 @@ export function ArchiveLane({
     const svg = buildKeepsakeSvg(copy, item);
 
     try {
+      const { downloadKeepsakeBlob, downloadKeepsakeText, rasterizeSvg, renderPdfFromSvg } = await import("./keepsake-export");
+
       if (downloadFormat === "svg") {
         downloadKeepsakeText(`${baseName}.svg`, svg);
         setKeepsakeStatus(copy.keepsakeDownloadedStatus);
@@ -1335,7 +1164,7 @@ export function ArchiveLane({
           <p className="autograph-lane-subtitle">{copy.archiveSubtitle}</p>
         </div>
         <div className="autograph-lane-header-actions">
-          {isFocused ? <SectionFocusPill label="Browse here" /> : null}
+          {isFocused ? <SectionFocusPill label={copy.archiveFocusLabel} /> : null}
           <p className="autograph-lane-meta">
             {filteredArchive.length} {copy.totalCountSuffix}
           </p>
@@ -1423,9 +1252,9 @@ export function ArchiveLane({
             id="autograph-archive-search"
             value={archiveFilter}
             onChange={(event) => setArchiveFilter(event.target.value)}
-            placeholder={copy.searchPlaceholder}
             className={`${INPUT_CLASS} autograph-filter-input`}
             aria-label={copy.searchLabel}
+            title={copy.searchPlaceholder}
           />
         </label>
         <label className="autograph-field">
@@ -1470,9 +1299,9 @@ export function ArchiveLane({
                     {item.requesterDisplayName} ↔ {item.signerDisplayName}
                   </p>
                 </div>
-                <StatusPill status={item.status} />
+                <StatusPill status={item.status} copy={copy} />
               </div>
-              <p className="autograph-request-pair">{rolePairLabel(item)}</p>
+              <p className="autograph-request-pair">{rolePairLabel(item, roleLabels)}</p>
               <div className="autograph-keepsake-stack">
                 <div className="autograph-social-card">
                   <p className="autograph-social-card-label">{copy.socialKeepsakeLabel}</p>
@@ -1537,7 +1366,7 @@ export function ArchiveLane({
             onClick={() => void onLoadMoreArchive()}
             disabled={archiveLoadingMore}
           >
-            {archiveLoadingMore ? "Loading more..." : "Load more keepsakes"}
+            {archiveLoadingMore ? copy.loadingMoreKeepsakes : copy.loadMoreKeepsakes}
           </button>
         </div>
       ) : null}
@@ -1548,15 +1377,18 @@ export function ArchiveLane({
 export interface OutboxSectionProps {
   copy: AutographExchangeCopy;
   outbox: AutographRequest[];
+  roleOptions: RoleOption[];
   isFocused: boolean;
 }
 
 function OutboxSectionComponent({
   copy,
   outbox,
+  roleOptions,
   isFocused,
 }: OutboxSectionProps) {
   const titleId = React.useId();
+  const roleLabels = React.useMemo(() => buildRoleLabelMap(roleOptions), [roleOptions]);
   return (
     <section
       id={SECTION_IDS.outbox}
@@ -1572,7 +1404,7 @@ function OutboxSectionComponent({
           <p className="autograph-lane-subtitle">{copy.outboxSubtitle}</p>
         </div>
         <div className="autograph-lane-header-actions">
-          {isFocused ? <SectionFocusPill label="Track here" /> : null}
+          {isFocused ? <SectionFocusPill label={copy.outboxFocusLabel} /> : null}
           <p className="autograph-lane-meta">
             {outbox.length} {copy.pendingCountSuffix}
           </p>
@@ -1586,8 +1418,9 @@ function OutboxSectionComponent({
             <article key={item.id} className="autograph-outbox-card">
               <div className="autograph-request-card-header">
                 <p className="autograph-card-title">{item.signerDisplayName}</p>
-                <StatusPill status={item.status} />
+                <StatusPill status={item.status} copy={copy} />
               </div>
+              <p className="autograph-request-pair">{rolePairLabel(item, roleLabels)}</p>
               <p className="autograph-outbox-message app-copy-soft">{item.message}</p>
               <p className="autograph-request-time">{formatRelativeDate(item.createdAt, copy)}</p>
             </article>

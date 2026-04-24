@@ -34,6 +34,7 @@ export function AutographExchangeScreen(props: AutographExchangeScreenProps) {
     setArchiveFilter,
     archiveSort,
     setArchiveSort,
+    lastCreatedRequest,
     lastSignedRequestId,
     signaturePreset,
     effectiveProfileName,
@@ -132,6 +133,9 @@ export function AutographExchangeScreen(props: AutographExchangeScreenProps) {
         loading={loading}
         myProfile={myProfile}
         availableSigners={availableSigners}
+        roleOptions={roleOptions}
+        outbox={outbox}
+        lastCreatedRequest={lastCreatedRequest}
         requestForm={requestForm}
         setRequestForm={setRequestForm}
         busyAction={busyAction}
@@ -143,6 +147,7 @@ export function AutographExchangeScreen(props: AutographExchangeScreenProps) {
         <InboxLane
           copy={copy}
           inbox={inbox}
+          roleOptions={roleOptions}
           lastSignedRequestId={lastSignedRequestId}
           expandedRequestId={expandedRequestId}
           setExpandedRequestId={setExpandedRequestId}
@@ -158,6 +163,7 @@ export function AutographExchangeScreen(props: AutographExchangeScreenProps) {
         <ArchiveLane
           copy={copy}
           filteredArchive={filteredArchive}
+          roleOptions={roleOptions}
           hasMoreArchive={hasMoreArchive}
           archiveLoadingMore={archiveLoadingMore}
           onLoadMoreArchive={onLoadMoreArchive}
@@ -170,7 +176,7 @@ export function AutographExchangeScreen(props: AutographExchangeScreenProps) {
         />
       </div>
 
-      <OutboxSection copy={copy} outbox={outbox} isFocused={focusSection === "outbox"} />
+      <OutboxSection copy={copy} outbox={outbox} roleOptions={roleOptions} isFocused={focusSection === "outbox"} />
     </div>
   );
 }

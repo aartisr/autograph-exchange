@@ -1,12 +1,13 @@
 "use client";
 
 import React from "react";
-import type { AutographExchangeCopy, AutographProfile, RequestFormState } from "./types";
+import type { AutographExchangeCopy, AutographProfile, AutographRole, RequestFormState, RoleOption } from "./types";
 import { buildSignerSearchEntries, INPUT_CLASS, rankSignerSearchEntries, signerSearchLabel, titleCaseRole } from "./screen-utils";
 
 export interface SignerComboboxProps {
   copy: AutographExchangeCopy;
   availableSigners: AutographProfile[];
+  roleOptions: RoleOption[];
   requestForm: RequestFormState;
   setRequestForm: React.Dispatch<React.SetStateAction<RequestFormState>>;
   hintId: string;
@@ -17,26 +18,36 @@ function selectSigner(
   setRequestForm: React.Dispatch<React.SetStateAction<RequestFormState>>,
   setQuery: React.Dispatch<React.SetStateAction<string>>,
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>,
+  roleLabels: Partial<Record<AutographRole, string>>,
 ) {
   setRequestForm((prev) => ({ ...prev, signerUserId: profile.userId }));
-  setQuery(signerSearchLabel(profile));
+  setQuery(signerSearchLabel(profile, roleLabels));
   setIsOpen(false);
+}
+
+function buildRoleLabelMap(roleOptions: RoleOption[]): Partial<Record<AutographRole, string>> {
+  return roleOptions.reduce<Partial<Record<AutographRole, string>>>((labels, option) => {
+    labels[option.value] = option.label;
+    return labels;
+  }, {});
 }
 
 export function SignerCombobox({
   copy,
   availableSigners,
+  roleOptions,
   requestForm,
   setRequestForm,
   hintId,
 }: SignerComboboxProps) {
+  const roleLabels = React.useMemo(() => buildRoleLabelMap(roleOptions), [roleOptions]);
   const signerById = React.useMemo(
     () => new Map(availableSigners.map((profile) => [profile.userId, profile])),
     [availableSigners],
   );
-  const searchEntries = React.useMemo(() => buildSignerSearchEntries(availableSigners), [availableSigners]);
+  const searchEntries = React.useMemo(() => buildSignerSearchEntries(availableSigners, roleLabels), [availableSigners, roleLabels]);
   const selectedSigner = requestForm.signerUserId ? signerById.get(requestForm.signerUserId) ?? null : null;
-  const [query, setQuery] = React.useState(selectedSigner ? signerSearchLabel(selectedSigner) : "");
+  const [query, setQuery] = React.useState(selectedSigner ? signerSearchLabel(selectedSigner, roleLabels) : "");
   const [isOpen, setIsOpen] = React.useState(false);
   const [activeIndex, setActiveIndex] = React.useState(0);
   const deferredQuery = React.useDeferredValue(query);
@@ -49,8 +60,8 @@ export function SignerCombobox({
       return;
     }
 
-    setQuery(signerSearchLabel(selectedSigner));
-  }, [selectedSigner]);
+    setQuery(signerSearchLabel(selectedSigner, roleLabels));
+  }, [roleLabels, selectedSigner]);
 
   React.useEffect(
     () => () => {
@@ -138,14 +149,14 @@ export function SignerCombobox({
                 return;
               }
 
-              selectSigner(activeSigner, setRequestForm, setQuery, setIsOpen);
+              selectSigner(activeSigner, setRequestForm, setQuery, setIsOpen, roleLabels);
             }
           }}
           onBlur={() => {
             blurTimeoutRef.current = window.setTimeout(() => {
               setIsOpen(false);
               if (!requestForm.signerUserId && selectedSigner) {
-                setQuery(signerSearchLabel(selectedSigner));
+                setQuery(signerSearchLabel(selectedSigner, roleLabels));
               }
             }, 120);
           }}
@@ -168,11 +179,11 @@ export function SignerCombobox({
                     className={`autograph-combobox-option ${isSelected ? "is-selected" : ""} ${isActive ? "is-active" : ""}`}
                     onMouseDown={(event) => {
                       event.preventDefault();
-                      selectSigner(profile, setRequestForm, setQuery, setIsOpen);
+                      selectSigner(profile, setRequestForm, setQuery, setIsOpen, roleLabels);
                     }}
                   >
                     <span className="autograph-combobox-option-name">{profile.displayName}</span>
-                    <span className="autograph-combobox-option-role">{titleCaseRole(profile.role)}</span>
+                    <span className="autograph-combobox-option-role">{roleLabels[profile.role] ?? titleCaseRole(profile.role)}</span>
                   </button>
                 );
               })
@@ -188,7 +199,7 @@ export function SignerCombobox({
       {selectedSigner ? (
         <p className="autograph-combobox-selected">
           <span className="autograph-combobox-selected-label">{copy.signerSelectedLabel}</span>{" "}
-          <strong>{signerSearchLabel(selectedSigner)}</strong>
+          <strong>{signerSearchLabel(selectedSigner, roleLabels)}</strong>
         </p>
       ) : null}
     </label>

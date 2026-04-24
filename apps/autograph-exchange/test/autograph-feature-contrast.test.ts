@@ -76,6 +76,21 @@ function minContrastAgainstStops(foreground: string, gradientOrColor: string): n
   return Math.min(...stops.map((stop) => contrastRatio(foreground, stop)));
 }
 
+function expectComboboxTokensMeetContrast(source: string) {
+  const listSurface = extractToken(source, "--autograph-combobox-list-surface");
+  const optionText = extractToken(source, "--autograph-combobox-option-text");
+  const optionMeta = extractToken(source, "--autograph-combobox-option-meta");
+  const hoverSurface = extractToken(source, "--autograph-combobox-option-hover-surface");
+  const selectedSurface = extractToken(source, "--autograph-combobox-option-selected-surface");
+
+  expect(contrastRatio(optionText, listSurface)).toBeGreaterThanOrEqual(4.5);
+  expect(contrastRatio(optionMeta, listSurface)).toBeGreaterThanOrEqual(4.5);
+  expect(contrastRatio(optionText, hoverSurface)).toBeGreaterThanOrEqual(4.5);
+  expect(contrastRatio(optionMeta, hoverSurface)).toBeGreaterThanOrEqual(4.5);
+  expect(contrastRatio(optionText, selectedSurface)).toBeGreaterThanOrEqual(4.5);
+  expect(contrastRatio(optionMeta, selectedSurface)).toBeGreaterThanOrEqual(4.5);
+}
+
 describe("autograph feature contrast tokens", () => {
   it("defines safe light-mode input tokens for typed and placeholder text", () => {
     const inputSurface = extractToken(stylesheet, "--autograph-input-surface");
@@ -128,6 +143,26 @@ describe("autograph feature contrast tokens", () => {
     expect(contrastRatio(selectedText, selectedSurface)).toBeGreaterThanOrEqual(4.5);
   });
 
+  it("defines safe combobox popup tokens in light and dark mode", () => {
+    const darkBlock = extractDarkModeBlock(stylesheet);
+
+    expectComboboxTokensMeetContrast(stylesheet);
+    expectComboboxTokensMeetContrast(darkBlock);
+    expect(stylesheet).toContain(".autograph-combobox-list");
+    expect(stylesheet).toContain("--autograph-combobox-list-surface");
+  });
+
+  it("keeps status banner text readable in light and dark mode", () => {
+    const lightStatusText = extractToken(stylesheet, "--autograph-status-banner-text");
+    const lightStatusBg = extractToken(stylesheet, "--autograph-status-banner-bg");
+    const darkBlock = extractDarkModeBlock(stylesheet);
+    const darkStatusText = extractToken(darkBlock, "--autograph-status-banner-text");
+    const darkStatusBg = extractToken(darkBlock, "--autograph-status-banner-bg");
+
+    expect(minContrastAgainstStops(lightStatusText, lightStatusBg)).toBeGreaterThanOrEqual(4.5);
+    expect(minContrastAgainstStops(darkStatusText, darkStatusBg)).toBeGreaterThanOrEqual(4.5);
+  });
+
   it("styles interactive text surfaces explicitly so they do not inherit unsafe colors", () => {
     expect(stylesheet).toContain(".app-form-input::placeholder");
     expect(stylesheet).toContain(".app-form-input::selection");
@@ -171,5 +206,10 @@ describe("autograph feature contrast tokens", () => {
     expect(darkBlock).toContain(".autograph-keepsake-panel-signature {");
     expect(darkBlock).toContain(".autograph-keepsake-panel-label,");
     expect(darkBlock).toContain(".autograph-keepsake-footer {");
+  });
+
+  it("keeps the book styling away from orb backgrounds and cramped display type", () => {
+    expect(stylesheet).not.toContain("radial-gradient");
+    expect(stylesheet).not.toMatch(/letter-spacing:\s*-/);
   });
 });

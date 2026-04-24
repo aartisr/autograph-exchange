@@ -40,6 +40,9 @@ export default function AutographPage() {
 - Mount `AutographExchangeFeature`
 - Point it at host APIs with `api.fetcher` or `api.endpoints`
 - Wrap it with host shell chrome using `renderShell`
+- Customize vocabulary with `copy` and role names with `roleLabels`; the package owns the autograph-book hero, page cards, keepsake archive, and export UX so upgrades flow back to every host.
+
+The source-informed product rationale for the generic book experience is documented in `docs/autograph-book-ux-research.md`.
 
 ## Examples
 

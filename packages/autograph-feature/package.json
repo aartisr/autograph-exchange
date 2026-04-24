@@ -26,6 +26,9 @@
     "directory": "packages/autograph-feature"
   },
   "description": "Reusable autograph exchange UI for any website.",
+  "dependencies": {
+    "@aartisr/autograph-contract": "^0.1.0"
+  },
   "peerDependencies": {
     "react": ">=18",
     "react-dom": ">=18"

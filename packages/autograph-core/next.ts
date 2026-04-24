@@ -117,7 +117,7 @@ export function createAutographRequestsGetHandler(config: AutographNextRouteConf
     try {
       const userId = await config.getUserId();
       const requests = await config.service.listVisibleAutographRequests(userId);
-      const searchParams = req.nextUrl.searchParams;
+      const searchParams = req?.nextUrl?.searchParams ?? new URLSearchParams();
       const status = searchParams.get("status");
       const query = searchParams.get("q")?.trim().toLowerCase() ?? "";
       const cursor = searchParams.get("cursor");

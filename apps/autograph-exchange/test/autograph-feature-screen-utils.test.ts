@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { DEFAULT_AUTOGRAPH_COPY } from "../../../packages/autograph-feature/copy";
-import { buildKeepsakeSvg, formatRelativeDate, rolePairLabel, titleCaseRole } from "../../../packages/autograph-feature/screen-utils";
+import { buildKeepsakeSvg, formatRelativeDate, rolePairLabel, signerSearchLabel, titleCaseRole } from "../../../packages/autograph-feature/screen-utils";
 
 const SAMPLE_KEEPSAKE_REQUEST = {
   id: "request-1",
@@ -51,7 +51,25 @@ describe("autograph feature screen utils", () => {
         requesterRole: "student",
         signerRole: "teacher",
       } as never),
-    ).toBe("student to teacher");
+    ).toBe("Student to Teacher");
+    expect(
+      rolePairLabel(
+        {
+          requesterRole: "student",
+          signerRole: "teacher",
+        } as never,
+        { student: "Learner", teacher: "Guide" },
+      ),
+    ).toBe("Learner to Guide");
+    expect(
+      signerSearchLabel(
+        {
+          displayName: "Ravi",
+          role: "teacher",
+        } as never,
+        { teacher: "Guide" },
+      ),
+    ).toBe("Ravi Guide");
   });
 
   it("builds keepsake svg with balanced defs and gradient tags", () => {

@@ -3,6 +3,7 @@ import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { buildSignaturePreset } from "./signature-generator";
 import type {
   ArchiveSort,
+  AutographRequest,
   AutographRole,
   ProfileFormState,
   RequestFormState,
@@ -35,6 +36,7 @@ export function useAutographExchangeViewModel({
   const [expandedRequestId, setExpandedRequestId] = useState<string | null>(null);
   const [archiveFilter, setArchiveFilter] = useState("");
   const [archiveSort, setArchiveSort] = useState<ArchiveSort>("newest");
+  const [lastCreatedRequest, setLastCreatedRequest] = useState<AutographRequest | null>(null);
   const [lastSignedRequestId, setLastSignedRequestId] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const deferredArchiveFilter = useDeferredValue(archiveFilter);
@@ -99,9 +101,9 @@ export function useAutographExchangeViewModel({
   async function handleRequestSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     try {
-      await requestAutograph(requestForm);
+      const created = await requestAutograph(requestForm);
+      setLastCreatedRequest(created);
       setStatusMessage("Autograph request sent.");
-      setRequestForm({ signerUserId: "", message: "" });
     } catch {
       return;
     }
@@ -140,6 +142,7 @@ export function useAutographExchangeViewModel({
     setArchiveFilter,
     archiveSort,
     setArchiveSort,
+    lastCreatedRequest,
     lastSignedRequestId,
     statusMessage,
     roleOptions,

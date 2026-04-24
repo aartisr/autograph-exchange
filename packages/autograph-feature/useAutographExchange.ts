@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { AUTOGRAPH_API } from "../autograph-contract";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { AUTOGRAPH_API } from "@aartisr/autograph-contract";
 import type {
   AutographApiConfig,
   AutographFeatureEventHandler,
@@ -109,6 +109,20 @@ function buildRequestsUrl(baseUrl: string, params: Record<string, string | null 
   return query ? `${baseUrl}?${query}` : baseUrl;
 }
 
+function mergeUniqueRequests(existing: AutographRequest[], incoming: AutographRequest[]): AutographRequest[] {
+  const byId = new Map<string, AutographRequest>();
+
+  for (const item of existing) {
+    byId.set(item.id, item);
+  }
+
+  for (const item of incoming) {
+    byId.set(item.id, item);
+  }
+
+  return [...byId.values()];
+}
+
 export function useAutographExchange(
   currentUserId?: string,
   config?: AutographApiConfig,
@@ -123,6 +137,7 @@ export function useAutographExchange(
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [busyAction, setBusyAction] = useState<string | null>(null);
+  const loadSequenceRef = useRef(0);
 
   const endpoints = config?.endpoints ?? AUTOGRAPH_API;
   const fetchJson = config?.fetcher ?? defaultFetchJson;
@@ -142,7 +157,11 @@ export function useAutographExchange(
     [currentUserId, onEvent],
   );
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (options?: { signal?: AbortSignal }) => {
+    const sequence = loadSequenceRef.current + 1;
+    loadSequenceRef.current = sequence;
+    const isStale = () => options?.signal?.aborted || loadSequenceRef.current !== sequence;
+
     if (!currentUserId) {
       setProfiles([]);
       setRequests([]);
@@ -159,20 +178,26 @@ export function useAutographExchange(
 
     try {
       const [profileData, pendingResponse, signedResponse] = await Promise.all([
-        fetchJson<AutographProfile[]>(endpoints.profiles),
+        fetchJson<AutographProfile[]>(endpoints.profiles, { signal: options?.signal }),
         fetchJson<AutographRequestListResponse>(
           buildRequestsUrl(endpoints.requests, {
             status: "pending",
             limit: "100",
           }),
+          { signal: options?.signal },
         ),
         fetchJson<AutographRequestListResponse>(
           buildRequestsUrl(endpoints.requests, {
             status: "signed",
             limit: "24",
           }),
+          { signal: options?.signal },
         ),
       ]);
+
+      if (isStale()) {
+        return;
+      }
 
       const pendingPage = normalizeRequestPage(pendingResponse);
       const signedPage = normalizeRequestPage(signedResponse);
@@ -189,16 +214,24 @@ export function useAutographExchange(
         },
       });
     } catch (err) {
+      if (isStale()) {
+        return;
+      }
+
       const message = err instanceof Error ? err.message : "Unable to load autograph exchange.";
       setError(message);
       emitEvent("load_failed", { message });
     } finally {
-      setLoading(false);
+      if (!isStale()) {
+        setLoading(false);
+      }
     }
   }, [currentUserId, emitEvent, endpoints, fetchJson]);
 
   useEffect(() => {
-    void load();
+    const controller = new AbortController();
+    void load({ signal: controller.signal });
+    return () => controller.abort();
   }, [load]);
 
   const myProfile = useMemo(
@@ -238,7 +271,7 @@ export function useAutographExchange(
         }),
       );
       const page = normalizeRequestPage(response);
-      setArchive((prev) => [...prev, ...page.items]);
+      setArchive((prev) => mergeUniqueRequests(prev, page.items));
       setArchiveNextCursor(page.nextCursor);
       setHasMoreArchive(page.hasMore);
     } catch (err) {
@@ -346,7 +379,7 @@ export function useAutographExchange(
         });
 
         setRequests((prev) => prev.filter((item) => item.id !== updated.id));
-        setArchive((prev) => [updated, ...prev]);
+        setArchive((prev) => [updated, ...prev.filter((item) => item.id !== updated.id)]);
         emitEvent("request_signed", {
           requestId: updated.id,
           metadata: {

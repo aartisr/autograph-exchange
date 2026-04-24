@@ -8,7 +8,7 @@ import {
   type CreateAutographRequestInput,
   type SignAutographRequestInput,
   type UpsertAutographProfileInput,
-} from "../autograph-contract";
+} from "@aartisr/autograph-contract";
 
 export type AutographEntity = { id: string; [key: string]: unknown };
 

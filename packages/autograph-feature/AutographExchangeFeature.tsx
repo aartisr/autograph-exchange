@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef } from "react";
 import { AutographExchangeScreen } from "./AutographExchangeScreen";
+import { mergeAutographCopy } from "./copy";
 import { SignaturePreview } from "./SignaturePreview";
 import { useAutographExchange } from "./useAutographExchange";
 import { useAutographExchangeViewModel } from "./useAutographExchangeViewModel";
@@ -18,10 +19,12 @@ function DefaultLoadingState({ message }: { message: string }) {
 }
 
 function DefaultSignedOutState({
+  copy,
   message,
   href,
   label,
 }: {
+  copy: ReturnType<typeof mergeAutographCopy>;
   message: string;
   href: string;
   label: string;
@@ -30,22 +33,22 @@ function DefaultSignedOutState({
     <section className="autograph-feature-state">
       <div className="autograph-feature-card autograph-feature-card-signed-out">
         <div className="autograph-feature-intro">
-          <p className="autograph-feature-eyebrow">Autograph Exchange</p>
-          <h2 className="autograph-feature-title">A warm, simple place to ask and give autographs</h2>
+          <p className="autograph-feature-eyebrow">{copy.signedOutKicker}</p>
+          <h2 className="autograph-feature-title">{copy.signedOutTitle}</h2>
           <p className="autograph-feature-copy">{message}</p>
         </div>
-        <div className="autograph-feature-benefits" aria-label="Why autograph exchange feels easy">
+        <div className="autograph-feature-benefits" aria-label={copy.signedOutBenefitsLabel}>
           <article className="autograph-feature-benefit">
-            <p className="autograph-feature-benefit-title">Ask with context</p>
-            <p className="autograph-feature-benefit-copy">Choose one person and explain why their autograph matters to you.</p>
+            <p className="autograph-feature-benefit-title">{copy.signedOutBenefitOneTitle}</p>
+            <p className="autograph-feature-benefit-copy">{copy.signedOutBenefitOneCopy}</p>
           </article>
           <article className="autograph-feature-benefit">
-            <p className="autograph-feature-benefit-title">Reply without confusion</p>
-            <p className="autograph-feature-benefit-copy">Incoming requests stay in one clear inbox until you respond.</p>
+            <p className="autograph-feature-benefit-title">{copy.signedOutBenefitTwoTitle}</p>
+            <p className="autograph-feature-benefit-copy">{copy.signedOutBenefitTwoCopy}</p>
           </article>
           <article className="autograph-feature-benefit">
-            <p className="autograph-feature-benefit-title">Keep every memory</p>
-            <p className="autograph-feature-benefit-copy">Signed autographs are saved in one archive you can revisit anytime.</p>
+            <p className="autograph-feature-benefit-title">{copy.signedOutBenefitThreeTitle}</p>
+            <p className="autograph-feature-benefit-copy">{copy.signedOutBenefitThreeCopy}</p>
           </article>
         </div>
         <a href={href} className="autograph-feature-cta">
@@ -56,20 +59,25 @@ function DefaultSignedOutState({
   );
 }
 
-function buildNextAction(hasProfile: boolean, inboxCount: number, signerCount: number) {
+function buildNextAction(
+  copy: ReturnType<typeof mergeAutographCopy>,
+  hasProfile: boolean,
+  inboxCount: number,
+  signerCount: number,
+) {
   if (!hasProfile) {
-    return "Start by saving your profile so people know who you are.";
+    return copy.nextActionProfile;
   }
 
   if (inboxCount > 0) {
-    return "You have autograph requests waiting. Open one and reply with your autograph.";
+    return copy.nextActionInbox;
   }
 
   if (signerCount > 0) {
-    return "Pick one person and ask for an autograph with a short personal note.";
+    return copy.nextActionComposer;
   }
 
-  return "You are ready. Once others create profiles, you can start exchanging autographs.";
+  return copy.nextActionWaitingForProfiles;
 }
 
 export function AutographExchangeFeature({
@@ -88,6 +96,7 @@ export function AutographExchangeFeature({
 }: AutographExchangeFeatureProps) {
   const userId = viewer?.id;
   const lastViewEventKey = useRef<string | null>(null);
+  const resolvedCopy = React.useMemo(() => mergeAutographCopy(copy), [copy]);
   const {
     myProfile,
     availableSigners,
@@ -168,10 +177,10 @@ export function AutographExchangeFeature({
   if (authStatus === "loading") {
     content = <DefaultLoadingState message={loadingMessage} />;
   } else if (!viewer || authStatus === "unauthenticated") {
-    content = <DefaultSignedOutState message={signedOutMessage} href={signInHref} label={signInLabel} />;
+    content = <DefaultSignedOutState copy={resolvedCopy} message={signedOutMessage} href={signInHref} label={signInLabel} />;
   } else {
     const hasProfile = Boolean(myProfile);
-    const nextAction = buildNextAction(hasProfile, inbox.length, availableSigners.length);
+    const nextAction = buildNextAction(resolvedCopy, hasProfile, inbox.length, availableSigners.length);
 
     content = (
       <AutographExchangeScreen
@@ -202,6 +211,7 @@ export function AutographExchangeFeature({
         setArchiveFilter={viewModel.setArchiveFilter}
         archiveSort={viewModel.archiveSort}
         setArchiveSort={viewModel.setArchiveSort}
+        lastCreatedRequest={viewModel.lastCreatedRequest}
         lastSignedRequestId={viewModel.lastSignedRequestId}
         signaturePreset={viewModel.signaturePreset}
         effectiveProfileName={viewModel.effectiveProfileName}
@@ -213,7 +223,7 @@ export function AutographExchangeFeature({
         renderSignaturePreview={
           renderSignaturePreview ?? ((preset, previewId) => <SignaturePreview preset={preset} previewId={previewId} />)
         }
-        copy={copy}
+        copy={resolvedCopy}
       />
     );
   }

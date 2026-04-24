@@ -107,7 +107,7 @@ npm install --no-audit --no-fund
 npm run build
 ```
 
-If your Vercel project uses `apps/autograph-exchange` as the root directory, that folder now includes its own `vercel.json` and `scripts/vercel-install.mjs` so the same sanitized install flow still works.
+If your Vercel project uses `apps/autograph-exchange` as the root directory, that folder includes its own `vercel.json` and `scripts/vercel-install.mjs`. The app-level install script still prefers the checked-out workspace packages when the full repository is available, then falls back to standalone npm installation for app-only deployments.
 
 ## Publishing
 

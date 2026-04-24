@@ -6,6 +6,7 @@ Reusable Autograph Exchange UI for any website.
 
 This package is designed to reduce decision fatigue for users. The shared experience includes:
 
+- an autograph-book hero and paper-page keepsake cards
 - guided next-step emphasis
 - explicit setup-complete versus setup-required states
 - mobile-friendly jump navigation between key sections
@@ -13,6 +14,8 @@ This package is designed to reduce decision fatigue for users. The shared experi
 - package-owned responsive and contrast-safe presentation
 
 These behaviors live in the reusable package so every host benefits from the same UX baseline.
+
+The research notes behind the book metaphor live in `docs/autograph-book-ux-research.md`.
 
 ## Auth ownership
 
@@ -82,6 +85,33 @@ Supported events:
 - `profile_saved`
 - `request_created`
 - `request_signed`
+
+## Host customization
+
+Use `copy` and `roleLabels` to adapt the feature to a host's vocabulary without forking the screen:
+
+```tsx
+<AutographExchangeFeature
+  authStatus="authenticated"
+  viewer={viewer}
+  roleLabels={{
+    student: "Learner",
+    teacher: "Guide",
+  }}
+  copy={{
+    heroKicker: "Community Memory Book",
+    heroTitle: "Collect thoughtful keepsakes from your circle",
+    requestPrompts: [
+      { label: "Say thanks", text: "Thank you for being part of this chapter. Would you sign my memory book?" },
+    ],
+    signatureIdeas: [
+      { label: "Warm note", text: "Grateful to share this memory with you." },
+    ],
+  }}
+/>
+```
+
+The feature also lazy-loads keepsake export code when a user downloads a card, so PNG/JPG/GIF/PDF generation does not sit on the initial screen path.
 
 ## Example hosts
 

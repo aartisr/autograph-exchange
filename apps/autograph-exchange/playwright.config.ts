@@ -1,7 +1,8 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const PORT = 3101;
+const PORT = Number(process.env.PLAYWRIGHT_PORT ?? 3102);
 const baseURL = `http://localhost:${PORT}`;
+const e2eDataFile = process.env.AUTOGRAPH_E2E_DATA_FILE ?? "./test-results/autograph-e2e-data.json";
 
 export default defineConfig({
   testDir: "./e2e",
@@ -40,7 +41,11 @@ export default defineConfig({
   webServer: {
     command: `npm run dev -- --port ${PORT}`,
     url: baseURL,
-    reuseExistingServer: true,
+    env: {
+      ...process.env,
+      AUTOGRAPH_DATA_FILE: e2eDataFile,
+    },
+    reuseExistingServer: false,
     timeout: 120000,
   },
 });

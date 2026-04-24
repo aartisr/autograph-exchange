@@ -17,7 +17,6 @@ const sampleProfile: AutographProfile = {
   userId: "user-1",
   displayName: "Asha Raman",
   role: "student",
-  createdAt: "2026-04-18T10:00:00.000Z",
   updatedAt: "2026-04-18T10:00:00.000Z",
 };
 
@@ -26,7 +25,6 @@ const signerProfile: AutographProfile = {
   userId: "user-2",
   displayName: "Ravi Kumar",
   role: "teacher",
-  createdAt: "2026-04-18T10:00:00.000Z",
   updatedAt: "2026-04-18T10:00:00.000Z",
 };
 
@@ -40,10 +38,13 @@ const sampleRequest: AutographRequest = {
   signerRole: "teacher",
   message: "Thank you for your guidance.",
   status: "pending",
-  signatureText: null,
   createdAt: "2026-04-18T10:00:00.000Z",
-  signedAt: null,
 };
+
+const roleOptions: Array<{ value: AutographProfile["role"]; label: string }> = [
+  { value: "student", label: "Learner" },
+  { value: "teacher", label: "Guide" },
+];
 
 describe("autograph feature sections", () => {
   it("renders the hero section with package-owned structure", () => {
@@ -58,6 +59,8 @@ describe("autograph feature sections", () => {
     );
 
     expect(html).toContain("autograph-hero");
+    expect(html).toContain("autograph-book-preview");
+    expect(html).toContain(DEFAULT_AUTOGRAPH_COPY.bookPreviewLabel);
     expect(html).toContain("autograph-hero-stats");
     expect(html).toContain(DEFAULT_AUTOGRAPH_COPY.requestsSent);
     expect(html).toContain(">2<");
@@ -80,10 +83,7 @@ describe("autograph feature sections", () => {
         sessionIdentity="asha@example.com"
         profileForm={{ displayName: "", role: "student" }}
         setProfileForm={setProfileForm}
-        roleOptions={[
-          { value: "student", label: "Student" },
-          { value: "teacher", label: "Teacher" },
-        ]}
+        roleOptions={roleOptions}
         busyAction={null}
         onProfileSubmit={async () => true}
       />,
@@ -96,10 +96,14 @@ describe("autograph feature sections", () => {
         loading={false}
         myProfile={sampleProfile}
         availableSigners={[signerProfile]}
+        roleOptions={roleOptions}
+        outbox={[]}
+        lastCreatedRequest={null}
         requestForm={{ signerUserId: "user-2", message: "" }}
         setRequestForm={setRequestForm}
         busyAction={null}
         onRequestSubmit={async () => {}}
+        isFocused={false}
       />,
     );
 
@@ -109,8 +113,60 @@ describe("autograph feature sections", () => {
     expect(profileHtml).toContain("asha@example.com");
     expect(requestHtml).toContain("autograph-section-card");
     expect(requestHtml).toContain("Choose one person");
+    expect(requestHtml).toContain("Ravi Kumar Guide");
     expect(requestHtml).toContain("autograph-form-actions");
     expect(requestHtml).toContain("autograph-suggestion-chip");
+  });
+
+  it("renders inline request confirmation on the composer tile and disables duplicate submit", () => {
+    const html = renderToStaticMarkup(
+      <RequestComposerSection
+        copy={DEFAULT_AUTOGRAPH_COPY}
+        hasProfile
+        loading={false}
+        myProfile={sampleProfile}
+        availableSigners={[signerProfile]}
+        roleOptions={roleOptions}
+        outbox={[sampleRequest]}
+        lastCreatedRequest={sampleRequest}
+        requestForm={{ signerUserId: "user-2", message: sampleRequest.message }}
+        setRequestForm={vi.fn()}
+        busyAction={null}
+        onRequestSubmit={async () => {}}
+        isFocused={false}
+      />,
+    );
+
+    expect(html).toContain("autograph-request-submit-state");
+    expect(html).toContain(DEFAULT_AUTOGRAPH_COPY.requestSentTitle);
+    expect(html).toContain(DEFAULT_AUTOGRAPH_COPY.requestSentOutboxCta);
+    expect(html).toContain(DEFAULT_AUTOGRAPH_COPY.requestAskAnotherCta);
+    expect(html).toContain(DEFAULT_AUTOGRAPH_COPY.dismissRequestFeedback);
+    expect(html).toContain("disabled");
+  });
+
+  it("renders a spinner on the request button while the request is sending", () => {
+    const html = renderToStaticMarkup(
+      <RequestComposerSection
+        copy={DEFAULT_AUTOGRAPH_COPY}
+        hasProfile
+        loading={false}
+        myProfile={sampleProfile}
+        availableSigners={[signerProfile]}
+        roleOptions={roleOptions}
+        outbox={[]}
+        lastCreatedRequest={null}
+        requestForm={{ signerUserId: "user-2", message: sampleRequest.message }}
+        setRequestForm={vi.fn()}
+        busyAction="request"
+        onRequestSubmit={async () => {}}
+        isFocused={false}
+      />,
+    );
+
+    expect(html).toContain("autograph-button-spinner");
+    expect(html).toContain(DEFAULT_AUTOGRAPH_COPY.sendingRequest);
+    expect(html).toContain("disabled");
   });
 
   it("renders inbox, archive, and outbox sections with package-owned card classes", () => {
@@ -126,6 +182,7 @@ describe("autograph feature sections", () => {
       <InboxLane
         copy={DEFAULT_AUTOGRAPH_COPY}
         inbox={[sampleRequest]}
+        roleOptions={roleOptions}
         lastSignedRequestId={null}
         expandedRequestId="request-1"
         setExpandedRequestId={vi.fn()}
@@ -148,6 +205,7 @@ describe("autograph feature sections", () => {
       <ArchiveLane
         copy={DEFAULT_AUTOGRAPH_COPY}
         filteredArchive={[signedRequest]}
+        roleOptions={roleOptions}
         hasMoreArchive={false}
         archiveLoadingMore={false}
         onLoadMoreArchive={async () => {}}
@@ -160,10 +218,11 @@ describe("autograph feature sections", () => {
     );
 
     const outboxHtml = renderToStaticMarkup(
-      <OutboxSection copy={DEFAULT_AUTOGRAPH_COPY} outbox={[sampleRequest]} />,
+      <OutboxSection copy={DEFAULT_AUTOGRAPH_COPY} outbox={[sampleRequest]} roleOptions={roleOptions} isFocused={false} />,
     );
 
     expect(inboxHtml).toContain("autograph-lane autograph-lane-pending");
+    expect(inboxHtml).toContain("Learner to Guide");
     expect(inboxHtml).toContain("autograph-sign-panel");
     expect(inboxHtml).toContain("autograph-card-title");
     expect(archiveHtml).toContain("autograph-lane autograph-lane-archive");

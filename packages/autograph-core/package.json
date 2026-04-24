@@ -19,5 +19,8 @@
     "url": "git+https://github.com/aartisr/autograph-exchange.git",
     "directory": "packages/autograph-core"
   },
-  "description": "Reusable backend/core logic for the autograph exchange feature."
+  "description": "Reusable backend/core logic for the autograph exchange feature.",
+  "dependencies": {
+    "@aartisr/autograph-contract": "^0.1.0"
+  }
 }

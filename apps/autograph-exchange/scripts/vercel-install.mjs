@@ -1,5 +1,6 @@
 import { spawn } from "node:child_process";
-import { mkdir, writeFile } from "node:fs/promises";
+import { access, mkdir, writeFile } from "node:fs/promises";
+import { constants } from "node:fs";
 import path from "node:path";
 
 const NPM_COMMAND = process.platform === "win32" ? "npm.cmd" : "npm";
@@ -57,11 +58,12 @@ function createSanitizedEnv({
   return env;
 }
 
-function run(command, args, env) {
+function run(command, args, env, options = {}) {
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, {
       stdio: "inherit",
       env,
+      cwd: options.cwd,
     });
 
     child.on("error", reject);
@@ -76,18 +78,67 @@ function run(command, args, env) {
   });
 }
 
+async function pathExists(filePath) {
+  try {
+    await access(filePath, constants.F_OK);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function resolveWorkspaceRoot() {
+  const candidate = path.resolve(process.cwd(), "../..");
+  const requiredFiles = [
+    "package.json",
+    "apps/autograph-exchange/package.json",
+    "packages/autograph-contract/package.json",
+    "packages/autograph-core/package.json",
+    "packages/autograph-feature/package.json",
+  ];
+
+  for (const relativePath of requiredFiles) {
+    if (!(await pathExists(path.join(candidate, relativePath)))) {
+      return null;
+    }
+  }
+
+  return candidate;
+}
+
 const tempConfig = await prepareTempNpmConfig();
 const env = createSanitizedEnv(tempConfig);
+const workspaceRoot = await resolveWorkspaceRoot();
 
-await run(
-  NPM_COMMAND,
-  [
-    "install",
-    "--include=dev",
-    "--no-audit",
-    "--no-fund",
-    "--registry",
-    PUBLIC_NPM_REGISTRY,
-  ],
-  env,
-);
+if (workspaceRoot) {
+  console.log(`[vercel-install] Installing Autograph workspace from ${workspaceRoot}`);
+  await run(
+    NPM_COMMAND,
+    [
+      "install",
+      "--workspaces",
+      "--include-workspace-root",
+      "--include=dev",
+      "--no-audit",
+      "--no-fund",
+      "--registry",
+      PUBLIC_NPM_REGISTRY,
+    ],
+    env,
+    { cwd: workspaceRoot },
+  );
+} else {
+  console.log("[vercel-install] Workspace root not found; installing standalone app dependencies.");
+  await run(
+    NPM_COMMAND,
+    [
+      "install",
+      "--include=dev",
+      "--no-audit",
+      "--no-fund",
+      "--registry",
+      PUBLIC_NPM_REGISTRY,
+    ],
+    env,
+  );
+}

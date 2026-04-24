@@ -1,18 +1,19 @@
 import type React from "react";
-import { AUTOGRAPH_API } from "../autograph-contract";
+import { AUTOGRAPH_API } from "@aartisr/autograph-contract";
 import type {
   AutographProfile,
   AutographRequest,
   AutographRole,
   AutographVisibility,
-} from "../autograph-contract";
+} from "@aartisr/autograph-contract";
 
-export type { AutographProfile, AutographRequest, AutographRole, AutographVisibility } from "../autograph-contract";
+export type { AutographProfile, AutographRequest, AutographRole, AutographVisibility } from "@aartisr/autograph-contract";
 
 export type ArchiveSort = "newest" | "oldest";
 export type ProfileFormState = { displayName: string; role: AutographRole };
 export type RequestFormState = { signerUserId: string; message: string };
 export type RoleOption = { value: AutographRole; label: string };
+export type AutographSuggestion = { label: string; text: string };
 
 export type SignaturePreset = {
   label: string;
@@ -30,15 +31,45 @@ export type SignaturePreset = {
 };
 
 export type AutographExchangeCopy = {
+  signedOutKicker: string;
+  signedOutTitle: string;
+  signedOutBenefitOneTitle: string;
+  signedOutBenefitOneCopy: string;
+  signedOutBenefitTwoTitle: string;
+  signedOutBenefitTwoCopy: string;
+  signedOutBenefitThreeTitle: string;
+  signedOutBenefitThreeCopy: string;
+  signedOutBenefitsLabel: string;
   heroKicker: string;
   heroTitle: string;
   heroGuidanceLabel: string;
+  bookPreviewLabel: string;
+  bookCoverLabel: string;
+  bookLeftPageLabel: string;
+  bookLeftPageTitle: string;
+  bookLeftPageDetail: string;
+  bookRightPageLabel: string;
+  bookRightPageTitle: string;
+  bookRightPageDetail: string;
+  bookSentLabel: string;
+  bookWaitingLabel: string;
+  bookSignedLabel: string;
+  bookTrustLine: string;
+  bookExportLine: string;
+  nextActionProfile: string;
+  nextActionInbox: string;
+  nextActionComposer: string;
+  nextActionWaitingForProfiles: string;
+  quickStepsAriaLabel: string;
   journeyTitle: string;
   journeySubtitle: string;
   journeyProfileLabel: string;
   journeyRequestLabel: string;
   journeyCollectLabel: string;
   nextMilestoneLabel: string;
+  completeLabel: string;
+  doneLabel: string;
+  nextLabel: string;
   celebrationTitle: string;
   celebrationDetail: string;
   stepOne: string;
@@ -53,6 +84,13 @@ export type AutographExchangeCopy = {
   requestsSent: string;
   requestsForYou: string;
   signedAutographs: string;
+  pendingStatusLabel: string;
+  signedStatusLabel: string;
+  collectionEmptySummary: string;
+  collectionFirstSummary: string;
+  collectionStarterSummary: string;
+  collectionGrowingSummary: string;
+  collectionArchiveSummary: string;
   collectionTitle: string;
   collectionSubtitle: string;
   collectionPieceLabel: string;
@@ -85,12 +123,15 @@ export type AutographExchangeCopy = {
   stepReady: string;
   stepCanAsk: string;
   stepCompleteFirst: string;
+  profileTitle: string;
+  profileCompleteDescription: string;
   profileCompleteTitle: string;
   profileCompleteHint: string;
   profileSkipHint: string;
   jumpToStepTwo: string;
   profileMissingTitle: string;
   profileMissingHint: string;
+  profileMissingDescription: string;
   savedRoleLabel: string;
   savedProfile: string;
   savedProfileHint: string;
@@ -98,8 +139,21 @@ export type AutographExchangeCopy = {
   signedInIdentityHint: string;
   editProfile: string;
   saveChanges: string;
+  saveProfile: string;
+  savingProfile: string;
   cancel: string;
   profileAudiencePrefix: string;
+  profileAudienceConnector: string;
+  profileAudienceFallback: string;
+  displayNameLabel: string;
+  displayNameHint: string;
+  roleLabel: string;
+  roleHint: string;
+  profileFocusStartLabel: string;
+  profileFocusOptionalLabel: string;
+  composerFocusStartLabel: string;
+  composerFocusLockedLabel: string;
+  requestComposerTitle: string;
   requestExplainer: string;
   whoShouldSign: string;
   signerSearchPlaceholder: string;
@@ -107,13 +161,18 @@ export type AutographExchangeCopy = {
   signerSearchEmpty: string;
   signerSelectedLabel: string;
   whyAreYouAsking: string;
+  requestMessagePlaceholder: string;
+  requestMessageHint: string;
+  requestMetaHint: string;
   askForAutograph: string;
   sendingRequest: string;
   requestAlreadyPending: string;
   requestSentTitle: string;
   requestSentDetail: string;
   requestSentOutboxCta: string;
+  requestAskAnotherCta: string;
   requestPendingForSignerHint: string;
+  dismissRequestFeedback: string;
   nextStepCtaProfile: string;
   nextStepCtaComposer: string;
   nextStepCtaInbox: string;
@@ -122,27 +181,39 @@ export type AutographExchangeCopy = {
   saveProfileFirstHint: string;
   youAreAsking: string;
   signerInboxHintPrefix: string;
+  signerInboxHintSuffix: string;
+  signerInboxFallbackName: string;
   signerListHint: string;
   requestIdeasLabel: string;
+  requestPrompts: readonly AutographSuggestion[];
   autographIdeasLabel: string;
+  signatureIdeas: readonly AutographSuggestion[];
   inboxSubtitle: string;
+  inboxFocusLabel: string;
   waitingCountSuffix: string;
   fromPrefix: string;
   theyAsked: string;
   hideReplyBox: string;
   writeAutograph: string;
+  openSigningFormLabel: string;
+  signaturePlaceholder: string;
+  signatureHint: string;
   useGeneratedSignature: string;
   confirmSignature: string;
   signing: string;
   outboxSubtitle: string;
+  outboxFocusLabel: string;
   pendingCountSuffix: string;
   archiveSubtitle: string;
+  archiveFocusLabel: string;
   totalCountSuffix: string;
   searchPlaceholder: string;
   searchLabel: string;
   sortLabel: string;
   newestFirst: string;
   oldestFirst: string;
+  loadMoreKeepsakes: string;
+  loadingMoreKeepsakes: string;
   requestedPrefix: string;
   signedPrefix: string;
   justNow: string;
@@ -182,6 +253,7 @@ export interface AutographExchangeScreenProps {
   setArchiveFilter: React.Dispatch<React.SetStateAction<string>>;
   archiveSort: ArchiveSort;
   setArchiveSort: React.Dispatch<React.SetStateAction<ArchiveSort>>;
+  lastCreatedRequest: AutographRequest | null;
   lastSignedRequestId: string | null;
   signaturePreset: SignaturePreset;
   effectiveProfileName: string;

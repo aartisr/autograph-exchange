@@ -74,18 +74,33 @@ export function titleCaseRole(role: AutographRole): string {
   return role.charAt(0).toUpperCase() + role.slice(1);
 }
 
-export function rolePairLabel(request: AutographRequest): string {
-  return `${request.requesterRole} to ${request.signerRole}`;
+function interpolateCount(template: string, count: number): string {
+  return template.replace(/\{count\}/g, String(count));
 }
 
-export function signerSearchLabel(profile: AutographProfile): string {
-  return `${profile.displayName} ${titleCaseRole(profile.role)}`;
+export function rolePairLabel(
+  request: Pick<AutographRequest, "requesterRole" | "signerRole">,
+  roleLabels?: Partial<Record<AutographRole, string>>,
+): string {
+  const requesterRole = roleLabels?.[request.requesterRole] ?? titleCaseRole(request.requesterRole);
+  const signerRole = roleLabels?.[request.signerRole] ?? titleCaseRole(request.signerRole);
+  return `${requesterRole} to ${signerRole}`;
 }
 
-export function buildSignerSearchEntries(profiles: AutographProfile[]): SignerSearchEntry[] {
+export function signerSearchLabel(
+  profile: AutographProfile,
+  roleLabels?: Partial<Record<AutographRole, string>>,
+): string {
+  return `${profile.displayName} ${roleLabels?.[profile.role] ?? titleCaseRole(profile.role)}`;
+}
+
+export function buildSignerSearchEntries(
+  profiles: AutographProfile[],
+  roleLabels?: Partial<Record<AutographRole, string>>,
+): SignerSearchEntry[] {
   return profiles.map((profile) => {
     const displayNameLower = profile.displayName.toLowerCase();
-    const roleLower = titleCaseRole(profile.role).toLowerCase();
+    const roleLower = (roleLabels?.[profile.role] ?? titleCaseRole(profile.role)).toLowerCase();
 
     return {
       profile,
@@ -96,7 +111,11 @@ export function buildSignerSearchEntries(profiles: AutographProfile[]): SignerSe
   });
 }
 
-export function signerMatchesQuery(profile: AutographProfile, query: string): boolean {
+export function signerMatchesQuery(
+  profile: AutographProfile,
+  query: string,
+  roleLabels?: Partial<Record<AutographRole, string>>,
+): boolean {
   const normalizedQuery = query.trim().toLowerCase();
 
   if (!normalizedQuery) {
@@ -107,7 +126,7 @@ export function signerMatchesQuery(profile: AutographProfile, query: string): bo
     profile.displayName,
     profile.role,
     titleCaseRole(profile.role),
-    signerSearchLabel(profile),
+    signerSearchLabel(profile, roleLabels),
   ]
     .join(" ")
     .toLowerCase();
@@ -223,22 +242,22 @@ export function rankSignerSearchEntries(entries: SignerSearchEntry[], query: str
 
 export function buildCollectionSummary(copy: AutographExchangeCopy, archiveCount: number): string {
   if (archiveCount <= 0) {
-    return "Your first signed autograph will start a collection you can keep coming back to.";
+    return copy.collectionEmptySummary;
   }
 
   if (archiveCount === 1) {
-    return "Your first keepsake is in. This is where your most meaningful signed notes begin to live.";
+    return copy.collectionFirstSummary;
   }
 
   if (archiveCount < 5) {
-    return `You have ${archiveCount} signed keepsakes. Your collection is starting to feel personal and memorable.`;
+    return interpolateCount(copy.collectionStarterSummary, archiveCount);
   }
 
   if (archiveCount < 10) {
-    return `You have ${archiveCount} signed keepsakes. This is becoming a real archive of meaningful messages.`;
+    return interpolateCount(copy.collectionGrowingSummary, archiveCount);
   }
 
-  return `You have ${archiveCount} signed keepsakes. Your archive now feels like a living collection worth revisiting again and again.`;
+  return interpolateCount(copy.collectionArchiveSummary, archiveCount);
 }
 
 export function buildKeepsakeBadge({

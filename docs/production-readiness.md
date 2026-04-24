@@ -51,3 +51,17 @@ Example:
 - explicit labels and descriptions on interactive controls
 - reduced-motion support
 - verified contrast on buttons, badges, and select options
+
+## Product UX
+
+- source-informed autograph-book metaphor documented in `docs/autograph-book-ux-research.md`
+- open-book hero preview that turns request, inbox, and archive state into a single keepsake mental model
+- paper-page cards for pending, sent, and signed items so the package feels generic and memorable across hosts
+- host-overridable copy and role labels so product-specific vocabulary stays outside the reusable package
+
+## Performance
+
+- archive data loads in pages
+- signer and archive filtering use memoized derived state
+- in-flight initial loads are abortable and protected against stale state writes
+- keepsake download encoders are lazy-loaded only when a user exports SVG, PNG, JPG, GIF, or PDF
