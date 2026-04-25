@@ -30,6 +30,7 @@ const signerProfile: AutographProfile = {
   userId: "user-2",
   displayName: "Ravi Kumar",
   role: "teacher",
+  avatarUrl: "https://example.org/ravi-profile.jpg",
   headline: "Teacher and community mentor",
   bio: "Guides students with practical, compassionate encouragement.",
   affiliation: "Forever Lotus",
@@ -94,6 +95,7 @@ describe("autograph feature sections", () => {
     expect(directoryHtml).toContain("Back to autograph screen");
     expect(directoryHtml).toContain('href="/#autograph-request-composer"');
     expect(directoryHtml).toContain("Teacher and community mentor");
+    expect(directoryHtml).toContain("Double-click to enlarge profile photo");
     expect(directoryHtml).toContain("Meditation");
     expect(showcaseHtml).toContain("autograph-profile-showcase");
     expect(showcaseHtml).toContain("autograph-profile-hero-grid");
@@ -183,7 +185,8 @@ describe("autograph feature sections", () => {
     expect(profileHtml).toContain("autograph-profile-grid");
     expect(profileHtml).toContain("autograph-field-hint");
     expect(profileHtml).toContain('type="file"');
-    expect(profileHtml).toContain("Paste an image URL or choose a local image under 1 MB.");
+    expect(profileHtml).toContain("Paste an image URL or choose a local image under 5 MB.");
+    expect(profileHtml).toContain("Uploaded photos are cropped, resized, and compressed in your browser before storage");
     expect(profileHtml).toContain("asha@example.com");
     expect(requestHtml).toContain("autograph-section-card");
     expect(requestHtml).toContain("Choose one person");

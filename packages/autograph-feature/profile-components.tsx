@@ -4,6 +4,7 @@ import React from "react";
 import type { AutographProfile, AutographRole, PublicAutographProfile } from "./types";
 import { INPUT_CLASS, titleCaseRole } from "./screen-utils";
 import { ProfilePhotoInput } from "./profile-photo-input";
+import { EnlargableProfilePhoto } from "./profile-photo-lightbox";
 
 type ViewerProfile = {
   id: string;
@@ -159,10 +160,11 @@ function ProfileAvatar({ profile, size = "large" }: { profile: PublicAutographPr
 
   if (profile.avatarUrl) {
     return (
-      <img
-        className={className}
+      <EnlargableProfilePhoto
         src={profile.avatarUrl}
         alt={`${profile.displayName} profile`}
+        imageClassName={className}
+        dialogTitle={`${profile.displayName} profile photo`}
         referrerPolicy="no-referrer"
       />
     );

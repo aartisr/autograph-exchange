@@ -91,6 +91,18 @@ function expectComboboxTokensMeetContrast(source: string) {
   expect(contrastRatio(optionMeta, selectedSurface)).toBeGreaterThanOrEqual(4.5);
 }
 
+function expectLightboxTokensMeetContrast(source: string) {
+  const panelSurface = extractToken(source, "--autograph-lightbox-panel-surface");
+  const panelText = extractToken(source, "--autograph-lightbox-panel-text");
+  const closeSurface = extractToken(source, "--autograph-lightbox-close-surface");
+  const closeHoverSurface = extractToken(source, "--autograph-lightbox-close-hover-surface");
+  const closeText = extractToken(source, "--autograph-lightbox-close-text");
+
+  expect(contrastRatio(panelText, panelSurface)).toBeGreaterThanOrEqual(4.5);
+  expect(contrastRatio(closeText, closeSurface)).toBeGreaterThanOrEqual(4.5);
+  expect(contrastRatio(closeText, closeHoverSurface)).toBeGreaterThanOrEqual(4.5);
+}
+
 describe("autograph feature contrast tokens", () => {
   it("defines safe light-mode input tokens for typed and placeholder text", () => {
     const inputSurface = extractToken(stylesheet, "--autograph-input-surface");
@@ -184,6 +196,15 @@ describe("autograph feature contrast tokens", () => {
     expect(minContrastAgainstStops(lightPrimaryText, lightPrimaryBg)).toBeGreaterThanOrEqual(4.5);
     expect(minContrastAgainstStops(darkPrimaryText, darkPrimaryBg)).toBeGreaterThanOrEqual(4.5);
     expect(stylesheet).toContain(".autograph-feature-cta");
+  });
+
+  it("keeps enlarged profile photo dialog controls readable in light and dark mode", () => {
+    const darkBlock = extractDarkModeBlock(stylesheet);
+
+    expectLightboxTokensMeetContrast(stylesheet);
+    expectLightboxTokensMeetContrast(darkBlock);
+    expect(stylesheet).toContain(".autograph-photo-lightbox");
+    expect(stylesheet).toContain(".autograph-photo-lightbox-close:focus-visible");
   });
 
   it("keeps dark-mode momentum and setup tiles on dark surfaces", () => {
