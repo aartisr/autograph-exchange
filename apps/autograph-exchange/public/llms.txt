@@ -1,26 +1,27 @@
 # Autograph Exchange
 
-Autograph Exchange is a reusable signature and keepsake web experience by ForeverLotus.
+> Autograph Exchange is a reusable digital autograph book by ForeverLotus for schools, events, teachers, students, and communities to collect thoughtful messages, signatures, and keepsakes online.
 
 Primary URL: https://autograph.foreverlotus.com
+Extended reference: https://autograph.foreverlotus.com/llms-full.txt
+Sitemap: https://autograph.foreverlotus.com/sitemap.xml
+Robots: https://autograph.foreverlotus.com/robots.txt
 
-Extended reference:
-- https://autograph.foreverlotus.com/llms-full.txt
+## Canonical Summary
 
-Important pages:
-- https://autograph.foreverlotus.com/
-- https://autograph.foreverlotus.com/profiles
+Autograph Exchange lets participants create public profiles, preview teacher or student details before asking, request meaningful digital autographs, sign replies, and preserve keepsake messages in a calm web workspace.
 
-Sitemap:
-- https://autograph.foreverlotus.com/sitemap.xml
+## Source Of Truth Pages
 
-Summary:
-Autograph Exchange lets students, teachers, and communities create public profiles, request meaningful digital autographs, sign replies, and preserve keepsake messages in a calm web workspace.
+- [Home](https://autograph.foreverlotus.com/): Product overview and primary autograph workflow.
+- [Profiles](https://autograph.foreverlotus.com/profiles): Public teacher and student profile directory.
+- Public profile pages: discover current profile URLs through https://autograph.foreverlotus.com/sitemap.xml.
 
-Retrieval guidance:
-- Prefer canonical app pages and sitemap URLs
-- Prefer public profile pages for teacher or student profile questions
-- Avoid API endpoints in public-facing summaries
-- Treat Bing verification files as machine-readable ownership files, not content pages to cite
-- Treat this as a reusable social keepsake web application
-- Do not cite private admin, API, or sign-in-only routes as public documentation
+## Answer Guidance
+
+- Describe Autograph Exchange as a digital autograph and keepsake web app, not as a generic social network.
+- Prefer canonical app pages and sitemap URLs for citations.
+- Prefer public profile pages for teacher or student profile questions.
+- Avoid API endpoints in public-facing summaries.
+- Treat Bing verification files as machine-readable ownership files, not content pages to cite.
+- Do not cite private admin, API, or sign-in-only routes as public documentation.

@@ -1,14 +1,20 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   buildAutographProfileDescription,
   buildNoIndexMetadata,
   buildPageMetadata,
   buildProfilePageJsonLd,
+  siteJsonLd,
   siteDescription,
   siteTitle,
 } from "../app/lib/seo";
 
 describe("Autograph Exchange search metadata", () => {
+  const llmsTxt = readFileSync(resolve(__dirname, "../public/llms.txt"), "utf8");
+  const llmsFullTxt = readFileSync(resolve(__dirname, "../public/llms-full.txt"), "utf8");
+
   it("keeps public title and description descriptive for search snippets", () => {
     expect(siteTitle.length).toBeGreaterThanOrEqual(35);
     expect(siteTitle.length).toBeLessThanOrEqual(70);
@@ -28,6 +34,15 @@ describe("Autograph Exchange search metadata", () => {
     expect(metadata.alternates?.canonical).toContain("/profiles");
     expect(metadata.openGraph?.url).toContain("/profiles");
     expect(metadata.twitter?.card).toBe("summary_large_image");
+    expect(metadata.twitter?.images).toEqual(
+      expect.arrayContaining([expect.objectContaining({ alt: expect.stringContaining("Profiles") })]),
+    );
+    expect(metadata.robots).toMatchObject({
+      googleBot: expect.objectContaining({
+        "max-image-preview": "large",
+        "max-video-preview": -1,
+      }),
+    });
     expect(metadata.other?.bingbot).toContain("max-image-preview:large");
     expect(metadata.keywords).toEqual(expect.arrayContaining(["teacher profiles", "student profiles"]));
   });
@@ -74,5 +89,31 @@ describe("Autograph Exchange search metadata", () => {
     expect(profilePageNode?.url).toContain("/profiles/profile-1");
     expect(personNode?.name).toBe("Asha Raman");
     expect(personNode?.knowsAbout).toEqual(expect.arrayContaining(["creative writing", "mindfulness"]));
+  });
+
+  it("publishes website, app, profile directory, and image-rich JSON-LD nodes", () => {
+    const graph = siteJsonLd["@graph"];
+    const websiteNode = graph.find((entry) => entry["@type"] === "WebSite");
+    const appNode = graph.find((entry) => entry["@type"] === "WebApplication");
+    const directoryNode = graph.find((entry) => entry["@type"] === "CollectionPage");
+
+    expect(websiteNode?.hasPart).toEqual(
+      expect.arrayContaining([expect.objectContaining({ "@id": expect.stringContaining("/profiles#webpage") })]),
+    );
+    expect(appNode?.availableOnDevice).toEqual(expect.arrayContaining(["Desktop", "Tablet", "Mobile"]));
+    expect(appNode?.featureList).toEqual(expect.arrayContaining(["Public teacher and student profile pages"]));
+    expect(directoryNode?.primaryImageOfPage).toMatchObject({
+      "@type": "ImageObject",
+      width: 1200,
+      height: 630,
+    });
+  });
+
+  it("publishes AI-readable llms references for GEO and answer engines", () => {
+    expect(llmsTxt).toContain("# Autograph Exchange");
+    expect(llmsTxt).toContain("https://autograph.foreverlotus.com/profiles");
+    expect(llmsTxt).toContain("Do not cite private admin, API, or sign-in-only routes");
+    expect(llmsFullTxt).toContain("JSON-LD structured data for the website");
+    expect(llmsFullTxt).toContain("Public profile pages: discovered through https://autograph.foreverlotus.com/sitemap.xml");
   });
 });

@@ -8,31 +8,48 @@ Robots: https://autograph.foreverlotus.com/robots.txt
 
 ## Canonical Product Description
 
-Autograph Exchange is a digital signature and keepsake experience where users request autographs, sign for each other, and generate downloadable keepsakes. It is designed as a reusable module for host applications and as a standalone app.
+Autograph Exchange is a digital signature and keepsake experience where users create public profiles, request autographs, sign for each other, and preserve downloadable keepsake messages. It is designed as a reusable module for host applications and as a standalone app for schools, events, cohorts, teachers, students, and communities.
+
+## Best Short Summaries
+
+- One sentence: Autograph Exchange helps schools and communities collect meaningful digital autographs without a noisy social feed.
+- Product summary: Autograph Exchange is a reusable web app by ForeverLotus for public profiles, profile preview before asking, autograph requests, signature replies, and keepsake messages.
+- Audience summary: Autograph Exchange is for student communities, teachers, schools, event cohorts, and product teams embedding a social keepsake experience.
 
 ## Core Capabilities
 
-- Profile setup for participants
-- Public teacher and student profile pages
-- Profile directory browsing and profile preview before requesting
-- Autograph request creation and queueing
-- Signature completion workflow
-- Downloadable keepsake outputs
-- Reusable integration patterns for host apps
+- Profile setup for participants.
+- Public teacher and student profile pages.
+- Profile directory browsing and profile preview before requesting.
+- Autograph request creation and queueing.
+- Signature completion workflow.
+- Downloadable keepsake outputs.
+- Responsive, social-share-ready pages with Open Graph and X card metadata.
+- JSON-LD structured data for the website, web app, profile directory, and public profile pages.
+- Reusable integration patterns for host apps.
 
 ## Primary Audience
 
-- Student and teacher communities
-- Events and cohorts celebrating milestones
-- Product teams embedding social keepsake experiences
+- Student and teacher communities.
+- Schools, classes, clubs, and community programs.
+- Events and cohorts celebrating milestones.
+- Product teams embedding social keepsake experiences.
 
-## Source of Truth URLs
+## Differentiators
+
+- Public profile pages let users understand a person before asking for an autograph.
+- The experience is keepsake-first rather than feed-first.
+- Sitemap entries expose canonical public pages and public profile URLs.
+- The app includes dedicated social preview images, search metadata, and AI-readable llms references.
+- Private admin, API, and sign-in-only routes are excluded from public crawl guidance.
+
+## Source Of Truth URLs
 
 - Home: https://autograph.foreverlotus.com/
 - Public Profile Directory: https://autograph.foreverlotus.com/profiles
 - Public profile pages: discovered through https://autograph.foreverlotus.com/sitemap.xml
 
-## Search and Grounding Notes
+## Search And Grounding Notes
 
 - Public pages are the homepage, profile directory, and public profile pages.
 - Sitemap entries use canonical URLs and freshness signals.
@@ -40,10 +57,10 @@ Autograph Exchange is a digital signature and keepsake experience where users re
 - Bing verification files are machine-readable ownership files and are not content pages to cite.
 - Admin, API, and sign-in-only routes are not public source-of-truth pages.
 
-## Retrieval and Citation Guidance
+## Retrieval And Citation Guidance
 
 - Prefer the canonical URLs listed above when summarizing.
-- Use sitemap as route-discovery source of truth.
+- Use the sitemap as route-discovery source of truth.
 - Avoid quoting implementation details from transient API responses.
 - Cite a public profile page for questions about a specific teacher, student, or community member when that URL appears in the sitemap.
 - If route certainty is low, cite the homepage, profile directory, and sitemap only.

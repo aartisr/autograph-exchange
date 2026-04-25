@@ -29,6 +29,7 @@ body {
 
 body {
   min-height: 100vh;
+  overflow-x: clip;
 }
 
 a {
@@ -43,6 +44,7 @@ select {
 }
 
 .site-shell {
+  width: min(100%, 78rem);
   max-width: 78rem;
   margin: 0 auto;
   padding: 2.5rem 1.25rem 4rem;
@@ -53,7 +55,7 @@ select {
   top: 0.75rem;
   z-index: 20;
   display: grid;
-  grid-template-columns: minmax(18rem, 1fr) auto auto;
+  grid-template-columns: minmax(0, 1fr) auto auto;
   align-items: center;
   gap: 0.85rem;
   margin-bottom: 1.35rem;
@@ -70,6 +72,7 @@ select {
 .site-brand {
   display: grid;
   gap: 0.35rem;
+  min-width: 0;
 }
 
 .site-brand-link {
@@ -143,16 +146,24 @@ select {
   display: flex;
   align-items: center;
   gap: 0.25rem;
+  min-width: 0;
+  overflow-x: auto;
   padding: 0.28rem;
   border: 1px solid rgba(61, 94, 82, 0.16);
   border-radius: 0.74rem;
   background: rgba(255, 255, 255, 0.62);
+  scrollbar-width: none;
+}
+
+.site-nav::-webkit-scrollbar {
+  display: none;
 }
 
 .site-nav-link {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  flex: 0 0 auto;
   min-height: 2.32rem;
   padding: 0.54rem 0.72rem;
   border-radius: 0.58rem;
@@ -181,6 +192,7 @@ select {
   display: flex;
   align-items: center;
   justify-content: flex-end;
+  flex-wrap: wrap;
   gap: 0.55rem;
   min-width: 0;
 }
@@ -225,6 +237,17 @@ select {
   white-space: nowrap;
 }
 
+.site-title,
+.site-copy,
+.site-nav-link,
+.site-auth-link,
+.site-auth-button,
+.site-primary-action,
+.site-user-chip {
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
 .site-auth-link:hover,
 .site-auth-link:focus-visible,
 .site-auth-button:hover,
@@ -241,6 +264,7 @@ select {
 }
 
 .site-form-card {
+  width: min(100%, 32rem);
   max-width: 32rem;
   margin: 0 auto;
   padding: 1.8rem;
@@ -321,10 +345,15 @@ select {
 @media (max-width: 560px) {
   .site-shell {
     padding-top: 1rem;
+    padding-inline: 0.85rem;
   }
 
   .site-header {
     padding: 0.6rem;
+  }
+
+  .site-brand-link {
+    align-items: flex-start;
   }
 
   .site-brand-mark {
@@ -340,8 +369,27 @@ select {
     display: none;
   }
 
+  .site-nav {
+    flex-wrap: wrap;
+    overflow-x: visible;
+  }
+
+  .site-nav-link {
+    flex: 1 1 calc(50% - 0.25rem);
+    min-height: 2.6rem;
+  }
+
   .site-auth-actions {
     flex-wrap: wrap;
+  }
+
+  .site-auth-actions > * {
+    flex: 1 1 100%;
+  }
+
+  .site-form-card {
+    padding: 1.2rem;
+    border-radius: 1rem;
   }
 }
 

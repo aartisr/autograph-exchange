@@ -54,7 +54,13 @@ export const metadata: Metadata = {
   robots: {
     index: true,
     follow: true,
-    googleBot: { index: true, follow: true, "max-snippet": -1 },
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-snippet": -1,
+      "max-image-preview": "large",
+      "max-video-preview": -1,
+    },
   },
   openGraph: {
     type: "website",
@@ -76,7 +82,12 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title,
     description,
-    images: ["/twitter-image"],
+    images: [
+      {
+        url: "/twitter-image",
+        alt: "Autograph Exchange social preview",
+      },
+    ],
   },
 };
 

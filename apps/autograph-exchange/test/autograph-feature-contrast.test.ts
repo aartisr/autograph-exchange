@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 
 const stylesheetPath = resolve(__dirname, "../../../packages/autograph-feature/styles.css");
 const stylesheet = readFileSync(stylesheetPath, "utf8");
+const appStylesheet = readFileSync(resolve(__dirname, "../app/globals.css"), "utf8");
 
 function extractToken(source: string, name: string): string {
   const pattern = new RegExp(`${name}:\\s*([^;]+);`);
@@ -232,5 +233,23 @@ describe("autograph feature contrast tokens", () => {
   it("keeps the book styling away from orb backgrounds and cramped display type", () => {
     expect(stylesheet).not.toContain("radial-gradient");
     expect(stylesheet).not.toMatch(/letter-spacing:\s*-/);
+  });
+
+  it("keeps feature grids and profile tiles fluid on narrow screens", () => {
+    expect(stylesheet).toContain("grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));");
+    expect(stylesheet).toContain("grid-template-columns: repeat(auto-fit, minmax(min(100%, 8.5rem), 1fr));");
+    expect(stylesheet).toContain("grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));");
+    expect(stylesheet).toContain("grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr));");
+    expect(stylesheet).toContain("overflow-wrap: anywhere;");
+    expect(stylesheet).toContain("@media (max-width: 420px)");
+  });
+
+  it("keeps the standalone app header and forms within the viewport", () => {
+    expect(appStylesheet).toContain("overflow-x: clip;");
+    expect(appStylesheet).toContain("grid-template-columns: minmax(0, 1fr) auto auto;");
+    expect(appStylesheet).toContain("overflow-x: auto;");
+    expect(appStylesheet).toContain("scrollbar-width: none;");
+    expect(appStylesheet).toContain("width: min(100%, 32rem);");
+    expect(appStylesheet).toContain("flex: 1 1 calc(50% - 0.25rem);");
   });
 });

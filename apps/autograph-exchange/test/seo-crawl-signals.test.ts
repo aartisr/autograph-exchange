@@ -26,10 +26,16 @@ describe("Autograph Exchange crawl signals", () => {
     const robotRules = Array.isArray(robots().rules) ? robots().rules : [robots().rules];
     const bingbotRule = robotRules.find((rule) => rule.userAgent === "Bingbot");
     const adIdxBotRule = robotRules.find((rule) => rule.userAgent === "AdIdxBot");
+    const openAiSearchRule = robotRules.find((rule) => rule.userAgent === "OAI-SearchBot");
+    const perplexityRule = robotRules.find((rule) => rule.userAgent === "PerplexityBot");
+    const claudeSearchRule = robotRules.find((rule) => rule.userAgent === "Claude-SearchBot");
     const wildcardRule = robotRules.find((rule) => rule.userAgent === "*");
 
     expect(bingbotRule).toBeTruthy();
     expect(adIdxBotRule).toBeTruthy();
+    expect(openAiSearchRule).toBeTruthy();
+    expect(perplexityRule).toBeTruthy();
+    expect(claudeSearchRule).toBeTruthy();
     expect(wildcardRule).toBeTruthy();
 
     const allow = Array.isArray(bingbotRule?.allow) ? bingbotRule?.allow : [bingbotRule?.allow];

@@ -109,6 +109,44 @@
   padding: clamp(0.25rem, 1vw, 0.5rem);
 }
 
+.autograph-shell,
+.autograph-shell * {
+  min-width: 0;
+}
+
+.autograph-shell :is(
+  .autograph-feature-title,
+  .autograph-feature-copy,
+  .autograph-feature-benefit-title,
+  .autograph-feature-benefit-copy,
+  .autograph-momentum-step-value,
+  .autograph-hero-title,
+  .autograph-hero-description,
+  .autograph-book-page-title,
+  .autograph-book-page-detail,
+  .autograph-card-title,
+  .autograph-section-step,
+  .autograph-section-copy,
+  .autograph-request-pair,
+  .autograph-request-message,
+  .autograph-signature-quote,
+  .autograph-profile-card-name,
+  .autograph-profile-name,
+  .autograph-profile-card-headline,
+  .autograph-profile-headline,
+  .autograph-profile-meta,
+  .autograph-profile-bio,
+  .autograph-profile-prompt,
+  .autograph-profile-highlight dd,
+  .autograph-profile-snapshot-row dd,
+  .autograph-profile-breadcrumbs li[aria-current="page"]
+) {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: normal;
+  hyphens: auto;
+}
+
 .autograph-screen {
   display: grid;
   gap: 1.75rem;
@@ -205,7 +243,7 @@
 
 .autograph-feature-benefits {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
   gap: var(--autograph-space-3);
 }
 
@@ -313,7 +351,7 @@
 
 .autograph-momentum-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
   gap: 0.85rem;
 }
 
@@ -1030,7 +1068,7 @@
 .autograph-quick-steps {
   grid-area: steps;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
   align-items: stretch;
   gap: var(--autograph-space-3);
   margin-top: 0.1rem;
@@ -1090,7 +1128,7 @@
 .autograph-hero-stats {
   grid-area: stats;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 8.5rem), 1fr));
   align-content: start;
   gap: var(--autograph-space-2);
   min-width: 0;
@@ -2833,7 +2871,7 @@
 
 .autograph-profile-grid-list {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
   gap: 1rem;
 }
 
@@ -2854,6 +2892,11 @@
   display: flex;
   align-items: center;
   gap: 1rem;
+}
+
+.autograph-profile-card-top > div,
+.autograph-profile-identity {
+  min-width: 0;
 }
 
 .autograph-profile-hero-main {
@@ -3198,7 +3241,7 @@
 
 .autograph-profile-highlight-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr));
   gap: 0.75rem;
   margin: 0;
   padding-top: clamp(0.9rem, 1.6vw, 1.15rem);
@@ -3649,13 +3692,28 @@
     width: 100%;
   }
 
-  .autograph-profile-highlight-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
   .autograph-profile-hero-main {
     align-items: flex-start;
     flex-direction: column;
+  }
+}
+
+@media (max-width: 420px) {
+  .autograph-profile-name {
+    font-size: 1.85rem;
+  }
+
+  .autograph-profile-highlight-grid,
+  .autograph-profile-snapshot-row {
+    grid-template-columns: 1fr;
+  }
+
+  .autograph-profile-action-card,
+  .autograph-profile-detail-card,
+  .autograph-profile-side-card,
+  .autograph-profile-card,
+  .autograph-profile-identity-card {
+    border-radius: 1rem;
   }
 }
 

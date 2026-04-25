@@ -34,7 +34,13 @@ export const siteKeywords = [
   "community keepsakes",
   "student autographs",
   "teacher appreciation",
+  "public autograph profiles",
+  "AI searchable keepsake app",
 ];
+
+function uniqueValues(values: string[]) {
+  return Array.from(new Set(values.filter(Boolean)));
+}
 
 export function absoluteUrl(path = "/") {
   return new URL(path, `${siteUrl}/`).toString();
@@ -69,13 +75,26 @@ export function buildPageMetadata({
   return {
     title,
     description,
-    keywords: [...siteKeywords, ...keywords],
+    applicationName: siteName,
+    authors: [{ name: authorName, url: authorUrl }],
+    creator: authorName,
+    publisher: organizationName,
+    category: "social",
+    classification: "Digital autograph and keepsake sharing",
+    keywords: uniqueValues([...siteKeywords, ...keywords]),
     alternates: {
       canonical: canonicalUrl,
     },
     robots: {
       index: true,
       follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        "max-snippet": -1,
+        "max-image-preview": "large",
+        "max-video-preview": -1,
+      },
     },
     other: {
       bingbot: "index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1",
@@ -100,7 +119,12 @@ export function buildPageMetadata({
       card: "summary_large_image",
       title,
       description,
-      images: [imagePath],
+      images: [
+        {
+          url: imagePath,
+          alt: imageAlt,
+        },
+      ],
     },
   };
 }
@@ -137,6 +161,7 @@ export const siteJsonLd = {
         "@id": personId,
       },
       logo: absoluteUrl("/autograph-icon.svg"),
+      sameAs: [organizationUrl, authorUrl],
     },
     {
       "@type": "Person",
@@ -161,6 +186,14 @@ export const siteJsonLd = {
       publisher: {
         "@id": organizationId,
       },
+      hasPart: [
+        {
+          "@id": pageId("/"),
+        },
+        {
+          "@id": pageId("/profiles"),
+        },
+      ],
     },
     {
       "@type": "WebApplication",
@@ -170,8 +203,13 @@ export const siteJsonLd = {
       description: siteDescription,
       applicationCategory: "SocialNetworkingApplication",
       operatingSystem: "Web",
+      browserRequirements: "Requires JavaScript and a modern web browser",
+      availableOnDevice: ["Desktop", "Tablet", "Mobile"],
       inLanguage: "en-US",
       isAccessibleForFree: true,
+      isFamilyFriendly: true,
+      accessibilitySummary:
+        "The app uses public profile pages, visible labels, keyboard-accessible controls, high-contrast themes, and responsive layouts.",
       creator: {
         "@id": personId,
       },
@@ -179,16 +217,33 @@ export const siteJsonLd = {
         "@id": organizationId,
       },
       image: absoluteUrl("/opengraph-image"),
+      screenshot: absoluteUrl("/opengraph-image"),
       offers: {
         "@type": "Offer",
         price: "0",
         priceCurrency: "USD",
+        availability: "https://schema.org/InStock",
       },
+      audience: [
+        { "@type": "Audience", audienceType: "student communities" },
+        { "@type": "Audience", audienceType: "teachers and schools" },
+        { "@type": "Audience", audienceType: "event and cohort organizers" },
+      ],
       featureList: [
         "Digital autograph requests",
         "Replies with personal messages",
         "Reusable event keepsake experience",
         "Browser-based access without app installs",
+        "Public teacher and student profile pages",
+        "Profile preview before requesting",
+      ],
+      hasPart: [
+        {
+          "@id": pageId("/"),
+        },
+        {
+          "@id": pageId("/profiles"),
+        },
       ],
     },
     {
@@ -207,6 +262,12 @@ export const siteJsonLd = {
       breadcrumb: {
         "@id": breadcrumbId("/"),
       },
+      primaryImageOfPage: {
+        "@type": "ImageObject",
+        url: absoluteUrl("/opengraph-image"),
+        width: 1200,
+        height: 630,
+      },
     },
     {
       "@type": "CollectionPage",
@@ -220,6 +281,17 @@ export const siteJsonLd = {
       },
       breadcrumb: {
         "@id": breadcrumbId("/profiles"),
+      },
+      primaryImageOfPage: {
+        "@type": "ImageObject",
+        url: absoluteUrl("/opengraph-image"),
+        width: 1200,
+        height: 630,
+      },
+      mainEntity: {
+        "@type": "ItemList",
+        name: "Autograph Exchange public profiles",
+        itemListOrder: "https://schema.org/ItemListUnordered",
       },
     },
     {
