@@ -186,7 +186,7 @@ describe("autograph feature sections", () => {
     expect(profileHtml).toContain("autograph-field-hint");
     expect(profileHtml).toContain('type="file"');
     expect(profileHtml).toContain("Paste an image URL or choose a local image under 5 MB.");
-    expect(profileHtml).toContain("Uploaded photos are cropped, resized, and compressed in your browser before storage");
+    expect(profileHtml).toContain("Uploaded photos are cropped, resized, and compressed as compact JPEGs in your browser before storage");
     expect(profileHtml).toContain("asha@example.com");
     expect(requestHtml).toContain("autograph-section-card");
     expect(requestHtml).toContain("Choose one person");

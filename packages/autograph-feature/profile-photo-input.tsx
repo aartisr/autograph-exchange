@@ -7,11 +7,9 @@ import { EnlargableProfilePhoto } from "./profile-photo-lightbox";
 const PROFILE_PHOTO_ACCEPT = "image/png,image/jpeg,image/webp,image/gif";
 const PROFILE_PHOTO_MAX_BYTES = 5_000_000;
 const PROFILE_PHOTO_MAX_STORED_BYTES = 140_000;
-const PROFILE_PHOTO_SIZES = [480, 384, 320, 256] as const;
-const PROFILE_PHOTO_OUTPUTS = [
-  { type: "image/webp", qualities: [0.82, 0.72, 0.62, 0.52] },
-  { type: "image/jpeg", qualities: [0.82, 0.72, 0.62, 0.52] },
-] as const;
+const PROFILE_PHOTO_OUTPUT_TYPE = "image/jpeg";
+const PROFILE_PHOTO_SIZES = [480, 384, 320, 256, 192] as const;
+const PROFILE_PHOTO_QUALITIES = [0.82, 0.72, 0.62, 0.52, 0.44, 0.36] as const;
 
 type OptimizedProfilePhoto = {
   dataUrl: string;
@@ -130,25 +128,23 @@ async function readProfilePhoto(file: File): Promise<OptimizedProfilePhoto> {
   for (const size of PROFILE_PHOTO_SIZES) {
     const canvas = drawSquareAvatar(image, size);
 
-    for (const output of PROFILE_PHOTO_OUTPUTS) {
-      for (const quality of output.qualities) {
-        const dataUrl = canvas.toDataURL(output.type, quality);
-        if (!dataUrl.startsWith(`data:${output.type}`)) {
-          continue;
-        }
+    for (const quality of PROFILE_PHOTO_QUALITIES) {
+      const dataUrl = canvas.toDataURL(PROFILE_PHOTO_OUTPUT_TYPE, quality);
+      if (!dataUrl.startsWith(`data:${PROFILE_PHOTO_OUTPUT_TYPE}`)) {
+        continue;
+      }
 
-        const optimizedBytes = dataUrlBytes(dataUrl);
-        const candidate: OptimizedProfilePhoto = {
-          dataUrl,
-          originalBytes: file.size,
-          optimizedBytes,
-          size,
-          mimeType: output.type,
-        };
+      const optimizedBytes = dataUrlBytes(dataUrl);
+      const candidate: OptimizedProfilePhoto = {
+        dataUrl,
+        originalBytes: file.size,
+        optimizedBytes,
+        size,
+        mimeType: PROFILE_PHOTO_OUTPUT_TYPE,
+      };
 
-        if (!smallest || optimizedBytes < smallest.optimizedBytes) {
-          smallest = candidate;
-        }
+      if (!smallest || optimizedBytes < smallest.optimizedBytes) {
+        smallest = candidate;
       }
     }
   }
@@ -254,7 +250,7 @@ export function ProfilePhotoInput({
         </div>
       </div>
       <p id={hintId} className="autograph-field-hint">
-        Paste an image URL or choose a local image under 5 MB. Uploaded photos are cropped, resized, and compressed in your browser before storage; the original file is not stored.
+        Paste an image URL or choose a local image under 5 MB. Uploaded photos are cropped, resized, and compressed as compact JPEGs in your browser before storage; the original file is not stored.
       </p>
       {status ? (
         <p className="autograph-field-hint" role="status">
