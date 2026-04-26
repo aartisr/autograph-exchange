@@ -4,6 +4,7 @@ interface PrismaProfileDelegate {
   findMany(args?: { where?: { userId?: string } }): Promise<ProfileEntry[]>;
   create(args: { data: Omit<ProfileEntry, "id"> }): Promise<ProfileEntry>;
   update(args: { where: { id: string }; data: Partial<Omit<ProfileEntry, "id">> }): Promise<ProfileEntry>;
+  delete(args: { where: { id: string } }): Promise<ProfileEntry>;
 }
 
 interface PrismaRequestDelegate {
@@ -35,6 +36,12 @@ export function createPrismaAutographStorage(client: PrismaLikeClient): Autograp
 
       return client.autographProfile.create({
         data: profile,
+      });
+    },
+
+    async deleteProfile(profileId) {
+      await client.autographProfile.delete({
+        where: { id: profileId },
       });
     },
 

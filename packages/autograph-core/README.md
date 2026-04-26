@@ -20,6 +20,9 @@ import { createAutographService, type AutographStorage } from "@aartisr/autograp
 const storage: AutographStorage = {
   listProfiles: async () => [],
   saveProfile: async (profile) => ({ id: "profile-1", ...profile }),
+  deleteProfile: async (_profileId) => {
+    // Remove the profile record only. Existing autograph requests keep their snapshots.
+  },
   listRequests: async () => [],
   createRequest: async (request) => ({ id: "request-1", ...request }),
   updateRequest: async (requestId, patch) => ({
@@ -42,7 +45,7 @@ export const autographService = createAutographService(storage);
 
 ## Generic Module Store Bridge
 
-If the host already has a generic module store with `list/create/update`, use `createModuleAutographStorage(...)`:
+If the host already has a generic module store with `list/create/update/delete`, use `createModuleAutographStorage(...)`:
 
 ```ts
 import { createAutographService, createModuleAutographStorage } from "@aartisr/autograph-core";

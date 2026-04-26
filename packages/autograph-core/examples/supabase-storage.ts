@@ -1,6 +1,7 @@
 import type { AutographStorage, ProfileEntry, RequestEntry } from "../service";
 
 type SupabaseMutationResult<T> = Promise<{ data: T | null; error: { message: string } | null }>;
+type SupabaseDeleteResult = Promise<{ data: Array<{ id: string }> | null; error: { message: string } | null }>;
 
 interface SupabaseSelectBuilder<T> {
   eq(column: string, value: string): SupabaseSelectBuilder<T>;
@@ -19,6 +20,7 @@ interface SupabaseTable<T> {
   update(values: Partial<Omit<T, "id">>): {
     eq(column: string, value: string): { select(): { single(): SupabaseMutationResult<T> } };
   };
+  delete(): { eq(column: string, value: string): { select(columns?: string): SupabaseDeleteResult } };
 }
 
 interface SupabaseLikeClient {
@@ -62,6 +64,14 @@ export function createSupabaseAutographStorage(client: SupabaseLikeClient): Auto
         throw new Error("Unable to create autograph profile.");
       }
       return result.data;
+    },
+
+    async deleteProfile(profileId) {
+      const result = await client.from<ProfileEntry>("autograph_profiles").delete().eq("id", profileId).select("id");
+      assertNoError(result.error);
+      if (!Array.isArray(result.data) || result.data.length === 0) {
+        throw new Error("Unable to delete autograph profile.");
+      }
     },
 
     async listRequests() {

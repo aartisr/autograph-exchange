@@ -861,6 +861,105 @@ function ProfileFormFields({
   );
 }
 
+function ProfileDeleteDialog({
+  profile,
+  confirmationValue,
+  isDeleting,
+  onConfirmationChange,
+  onCancel,
+  onConfirm,
+}: {
+  profile: AutographProfile;
+  confirmationValue: string;
+  isDeleting: boolean;
+  onConfirmationChange: (value: string) => void;
+  onCancel: () => void;
+  onConfirm: (event: React.FormEvent<HTMLFormElement>) => void;
+}) {
+  const expectedValue = profile.displayName.trim();
+  const canDelete = confirmationValue.trim() === expectedValue;
+
+  function trapDialogFocus(event: React.KeyboardEvent<HTMLFormElement>) {
+    if (event.key !== "Tab") {
+      return;
+    }
+
+    const focusable = Array.from(
+      event.currentTarget.querySelectorAll<HTMLElement>(
+        'button:not([disabled]), input:not([disabled]), [href], [tabindex]:not([tabindex="-1"])',
+      ),
+    );
+
+    if (focusable.length === 0) {
+      return;
+    }
+
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+      return;
+    }
+
+    if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  }
+
+  return (
+    <div
+      className="autograph-confirmation-backdrop"
+      role="presentation"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget && !isDeleting) {
+          onCancel();
+        }
+      }}
+    >
+      <form
+        className="autograph-confirmation-dialog"
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="autograph-delete-profile-title"
+        aria-describedby="autograph-delete-profile-description"
+        onSubmit={onConfirm}
+        onKeyDown={trapDialogFocus}
+      >
+        <div className="autograph-confirmation-header">
+          <p className="autograph-context-label">Destructive action</p>
+          <h3 id="autograph-delete-profile-title">Delete {profile.displayName}?</h3>
+        </div>
+        <p id="autograph-delete-profile-description" className="app-copy-soft">
+          This removes the profile from the public directory and future signer lists. Existing autograph requests keep
+          their history, names, and messages.
+        </p>
+        <label className="autograph-field">
+          <span className="app-form-label">Type the display name to confirm</span>
+          <input
+            className={INPUT_CLASS}
+            value={confirmationValue}
+            onChange={(event) => onConfirmationChange(event.target.value)}
+            placeholder={expectedValue}
+            autoFocus
+            disabled={isDeleting}
+          />
+        </label>
+        <div className="autograph-confirmation-actions">
+          <button type="button" className="autograph-secondary-btn" onClick={onCancel} disabled={isDeleting}>
+            Keep profile
+          </button>
+          <button type="submit" className="autograph-danger-btn" disabled={!canDelete || isDeleting}>
+            {isDeleting ? "Deleting..." : "Delete profile"}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
 export function AutographProfileAdminPanel({
   initialProfiles,
   listEndpoint = "/api/autographs/admin/profiles",
@@ -874,6 +973,9 @@ export function AutographProfileAdminPanel({
   const [error, setError] = React.useState<string | null>(null);
   const [isSaving, setIsSaving] = React.useState(false);
   const [loadingProfileId, setLoadingProfileId] = React.useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = React.useState<AutographProfile | null>(null);
+  const [deleteConfirmation, setDeleteConfirmation] = React.useState("");
+  const [deletingProfileId, setDeletingProfileId] = React.useState<string | null>(null);
   const [profileQuery, setProfileQuery] = React.useState("");
   const [roleFilter, setRoleFilter] = React.useState<"all" | AutographRole>("all");
   const isEditing = Boolean(form.id);
@@ -898,6 +1000,21 @@ export function AutographProfileAdminPanel({
       return matchesRole && (!query || haystack.includes(query));
     });
   }, [profileQuery, profiles, roleFilter]);
+
+  React.useEffect(() => {
+    if (!deleteTarget) {
+      return undefined;
+    }
+
+    function closeOnEscape(event: KeyboardEvent) {
+      if (event.key === "Escape" && !deletingProfileId) {
+        setDeleteTarget(null);
+      }
+    }
+
+    document.addEventListener("keydown", closeOnEscape);
+    return () => document.removeEventListener("keydown", closeOnEscape);
+  }, [deleteTarget, deletingProfileId]);
 
   async function editProfile(profile: AutographProfile) {
     setLoadingProfileId(profile.id);
@@ -951,6 +1068,45 @@ export function AutographProfileAdminPanel({
       setError(err instanceof Error ? err.message : "Unable to save profile.");
     } finally {
       setIsSaving(false);
+    }
+  }
+
+  async function deleteProfile(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!deleteTarget) {
+      return;
+    }
+
+    if (deleteConfirmation.trim() !== deleteTarget.displayName.trim()) {
+      setError("Type the profile display name to confirm deletion.");
+      return;
+    }
+
+    setDeletingProfileId(deleteTarget.id);
+    setStatus(null);
+    setError(null);
+
+    try {
+      const response = await fetch(`${listEndpoint}/${encodeURIComponent(deleteTarget.id)}`, {
+        method: "DELETE",
+        credentials: "same-origin",
+      });
+
+      if (!response.ok) {
+        const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+        throw new Error(payload?.error ?? "Unable to delete profile.");
+      }
+
+      setProfiles((prev) => prev.filter((profile) => profile.id !== deleteTarget.id));
+      setForm((prev) => (prev.id === deleteTarget.id ? profileToForm() : prev));
+      setStatus(`Deleted ${deleteTarget.displayName}. Existing autograph requests keep their history.`);
+      setDeleteTarget(null);
+      setDeleteConfirmation("");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to delete profile.");
+    } finally {
+      setDeletingProfileId(null);
     }
   }
 
@@ -1039,6 +1195,20 @@ export function AutographProfileAdminPanel({
                       <button type="button" className="autograph-secondary-btn" onClick={() => void editProfile(profile)} disabled={loadingProfileId === profile.id}>
                         {loadingProfileId === profile.id ? "Loading..." : "Edit"}
                       </button>
+                      <button
+                        type="button"
+                        className="autograph-danger-btn autograph-danger-btn--quiet"
+                        onClick={() => {
+                          setDeleteTarget(profile);
+                          setDeleteConfirmation("");
+                          setStatus(null);
+                          setError(null);
+                        }}
+                        disabled={deletingProfileId === profile.id}
+                        aria-label={`Delete ${profile.displayName}`}
+                      >
+                        {deletingProfileId === profile.id ? "Deleting..." : "Delete"}
+                      </button>
                     </div>
                   </article>
                 ))
@@ -1049,6 +1219,20 @@ export function AutographProfileAdminPanel({
           </section>
         </aside>
       </div>
+      {deleteTarget ? (
+        <ProfileDeleteDialog
+          profile={deleteTarget}
+          confirmationValue={deleteConfirmation}
+          isDeleting={deletingProfileId === deleteTarget.id}
+          onConfirmationChange={setDeleteConfirmation}
+          onCancel={() => {
+            if (!deletingProfileId) {
+              setDeleteTarget(null);
+            }
+          }}
+          onConfirm={(event) => void deleteProfile(event)}
+        />
+      ) : null}
     </section>
   );
 }

@@ -119,6 +119,7 @@ describe("autograph feature sections", () => {
     expect(adminHtml).toContain("Profile roster");
     expect(adminHtml).toContain("Search profiles");
     expect(adminHtml).toContain("View public page");
+    expect(adminHtml).toContain("Delete");
   });
 
   it("renders the hero section with package-owned structure", () => {

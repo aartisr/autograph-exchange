@@ -35,6 +35,12 @@ export function createRestAutographStorage(baseUrl: string): AutographStorage {
       });
     },
 
+    async deleteProfile(profileId) {
+      await requestJson(baseUrl, `/api/autographs/profiles/${encodeURIComponent(profileId)}`, {
+        method: "DELETE",
+      });
+    },
+
     listRequests() {
       return requestJson<RequestEntry[]>(baseUrl, "/api/autographs/requests");
     },

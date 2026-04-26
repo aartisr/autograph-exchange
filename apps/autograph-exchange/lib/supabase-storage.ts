@@ -382,6 +382,23 @@ export function createSupabaseAutographStorage(config: AutographSupabasePersiste
       return mapSingleProfileRow(data);
     },
 
+    async deleteProfile(profileId: string, context?: AutographStorageContext): Promise<void> {
+      let query = db.from(config.profilesTable).delete().eq("id", profileId);
+
+      if (context?.userId) {
+        query = query.eq("user_id", context.userId);
+      }
+
+      const { data, error } = await query.select("id");
+      if (error) {
+        throw new Error(`Unable to delete autograph profile: ${error.message}`);
+      }
+
+      if (!Array.isArray(data) || data.length === 0) {
+        throw new Error(`Entry not found: profile:${profileId}`);
+      }
+    },
+
     async listRequests(_context?: AutographStorageContext): Promise<RequestEntry[]> {
       const { data, error } = await db.from(config.requestsTable).select(requestColumns).order("created_at", {
         ascending: false,

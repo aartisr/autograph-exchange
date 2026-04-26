@@ -56,6 +56,10 @@
   --autograph-button-secondary-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 251, 249, 0.92) 100%);
   --autograph-button-secondary-border: rgba(30, 71, 61, 0.18);
   --autograph-button-secondary-shadow: 0 8px 14px rgba(23, 52, 42, 0.08);
+  --autograph-danger-text: #84231e;
+  --autograph-danger-bg: linear-gradient(180deg, rgba(255, 247, 246, 0.98) 0%, rgba(250, 231, 228, 0.94) 100%);
+  --autograph-danger-border: rgba(151, 49, 42, 0.34);
+  --autograph-danger-shadow: 0 10px 18px rgba(116, 34, 29, 0.12);
   --autograph-signed-glow: rgba(58, 132, 101, 0.3);
   --autograph-ring: rgba(186, 121, 43, 0.34);
   --autograph-step-surface: linear-gradient(180deg, rgba(246, 250, 247, 0.98) 0%, rgba(236, 245, 240, 0.95) 100%);
@@ -2108,6 +2112,38 @@
   outline: none;
 }
 
+.autograph-danger-btn {
+  border: 1px solid var(--autograph-danger-border);
+  background: var(--autograph-danger-bg);
+  color: var(--autograph-danger-text);
+  font-size: 0.79rem;
+  font-weight: 800;
+  border-radius: 0.76rem;
+  padding: 0.48rem 0.78rem;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  transition: border-color 150ms ease, transform 150ms ease, box-shadow 150ms ease, opacity 150ms ease;
+}
+
+.autograph-danger-btn--quiet {
+  background: transparent;
+}
+
+.autograph-danger-btn:hover,
+.autograph-danger-btn:focus-visible {
+  transform: translateY(-1px);
+  box-shadow: var(--autograph-danger-shadow);
+  outline: none;
+}
+
+.autograph-danger-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  transform: none;
+  box-shadow: none;
+}
+
 .autograph-sign-panel {
   margin-top: 0.45rem;
   border-top: 1px dashed var(--autograph-card-border);
@@ -3610,6 +3646,48 @@
   padding: 0.95rem;
 }
 
+.autograph-confirmation-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(9, 24, 20, 0.48);
+  backdrop-filter: blur(10px);
+}
+
+.autograph-confirmation-dialog {
+  width: min(100%, 34rem);
+  display: grid;
+  gap: 1rem;
+  border: 1px solid var(--autograph-card-border);
+  border-radius: 1.25rem;
+  background: var(--autograph-card-bg);
+  box-shadow: var(--autograph-shadow-strong);
+  padding: clamp(1.1rem, 3vw, 1.45rem);
+}
+
+.autograph-confirmation-header {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.autograph-confirmation-header h3 {
+  margin: 0;
+  color: var(--autograph-heading-color);
+  font-size: clamp(1.25rem, 4vw, 1.65rem);
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+.autograph-confirmation-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.65rem;
+}
+
 .autograph-empty-state {
   margin: 0;
   padding: 1rem;
@@ -3768,6 +3846,10 @@
     --autograph-button-secondary-bg: linear-gradient(180deg, rgba(40, 66, 56, 0.96) 0%, rgba(31, 52, 44, 0.92) 100%);
     --autograph-button-secondary-border: rgba(171, 214, 194, 0.34);
     --autograph-button-secondary-shadow: 0 8px 14px rgba(0, 0, 0, 0.24);
+    --autograph-danger-text: #ffd7d3;
+    --autograph-danger-bg: linear-gradient(180deg, rgba(93, 38, 35, 0.96) 0%, rgba(70, 31, 29, 0.92) 100%);
+    --autograph-danger-border: rgba(255, 183, 175, 0.4);
+    --autograph-danger-shadow: 0 10px 18px rgba(0, 0, 0, 0.26);
     --autograph-ring: rgba(224, 182, 116, 0.58);
     --autograph-step-surface: linear-gradient(180deg, rgba(34, 58, 48, 0.96) 0%, rgba(26, 46, 38, 0.94) 100%);
     --autograph-step-border: rgba(171, 214, 194, 0.34);

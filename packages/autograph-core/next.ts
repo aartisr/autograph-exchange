@@ -34,6 +34,10 @@ function handleError(error: unknown, fallbackMessage: string) {
     return NextResponse.json({ error: "Administrator access required." }, { status: 403 });
   }
 
+  if (error instanceof Error && error.message === "Profile not found.") {
+    return NextResponse.json({ error: error.message }, { status: 404 });
+  }
+
   if (error instanceof Error) {
     return NextResponse.json({ error: error.message }, { status: 400 });
   }
@@ -271,6 +275,25 @@ export function createAutographAdminProfilePutHandler(config: AutographNextRoute
       return NextResponse.json(profile);
     } catch (error) {
       return handleError(error, "Unable to update admin profile.");
+    }
+  };
+}
+
+export function createAutographAdminProfileDeleteHandler(config: AutographNextRouteConfig) {
+  return async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
+    if (featureIsDisabled(config.isEnabled)) {
+      return featureDisabledResponse();
+    }
+
+    try {
+      const userId = await requireAdminUserId(config);
+      const profile = await config.service.deleteAutographProfile(userId, params.id, {
+        canManageAllProfiles: true,
+      });
+
+      return NextResponse.json(profile);
+    } catch (error) {
+      return handleError(error, "Unable to delete admin profile.");
     }
   };
 }

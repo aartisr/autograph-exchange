@@ -114,6 +114,36 @@ export function createFileAutographStorage(): AutographStorage {
       return saved;
     },
 
+    async deleteProfile(profileId: string, context?: AutographStorageContext): Promise<void> {
+      let deleted = false;
+
+      writeQueue = writeQueue.then(async () => {
+        const store = await readStore();
+        const entries = Array.isArray(store.profiles) ? store.profiles : [];
+        const nextEntries = entries.filter((entry) => {
+          if (entry.id !== profileId) {
+            return true;
+          }
+
+          if (!withUserContext(entry, context)) {
+            return true;
+          }
+
+          deleted = true;
+          return false;
+        });
+
+        store.profiles = nextEntries;
+        await commitStore(store);
+      });
+
+      await writeQueue;
+
+      if (!deleted) {
+        throw new Error(`Entry not found: profile:${profileId}`);
+      }
+    },
+
     async listRequests(_context?: AutographStorageContext): Promise<RequestEntry[]> {
       const store = await readStore();
       const entries = Array.isArray(store.requests) ? store.requests : [];

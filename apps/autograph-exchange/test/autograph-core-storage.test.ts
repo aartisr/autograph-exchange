@@ -43,6 +43,20 @@ function createModuleStore() {
       entries[index] = updated as Record<string, unknown> & { id: string };
       return updated;
     },
+    async delete(module: string, id: string, context?: { userId?: string }): Promise<void> {
+      const entries = state[module as keyof typeof state] ?? [];
+      const index = entries.findIndex((entry) => entry.id === id);
+      if (index < 0) {
+        throw new Error(`Missing entry ${module}:${id}`);
+      }
+
+      const entry = entries[index];
+      if (context?.userId && "userId" in entry && entry.userId !== context.userId) {
+        throw new Error(`Missing entry ${module}:${id}`);
+      }
+
+      entries.splice(index, 1);
+    },
   };
 }
 
@@ -91,6 +105,13 @@ describe("createModuleAutographStorage", () => {
     expect(signed.status).toBe("signed");
     expect(signed.signatureText).toBe("Keep growing with courage.");
     expect(moduleStore.state.autograph_profiles).toHaveLength(2);
+    expect(moduleStore.state.autograph_requests).toHaveLength(1);
+
+    const deleted = await service.deleteAutographProfile("admin-user", signer.id, {
+      canManageAllProfiles: true,
+    });
+    expect(deleted.displayName).toBe("Ravikumar Raman");
+    expect(moduleStore.state.autograph_profiles).toHaveLength(1);
     expect(moduleStore.state.autograph_requests).toHaveLength(1);
   });
 });

@@ -24,6 +24,7 @@ export interface AutographStorage {
     profile: Omit<ProfileEntry, "id"> & Partial<Pick<ProfileEntry, "id">>,
     context?: AutographStorageContext,
   ): Promise<ProfileEntry>;
+  deleteProfile(profileId: string, context?: AutographStorageContext): Promise<void>;
   listRequests(context?: AutographStorageContext): Promise<RequestEntry[]>;
   createRequest(request: Omit<RequestEntry, "id">, context?: AutographStorageContext): Promise<RequestEntry>;
   updateRequest(
@@ -46,6 +47,7 @@ export interface AutographModuleStore {
     data: Partial<Omit<T, "id">>,
     context?: AutographStorageContext,
   ): Promise<T>;
+  delete(module: string, id: string, context?: AutographStorageContext): Promise<void>;
 }
 
 export interface AutographService {
@@ -63,6 +65,11 @@ export interface AutographService {
     actorUserId: string,
     profileId: string,
     input: UpsertAutographProfileInput,
+    options?: { canManageAllProfiles?: boolean },
+  ): Promise<AutographProfile>;
+  deleteAutographProfile(
+    actorUserId: string,
+    profileId: string,
     options?: { canManageAllProfiles?: boolean },
   ): Promise<AutographProfile>;
   listVisibleAutographRequests(actorUserId: string): Promise<AutographRequest[]>;
@@ -295,6 +302,10 @@ export function createModuleAutographStorage(store: AutographModuleStore): Autog
       return store.create<ProfileEntry>(AUTOGRAPH_PROFILES_MODULE, profile, context);
     },
 
+    deleteProfile(profileId, context) {
+      return store.delete(AUTOGRAPH_PROFILES_MODULE, profileId, context);
+    },
+
     listRequests(context) {
       return store.list<RequestEntry>(AUTOGRAPH_REQUESTS_MODULE, context);
     },
@@ -315,6 +326,13 @@ async function findLatestProfileForUser(storage: AutographStorage, userId: strin
     .map((entry) => normalizeProfile(entry))
     .filter((entry): entry is AutographProfile => Boolean(entry))
     .sort((a, b) => profileRecencyValue(b) - profileRecencyValue(a))[0];
+}
+
+async function findProfileById(storage: AutographStorage, profileId: string): Promise<AutographProfile | undefined> {
+  return (await storage.listProfiles())
+    .map((entry) => normalizeProfile(entry))
+    .filter((entry): entry is AutographProfile => Boolean(entry))
+    .find((entry) => entry.id === profileId);
 }
 
 async function saveProfileForUser(
@@ -425,6 +443,25 @@ export function createAutographService(storage: AutographStorage): AutographServ
       }
 
       return saveProfileForUser(storage, current.userId, input, profileId);
+    },
+
+    async deleteAutographProfile(
+      actorUserId: string,
+      profileId: string,
+      options?: { canManageAllProfiles?: boolean },
+    ): Promise<AutographProfile> {
+      const current = await findProfileById(storage, profileId);
+
+      if (!current) {
+        throw new Error("Profile not found.");
+      }
+
+      if (!options?.canManageAllProfiles && current.userId !== actorUserId) {
+        throw new Error("Only the profile owner can delete this profile.");
+      }
+
+      await storage.deleteProfile(profileId, { userId: current.userId });
+      return current;
     },
 
     async listVisibleAutographRequests(actorUserId: string): Promise<AutographRequest[]> {

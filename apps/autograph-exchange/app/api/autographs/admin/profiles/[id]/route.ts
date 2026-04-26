@@ -1,4 +1,7 @@
-import { createAutographAdminProfilePutHandler } from "@aartisr/autograph-core";
+import {
+  createAutographAdminProfileDeleteHandler,
+  createAutographAdminProfilePutHandler,
+} from "@aartisr/autograph-core";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { withDisplayAvatarJsonResponse } from "../../../_profile-payload";
@@ -12,6 +15,7 @@ const config = {
 } as const;
 
 const putAdminProfile = createAutographAdminProfilePutHandler(config);
+const deleteAdminProfile = createAutographAdminProfileDeleteHandler(config);
 
 function adminProfileErrorResponse(error: unknown): Response {
   if (error instanceof Error && error.message === "AUTH_REQUIRED") {
@@ -44,4 +48,8 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
 
 export async function PUT(request: NextRequest, context: { params: { id: string } }) {
   return withDisplayAvatarJsonResponse(await putAdminProfile(request, context));
+}
+
+export async function DELETE(request: NextRequest, context: { params: { id: string } }) {
+  return withDisplayAvatarJsonResponse(await deleteAdminProfile(request, context));
 }
